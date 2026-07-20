@@ -1,0 +1,2045 @@
+from base_plugin import BasePlugin, HookResult, HookStrategy, MenuItemData, MenuItemType, AppEvent, MethodHook  # pyright: ignore[reportMissingImports]
+from hook_utils import find_class  # pyright: ignore[reportMissingImports]
+from ui.settings import Header, Divider, Switch, Selector, Text  # pyright: ignore[reportMissingImports]
+from ui.bulletin import BulletinHelper  # pyright: ignore[reportMissingImports]
+from android_utils import run_on_ui_thread, log  # pyright: ignore[reportMissingImports]
+from client_utils import get_messages_controller, get_last_fragment, edit_message  # pyright: ignore[reportMissingImports]
+from org.telegram.messenger import AndroidUtilities, DialogObject, UserObject, ChatObject  # pyright: ignore[reportMissingImports]
+from com.exteragram.messenger.plugins import PluginsController  # pyright: ignore[reportMissingImports]
+from com.exteragram.messenger.plugins.ui import PluginSettingsActivity  # pyright: ignore[reportMissingImports]
+
+from java.util import Locale, ArrayList  # pyright: ignore[reportMissingImports]
+import json
+import sys
+import time
+import traceback
+import random
+import re
+
+__name__ = "CuteMessages"
+__description__ = (
+    "Makes your messages extra cute with many adorable styles!\n\nДелает твои сообщения милыми с различными стилями!"
+)
+__icon__ = "ColorfulMessages/28"
+__version__ = "1.7.0"
+__id__ = "cutemessagesenhanced"
+__author__ = "@mihailkotovski & @mishabotov & idea - @bleizix (updated by @abuztrade & @AwesomeTelegramPlugins)"
+__min_version__ = "11.9.0"
+
+
+class LocalizationManager:
+    def __init__(self):
+        self.language = Locale.getDefault().getLanguage()
+        self.language = self.language if self.language in self._get_supported_languages() else "en"
+
+    def get_string(self, string_key):
+        return self.strings[self.language].get(string_key, self.strings["en"].get(string_key, string_key))
+
+    def _get_supported_languages(self):
+        return self.strings.keys()
+
+    strings = {
+        "ru": {
+            "ENABLED": "✅ Милые сообщения включены",
+            "DISABLED": "❌ Милые сообщения отключены",
+            "SETTINGS_HEADER": "Настройки милых сообщений",
+            "ENABLE_SWITCH": "Включить милые сообщения",
+            "IGNORE_DOT_COMMANDS_SWITCH": "Игнорировать команды (.)",
+            "IGNORE_DOT_COMMANDS_INFO": "Не форматировать сообщения, начинающиеся с точки. Необходимо для совместимости с другими плагинами. Требуется перезапуск для применения.",
+            "EMOJI_FREQUENCY": "Частота классических эффектов",
+            "TEXT_STYLE": "Стиль текста (классика)",
+            "FREQUENCY_VERY_LOW": "Очень низкая (10%)",
+            "FREQUENCY_LOW": "Низкая (25%)",
+            "FREQUENCY_MEDIUM": "Средняя (50%)",
+            "FREQUENCY_HIGH": "Высокая (75%)",
+            "FREQUENCY_MAX": "Максимальная (100%)",
+            "STYLE_EMOJIS": "Только эмодзи",
+            "STYLE_KAOMOJI": "Каомодзи (◕‿◕)",
+            "STYLE_SPARKLES": "Звездочки ✨",
+            "STYLE_FULL_CLASSIC": "Все классические эффекты",
+            "INFO_TEXT": "Делает ваши сообщения милыми и очаровательными с множеством настроек!",
+            "ADVANCED_SETTINGS_HEADER": "Дополнительные эффекты",
+            "ENABLE_LOWERCASE_SWITCH": "Преобразовать в строчные буквы",
+            "LOWERCASE_INFO": "всё будет написано маленькими буквами для мягкости.",
+            "ENABLE_UWU_SPEAK_SWITCH": "Включить UwU-стиль (р/л → в/w)",
+            "UWU_SPEAK_INFO": "Заменяет 'р' и 'л' на 'в' (рус) или 'w' (англ).",
+            "ENABLE_UWU_SUFFIXES_SWITCH": "Добавлять UwU-суффиксы (nya, owo)",
+            "UWU_SUFFIXES_FREQUENCY": "Частота UwU-суффиксов",
+            "ENABLE_STUTTERING_SWITCH": "Включить заикание (п-привет)",
+            "STUTTERING_FREQUENCY": "Частота заикания",
+            "ENABLE_VOWEL_STRETCHING_SWITCH": "Растягивать гласные (милооо)",
+            "VOWEL_STRETCHING_FREQUENCY": "Частота растягивания гласных",
+            "VOWEL_STRETCHING_MAX_LENGTH": "Макс. длина растянутой гласной",
+            "MAX_LENGTH_2X": "Двойная (x2)",
+            "MAX_LENGTH_3X": "Тройная (x3)",
+            "ENABLE_CUTE_ACTIONS_SWITCH": "Добавлять милые действия (*обнимает*)",
+            "CUTE_ACTIONS_FREQUENCY": "Частота милых действий",
+            "CUTE_ACTIONS_INFO": "Добавляет действия вроде *обнимает* или *хихикает* в сообщения.",
+            "ACTIONS_ON_NEW_LINE": "Действия на новой строке",
+            "ACTIONS_ON_NEW_LINE_INFO": "Помещать милые действия (*обнимает*) на новую строку.",
+            "ENABLE_CUTE_PUNCTUATION_SWITCH": "Милая пунктуация (. → .~, ? → ?✨)",
+            "CUTE_PUNCTUATION_FREQUENCY": "Частота милой пунктуации",
+            "CUTE_PUNCTUATION_INFO": "Заменяет обычные точки и вопросы на более милые варианты.",
+            "ENABLE_SOFT_SIGN_SWITCH": "Добавлять 'ь' в конце слов (котикь)",
+            "SOFT_SIGN_FREQUENCY": "Частота добавления 'ь'",
+            "SOFT_SIGN_INFO": "Смягчает слова, добавляя 'ь' (в основном для русского языка).",
+            "ERROR_MESSAGE_CUTE": "Ой-ой! 🥺 Что-то пошло не так, когда я пытался сделать сообщение милым... Вот оригинал:",
+            "ENABLE_TEXT_BORDERS": "Включить рамки текста",
+            "TEXT_BORDERS_FREQUENCY": "Частота рамок текста",
+            "THEME_SELECTOR": "Выбор темы",
+            "THEME_RANDOM": "Случайная",
+            "THEME_PASTEL": "Пастельная",
+            "THEME_MAGICAL": "Волшебная",
+            "THEME_NATURE": "Природная",
+            "DONATE_HEADER": "Поддержать разработку",
+            "DONATE_CRYPTO": "Крипто кошелек",
+            "DONATE_INFO": "Другая информация и реквизиты",
+            "SHOW_SETTINGS_BUTTONS": "Кнопка настроек в меню",
+            "SHOW_SETTINGS_BUTTONS_DESC": "Добавляет кнопку открытия настроек плагина в меню",
+            "CHAT_FILTER_HEADER": "Фильтр чатов",
+            "CHAT_FILTER_MODE": "Режим фильтра чатов",
+            "CHAT_FILTER_MODE_ALL": "Все чаты",
+            "CHAT_FILTER_MODE_WHITELIST": "Белый список (только эти чаты)",
+            "CHAT_FILTER_MODE_BLACKLIST": "Чёрный список (все кроме этих чатов)",
+            "CHAT_FILTER_HINT": "Добавляйте чаты через меню чата (⋯) или убирайте здесь",
+            "CHAT_LIST_HEADER_WHITELIST": "Белый список",
+            "CHAT_LIST_HEADER_BLACKLIST": "Чёрный список",
+            "CHAT_LIST_EMPTY": "Список пуст",
+            "CHAT_LIST_REMOVE": "Убрать",
+            "CHAT_WHITELIST_ADD_BTN": "Cute: добавить в белый список",
+            "CHAT_WHITELIST_REMOVE_BTN": "Cute: удалить из белого списка",
+            "CHAT_BLACKLIST_ADD_BTN": "Cute: добавить в чёрный список",
+            "CHAT_BLACKLIST_REMOVE_BTN": "Cute: удалить из чёрного списка",
+            "CHAT_LIST_TOGGLE_NO_MODE": "Сначала выберите режим фильтра в настройках",
+            "CHAT_DIALOG_ID_ERROR": "Не удалось определить чат",
+            "CHAT_WHITELIST_ADDED": "Чат добавлен в белый список",
+            "CHAT_WHITELIST_REMOVED": "Чат удалён из белого списка",
+            "CHAT_BLACKLIST_ADDED": "Чат добавлен в чёрный список",
+            "CHAT_BLACKLIST_REMOVED": "Чат удалён из чёрного списка",
+            "IGNORE_SLASH_COMMANDS_SWITCH": "Игнорировать команды ботов (/)",
+            "IGNORE_SLASH_COMMANDS_INFO": "Не форматировать сообщения, начинающиеся с / (например /start, /help).",
+            "UNDO_RESTORE": "Cute: вернуть оригинал",
+            "UNDO_RESTORE_SUB": "Отменить изменение текста (только последние 5 сообщений)",
+            "UNDO_RESTORED": "Оригинальный текст восстановлен",
+            "UNDO_NOTHING": "Оригинал недоступен",
+        },
+        "en": {
+            "ENABLED": "✅ Cute messages enabled",
+            "DISABLED": "❌ Cute messages disabled",
+            "SETTINGS_HEADER": "Cute Messages Settings",
+            "ENABLE_SWITCH": "Enable cute messages",
+            "IGNORE_DOT_COMMANDS_SWITCH": "Ignore dot-commands (.)",
+            "IGNORE_DOT_COMMANDS_INFO": "Don't format messages starting with a dot. Needed for compatibility with other plugins. Requires restart to apply.",
+            "EMOJI_FREQUENCY": "Classic Effects Frequency",
+            "TEXT_STYLE": "Text Style (Classic)",
+            "FREQUENCY_VERY_LOW": "Very Low (10%)",
+            "FREQUENCY_LOW": "Low (25%)",
+            "FREQUENCY_MEDIUM": "Medium (50%)",
+            "FREQUENCY_HIGH": "High (75%)",
+            "FREQUENCY_MAX": "Maximum (100%)",
+            "STYLE_EMOJIS": "Emojis only",
+            "STYLE_KAOMOJI": "Kaomoji (◕‿◕)",
+            "STYLE_SPARKLES": "Sparkles ✨",
+            "STYLE_FULL_CLASSIC": "All classic effects",
+            "INFO_TEXT": "Makes your messages cute and adorable with lots of settings!",
+            "ADVANCED_SETTINGS_HEADER": "Additional Effects",
+            "ENABLE_LOWERCASE_SWITCH": "Convert to lowercase",
+            "LOWERCASE_INFO": "everything will be in small letters for softness.",
+            "ENABLE_UWU_SPEAK_SWITCH": "Enable UwU-speak (r/l → w)",
+            "UWU_SPEAK_INFO": "Replaces 'r' and 'l' with 'w'.",
+            "ENABLE_UWU_SUFFIXES_SWITCH": "Add UwU Suffixes (nya, owo)",
+            "UWU_SUFFIXES_FREQUENCY": "UwU Suffix Frequency",
+            "ENABLE_STUTTERING_SWITCH": "Enable Stuttering (h-hello)",
+            "STUTTERING_FREQUENCY": "Stuttering Frequency",
+            "ENABLE_VOWEL_STRETCHING_SWITCH": "Stretch Vowels (cuuute)",
+            "VOWEL_STRETCHING_FREQUENCY": "Vowel Stretching Frequency",
+            "VOWEL_STRETCHING_MAX_LENGTH": "Max Stretched Vowel Length",
+            "MAX_LENGTH_2X": "Double (x2)",
+            "MAX_LENGTH_3X": "Triple (x3)",
+            "ENABLE_CUTE_ACTIONS_SWITCH": "Add Cute Actions (*hugs*)",
+            "CUTE_ACTIONS_FREQUENCY": "Cute Actions Frequency",
+            "CUTE_ACTIONS_INFO": "Adds actions like *hugs* or *giggles* to messages.",
+            "ACTIONS_ON_NEW_LINE": "Actions on New Line",
+            "ACTIONS_ON_NEW_LINE_INFO": "Place cute actions (*hugs*) on a new line.",
+            "ENABLE_CUTE_PUNCTUATION_SWITCH": "Cute Punctuation (. → .~, ? → ?✨)",
+            "CUTE_PUNCTUATION_FREQUENCY": "Cute Punctuation Frequency",
+            "CUTE_PUNCTUATION_INFO": "Replaces standard periods and question marks with cuter versions.",
+            "ENABLE_SOFT_SIGN_SWITCH": "Add Soft Sign ('ь') to word endings (kotikь)",
+            "SOFT_SIGN_FREQUENCY": "Soft Sign Frequency",
+            "SOFT_SIGN_INFO": "Softens words by adding 'ь' (primarily for Russian language).",
+            "ERROR_MESSAGE_CUTE": "Oopsie! 🥺 Something went wrong while trying to make the message cute... Here's the original:",
+            "ENABLE_TEXT_BORDERS": "Enable Text Borders",
+            "TEXT_BORDERS_FREQUENCY": "Text Borders Frequency",
+            "THEME_SELECTOR": "Theme Selector",
+            "THEME_RANDOM": "Random",
+            "THEME_PASTEL": "Pastel",
+            "THEME_MAGICAL": "Magical",
+            "THEME_NATURE": "Nature",
+            "DONATE_HEADER": "Support Development",
+            "DONATE_CRYPTO": "CRYPTO Wallet",
+            "DONATE_INFO": "Other info and requisites",
+            "SHOW_SETTINGS_BUTTONS": "Settings button in menu",
+            "SHOW_SETTINGS_BUTTONS_DESC": "Adds plugin settings button to menu",
+            "CHAT_FILTER_HEADER": "Chat filter",
+            "CHAT_FILTER_MODE": "Chat filter mode",
+            "CHAT_FILTER_MODE_ALL": "All chats",
+            "CHAT_FILTER_MODE_WHITELIST": "Whitelist only",
+            "CHAT_FILTER_MODE_BLACKLIST": "Except blacklist",
+            "CHAT_FILTER_HINT": "Add chats via chat menu (⋯) or remove them here",
+            "CHAT_LIST_HEADER_WHITELIST": "Whitelist",
+            "CHAT_LIST_HEADER_BLACKLIST": "Blacklist",
+            "CHAT_LIST_EMPTY": "List is empty",
+            "CHAT_LIST_REMOVE": "Remove",
+            "CHAT_WHITELIST_ADD_BTN": "Cute: add to whitelist",
+            "CHAT_WHITELIST_REMOVE_BTN": "Cute: remove from whitelist",
+            "CHAT_BLACKLIST_ADD_BTN": "Cute: add to blacklist",
+            "CHAT_BLACKLIST_REMOVE_BTN": "Cute: remove from blacklist",
+            "CHAT_LIST_TOGGLE_NO_MODE": "Select a filter mode in settings first",
+            "CHAT_DIALOG_ID_ERROR": "Could not determine chat",
+            "CHAT_WHITELIST_ADDED": "Chat added to whitelist",
+            "CHAT_WHITELIST_REMOVED": "Chat removed from whitelist",
+            "CHAT_BLACKLIST_ADDED": "Chat added to blacklist",
+            "CHAT_BLACKLIST_REMOVED": "Chat removed from blacklist",
+            "IGNORE_SLASH_COMMANDS_SWITCH": "Ignore bot commands (/)",
+            "IGNORE_SLASH_COMMANDS_INFO": "Don't format messages starting with / (e.g. /start, /help).",
+            "UNDO_RESTORE": "Cute: restore original",
+            "UNDO_RESTORE_SUB": "Undo text change (only last 5 messages)",
+            "UNDO_RESTORED": "Original text restored",
+            "UNDO_NOTHING": "Original is not available",
+        },
+    }
+
+
+locali = LocalizationManager()
+
+
+class PicMePlugin(BasePlugin):
+    _SEND_REQUESTS = (
+        "TL_messages_sendMessage",
+        "TL_messages_sendMedia",
+        "TL_messages_sendMultiMedia",
+    )
+
+    def __init__(self):
+        super().__init__()
+        self._drawer_settings_item = None
+        self._chat_settings_item = None
+        self._chat_list_menu_item = None
+        self._chat_list_menu_text = None
+        self._chat_list_menu_icon = None
+        self._chat_list_menu_dialog_id = None
+        self._chat_dialog_hooks = []
+        self._undo_menu_item = None
+        self._pending_undo = []
+        self._undo_cache = {}
+        self._undo_cache_order = []
+        self._undo_cache_limit = 5
+        self.emojis = [
+            "🥰",
+            "😊",
+            "💕",
+            "💖",
+            "💗",
+            "🌸",
+            "✨",
+            "🦄",
+            "🌈",
+            "🍭",
+            "🧸",
+            "🌟",
+            "💫",
+            "🌻",
+            "🍬",
+            "🎀",
+            "💝",
+            "💓",
+            "🍨",
+            "🌷",
+            "🦋",
+            "🐇",
+            "🐱",
+            "🐶",
+            "🦊",
+            "🥺",
+            "👉👈",
+            "🍡",
+            "🧁",
+            "🍰",
+            "🌺",
+            "🌹",
+            "💮",
+            "🧚‍♀️",
+            "💘",
+            "💞",
+            "🩷",
+            "🩵",
+            "🌞",
+            "🫧",
+            "🫶",
+            "🦢",
+            "🐹",
+            "🐰",
+            "🌼",
+            "🧿",
+        ]
+        self.kaomojis = [
+            "(◕‿◕)",
+            "♡(˘▽˘)♡",
+            "(つ≧▽≦)つ",
+            "(≧◡≦)",
+            "(*^ω^*)",
+            "(っ˘ω˘ς)",
+            "(´｡• ω •｡`)",
+            "ʕ•ᴥ•ʔ",
+            "(づ｡◕‿‿◕｡)づ",
+            "ฅ^•ﻌ•^ฅ",
+            "(*˘︶˘*)",
+            "(*¯︶¯*)",
+            "( ˘ ³˘)♥",
+            "(っ•ᴗ•)っ",
+            "ლ(╹◡╹ლ)",
+            "(๑˃ᴗ˂)ﻭ",
+            "(灬ºωº灬)♡",
+            "૮₍˶ᵔ ᵕ ᵔ˶₎ა",
+            "ฅ^•ﻌ•^ฅ",
+            "(*ฅ́˘ฅ̀*)",
+            "(●'◡'●)",
+            "ฅ(^◕ᴥ◕^)ฅ",
+            "(=^･ω･^=)",
+            "ʕっ•ᴥ•ʔっ",
+            "ʕ ꈍᴥꈍʔ",
+            "ʕ´•ᴥ•`ʔ",
+            "(◡ ω ◡)",
+            "(◕ᴗ◕✿)",
+            "꒰⑅ᵕ༚ᵕ꒱˖♡",
+            "ପ(๑•ᴗ•๑)ଓ ♡",
+            "(⁄ ⁄•⁄ω⁄•⁄ ⁄)",
+        ]
+        self.sparkles = [
+            "✨",
+            "⭐",
+            "★",
+            "☆",
+            "₊˚⊹",
+            "˚₊· ͟͟͞͞➳❥",
+            "⋆｡°✩",
+            "☆彡",
+            "⊰",
+            "⊱",
+            "✧･ﾟ",
+            "♡",
+            "❀",
+            "❁",
+            "❃",
+            "❋",
+            "✿",
+            "♫",
+            "♪",
+            "✧˖°",
+            "⋆｡˚",
+            "⋆⭒˚｡⋆",
+            "✧*。",
+            "⁺˚*•̩̩͙✩•̩̩͙*˚⁺",
+            "‧₊˚✧",
+            "ପ♡ଓ",
+            "✩°｡⋆⸜",
+            "✮",
+            "✩₊˚.⋆",
+            "☽˚｡⋆",
+            "❥",
+            "༘⋆",
+            "⋆⭒˚｡⋆",
+            "✮.°:⋆ₓₒ",
+            "✧･ﾟ:✧･ﾟ",
+            "*ੈ✩‧₊˚",
+            "┊͙ ˘͈ᵕ˘͈",
+            "ೃ࿔₊",
+            "˗ˏˋ ★ ˎˊ˗",
+        ]
+
+        self.uwu_suffixes = [
+            "~",
+            " nya~",
+            " uwu",
+            " owo",
+            " >w<",
+            " :3",
+            " nyaaa",
+            "σωσ",
+            "◡ ω ◡",
+            " OwO",
+            " UwU~",
+            " hehe~",
+            " rawr~",
+            " mew",
+            " purr~",
+            " ehehe",
+            " uwu~",
+            " (⁄ ⁄>⁄ω⁄<⁄ ⁄)",
+            " kyaa~",
+            " nyaa",
+            " nyuu~",
+            " mya~",
+            " (◕ᴗ◕✿)",
+            " teehee",
+            " hehehe",
+            " awoo~",
+            " *blushes*",
+            " purrr",
+            " pwease",
+            " nya?",
+        ]
+        self.extended_exclamations = [
+            "~!",
+            "!!",
+            "!!!",
+            "!~",
+            "!❤",
+            "!✨",
+            "!💖",
+            "!⭐",
+            "!!!1!",
+            "! nya~",
+            "!?!?",
+            "!!!💕",
+            "~!!~",
+            "! ꒰◍ᐡᐤᐡ◍꒱",
+            "! ❁◕ ‿ ◕❁",
+            "!!♡",
+            "! (*ฅ́˘ฅ̀*)",
+            "~✿!",
+            "! ♡₊˚",
+            "!⋆₊",
+            "! 🎀",
+            "! 🌸",
+            "!🌟",
+            "!☆",
+        ]
+        self.vowels_map = {"ru": "аеёиоуыэюяАЕЁИОУЫЭЮЯ", "en": "aeiouyAEIOUY"}
+        self.letter_pattern = re.compile(r"^\w", re.UNICODE)
+
+        self.cute_actions_map = {
+            "ru": [
+                "*обнимает*",
+                "*нежно обнимает*",
+                "*гладит по голове*",
+                "*хихикает*",
+                "*мурлычет*",
+                "*улыбается*",
+                "*подмигивает*",
+                "*машет лапкой*",
+                "*краснеет*",
+                "*прыгает от радости*",
+                "*делает большие глаза*",
+                "*играет с волосами*",
+                "*качает хвостиком*",
+                "*делает милое личико*",
+                "*танцует от счастья*",
+                "*прячется за лапками*",
+                "*радостно вздыхает*",
+            ],
+            "en": [
+                "*hugs*",
+                "*gentle hug*",
+                "*pats head*",
+                "*giggles*",
+                "*purrs*",
+                "*smiles*",
+                "*winks*",
+                "*waves paw*",
+                "*blushes*",
+                "*jumps with joy*",
+                "*makes big eyes*",
+                "*plays with hair*",
+                "*wags tail*",
+                "*makes cute face*",
+                "*happy dance*",
+                "*hides behind paws*",
+                "*happy sigh*",
+                "*nuzzles*",
+                "*tippy taps*",
+                "*boops nose*",
+            ],
+        }
+        self.cute_period_replacements = [
+            ".~",
+            ".!",
+            ".✨",
+            ".🌸",
+            ".💖",
+            "~~",
+            " .·͙*̩̩͙˚̩̥̩̥*̩̩̥͙·̩̩̥͙*̩̩̥͙˚̩̥̩̥*̩̩͙‧͙ .·˖* நோக்கி",
+            " ^^",
+            "₊˚ʚ ᗢ₊˚✧",
+            "✿",
+            ".♡",
+            ".˚ʚ♡ɞ˚",
+            ".˖°𓋼𓍢𓋼𓍢𓋼",
+            ".ᐟ",
+            ".⋆",
+            ".♬",
+            ".⋆˙⟡♡",
+            ".𓆩♡𓆪",
+            ".*ੈ✩‧₊˚",
+            ".𓍢ִ໋🌷͙֒",
+            ".:₊˚◞♡",
+            "◞♡ₓₒ",
+        ]
+        self.cute_question_mark_replacements = [
+            "?!!",
+            "???",
+            "❓💖",
+            "?~",
+            "❓✨",
+            " <(°.°<)",
+            " uwu?",
+            "?✧",
+            "?🥺",
+            "?(ㅅ´ ˘ `)",
+            "??♡",
+            "??🌸",
+            "?☆",
+            "?♡",
+            "?꒰◍ᐡᐤᐡ◍꒱",
+            "?⁺◟(◔ั₀◔ั )◞⁺",
+            " (◕ᴗ◕✿)?",
+            "?⋆",
+            "?𓍢ִ໋🌷͙֒",
+            " nyaa?",
+        ]
+        self.consonants_ru = "бвгджзйклмнпрстфхцчшщ"
+
+        self.text_borders = [
+            ["🌸 ", " 🌸"],
+            ["✧･ﾟ: ", " :･ﾟ✧"],
+            ["— ♡ ", " ♡ —"],
+            ["꒰ ", " ꒱"],
+            ["₊˚⊹ ", " ⊹˚₊"],
+            ["⋆⭒˚｡⋆ ", " ⋆｡˚⭒⋆"],
+            ["─── ⋆⋅☆⋅⋆ ", " ⋆⋅☆⋅⋆ ───"],
+            ["┊͙ ", " ┊͙"],
+            ["ꔛ ", " ꔛ"],
+            ["✿ ", " ✿"],
+            ["༉‧₊˚ ", " ₊˚✧"],
+            ["𓂃 𓈒𓏸 ", " 𓈒𓏸"],
+            ["♡⋆.ೃ࿔", "♡⋆.ೃ࿔"],
+        ]
+
+        self.themes = {
+            "pastel": {
+                "emojis": ["🌸", "🧁", "🍼", "🩰", "🎀", "🧸", "🍦", "🫧", "🤍", "🩷", "🩵", "🫐", "🐇"],
+                "words": ["cute", "soft", "sweet", "pastel", "lovely", "gentle"],
+                "prefix": ["✿", "♡", "✧", "⋆"],
+                "suffix": ["✧", "♡", "✿", "⋆"],
+            },
+            "magical": {
+                "emojis": ["✨", "🌟", "🔮", "🧚", "⭐", "🌙", "🪄", "🦄", "🧿", "🪞", "🔆"],
+                "words": ["magic", "sparkle", "twinkle", "enchant", "fairy", "mystic"],
+                "prefix": ["✧", "⋆", "🔮", "☆"],
+                "suffix": ["✨", "⋆", "✧", "☆"],
+            },
+            "nature": {
+                "emojis": ["🌷", "🌱", "🍄", "🦋", "🐝", "🌻", "🪴", "🌿", "🍃", "🌺", "🌼"],
+                "words": ["bloom", "flower", "garden", "blossom", "meadow", "butterfly"],
+                "prefix": ["❀", "🌱", "🌿", "🍃"],
+                "suffix": ["❀", "🌱", "🌿", "🍄"],
+            },
+        }
+
+    def _copy_to_clipboard(self, label, text):
+        if AndroidUtilities.addToClipboard(text):
+            BulletinHelper.show_info(f"Copied {label} to clipboard")
+
+    def _get_frequency_prob_for_new_effects(self, setting_key, default_index=2):
+        frequency_idx = self.get_setting(setting_key, default_index)
+        if frequency_idx == 0:
+            return 0.10
+        if frequency_idx == 1:
+            return 0.25
+        if frequency_idx == 3:
+            return 0.75
+        if frequency_idx == 4:
+            return 1.00
+        return 0.5
+
+    def _open_plugin_settings(self, java_plugin):
+        try:
+            get_last_fragment().presentFragment(PluginSettingsActivity(java_plugin))
+        except Exception as e:
+            log(f"[{__id__}] Error opening plugin settings: {e}")
+
+    def _add_settings_menu_items(self):
+        try:
+            if not self._drawer_settings_item:
+                self._drawer_settings_item = self.add_menu_item(
+                    MenuItemData(
+                        menu_type=MenuItemType.DRAWER_MENU,
+                        text=locali.get_string("SETTINGS_HEADER"),
+                        icon="menu_premium_effects",
+                        priority=5,
+                        on_click=lambda ctx: run_on_ui_thread(
+                            lambda: self._open_plugin_settings(PluginsController.getInstance().plugins.get(self.id))
+                        ),
+                    )
+                )
+            if not self._chat_settings_item:
+                self._chat_settings_item = self.add_menu_item(
+                    MenuItemData(
+                        menu_type=MenuItemType.CHAT_ACTION_MENU,
+                        text=locali.get_string("SETTINGS_HEADER"),
+                        icon="menu_premium_effects",
+                        priority=5,
+                        on_click=lambda ctx: run_on_ui_thread(
+                            lambda: self._open_plugin_settings(PluginsController.getInstance().plugins.get(self.id))
+                        ),
+                    )
+                )
+        except Exception as e:
+            log(f"[{__id__}] Failed to add settings menu items: {e}")
+
+    def _remove_settings_menu_items(self):
+        try:
+            if self._drawer_settings_item:
+                self.remove_menu_item(self._drawer_settings_item)
+                self._drawer_settings_item = None
+            if self._chat_settings_item:
+                self.remove_menu_item(self._chat_settings_item)
+                self._chat_settings_item = None
+        except Exception as e:
+            log(f"[{__id__}] Failed to remove settings menu items: {e}")
+
+    def _on_show_settings_buttons_change(self, enabled: bool):
+        def _toggle():
+            try:
+                if enabled:
+                    self._add_settings_menu_items()
+                else:
+                    self._remove_settings_menu_items()
+            except Exception as e:
+                log(f"[{__id__}] Failed toggling settings buttons: {e}")
+
+        run_on_ui_thread(_toggle)
+
+    def _show_bulletin(self, message):
+        run_on_ui_thread(lambda: BulletinHelper.show_info(message))
+
+    def _ctx_get(self, context, key):
+        if context is None:
+            return None
+        if isinstance(context, dict):
+            return context.get(key)
+        if hasattr(context, "get"):
+            try:
+                return context.get(key)
+            except Exception:
+                pass
+        return None
+
+    def _get_chat_filter_mode(self):
+        try:
+            return int(self.get_setting("chat_filter_mode", 0) or 0)
+        except (TypeError, ValueError):
+            return 0
+
+    def _reload_plugin_settings(self):
+        try:
+            self.set_setting("chat_filter_mode", self._get_chat_filter_mode(), reload_settings=True)
+        except Exception as e:
+            log(f"[{__id__}] reload plugin settings failed: {e}")
+
+    def _normalize_dialog_id(self, peer):
+        if peer is None:
+            return 0
+        try:
+            if hasattr(peer, "getClass"):
+                return int(DialogObject.getPeerDialogId(peer))
+            return int(peer)
+        except Exception:
+            try:
+                return int(peer)
+            except Exception:
+                return 0
+
+    def _message_ids_from_obj(self, message):
+        ids = set()
+        if message is None:
+            return ids
+        for getter in ("getId", "getRealId", "getStableId"):
+            if hasattr(message, getter):
+                try:
+                    mid = int(getattr(message, getter)())
+                    ids.add(mid)
+                except Exception:
+                    pass
+        owner = getattr(message, "messageOwner", None)
+        if owner is not None:
+            try:
+                ids.add(int(getattr(owner, "id", 0)))
+            except Exception:
+                pass
+        return ids
+
+    def _message_id_from_obj(self, message):
+        ids = self._message_ids_from_obj(message)
+        return next(iter(ids), None)
+
+    def _message_id_from_ctx(self, context):
+        for key in ("message_id", "msg_id", "messageId"):
+            val = self._ctx_get(context, key)
+            if val is not None:
+                try:
+                    return int(val)
+                except Exception:
+                    pass
+        return self._message_id_from_obj(self._ctx_get(context, "message"))
+
+    def _pop_undo_cache_key(self, key):
+        record = self._undo_cache.pop(key, None)
+        if record is None:
+            return None
+        try:
+            self._undo_cache_order.remove(key)
+        except ValueError:
+            pass
+        for alias_key in list(self._undo_cache.keys()):
+            if self._undo_cache.get(alias_key) is record:
+                self._undo_cache.pop(alias_key, None)
+                try:
+                    self._undo_cache_order.remove(alias_key)
+                except ValueError:
+                    pass
+        return record
+
+    def _find_undo_record(self, dialog_id, msg_id, message=None):
+        did = int(dialog_id) if dialog_id is not None else None
+        msg_ids = set()
+        if msg_id is not None:
+            try:
+                msg_ids.add(int(msg_id))
+            except Exception:
+                pass
+        if message is not None:
+            msg_ids.update(self._message_ids_from_obj(message))
+
+        for mid in msg_ids:
+            if did is not None:
+                key = (did, mid)
+                record = self._pop_undo_cache_key(key)
+                if record is not None:
+                    return key, record
+            for cache_key in list(self._undo_cache_order):
+                if cache_key[1] == mid:
+                    record = self._pop_undo_cache_key(cache_key)
+                    if record is not None:
+                        log(f"[{__id__}] undo fallback by msg_id: wanted={(did, mid)}, found={cache_key}")
+                        return cache_key, record
+
+        if did is not None:
+            for cache_key in reversed(self._undo_cache_order):
+                if cache_key[0] == did:
+                    record = self._pop_undo_cache_key(cache_key)
+                    if record is not None:
+                        log(f"[{__id__}] undo fallback latest for dialog: {did}, key={cache_key}")
+                        return cache_key, record
+
+        for cache_key in reversed(self._undo_cache_order):
+            record = self._pop_undo_cache_key(cache_key)
+            if record is not None:
+                log(f"[{__id__}] undo fallback latest global: key={cache_key}")
+                return cache_key, record
+
+        log(f"[{__id__}] undo miss: dialog_id={did}, msg_ids={sorted(msg_ids)}, cache={list(self._undo_cache.keys())}")
+        return None, None
+
+    def _dialog_id_from_fragment(self):
+        try:
+            fragment = get_last_fragment()
+            if fragment is not None and hasattr(fragment, "getDialogId"):
+                return int(fragment.getDialogId())
+        except Exception:
+            pass
+        return None
+
+    def _get_chat_list_menu_icon(self, dialog_id=None):
+        mode = self._get_chat_filter_mode()
+        if mode == 2:
+            return "msg_block"
+        return "msg_favorite"
+
+    def _get_chat_list_menu_text(self, dialog_id=None):
+        mode = self._get_chat_filter_mode()
+        if mode == 0:
+            return locali.get_string("CHAT_WHITELIST_ADD_BTN")
+        if mode == 1:
+            in_list = dialog_id is not None and int(dialog_id) in self._get_chat_list("chat_whitelist")
+            key = "CHAT_WHITELIST_REMOVE_BTN" if in_list else "CHAT_WHITELIST_ADD_BTN"
+        else:
+            in_list = dialog_id is not None and int(dialog_id) in self._get_chat_list("chat_blacklist")
+            key = "CHAT_BLACKLIST_REMOVE_BTN" if in_list else "CHAT_BLACKLIST_ADD_BTN"
+        return locali.get_string(key)
+
+    def _update_chat_list_menu_text(self, dialog_id=None):
+        def _do_update():
+            try:
+                if dialog_id is None:
+                    resolved_id = self._dialog_id_from_fragment()
+                else:
+                    resolved_id = dialog_id
+                if resolved_id is not None:
+                    resolved_id = int(resolved_id)
+                text = self._get_chat_list_menu_text(resolved_id)
+                icon = self._get_chat_list_menu_icon(resolved_id)
+                if (
+                    text == self._chat_list_menu_text
+                    and icon == self._chat_list_menu_icon
+                    and resolved_id == self._chat_list_menu_dialog_id
+                    and self._chat_list_menu_item
+                ):
+                    return
+                if self._chat_list_menu_item:
+                    self.remove_menu_item(self._chat_list_menu_item)
+                    self._chat_list_menu_item = None
+                self._chat_list_menu_item = self.add_menu_item(
+                    MenuItemData(
+                        menu_type=MenuItemType.CHAT_ACTION_MENU,
+                        text=text,
+                        icon=icon,
+                        item_id=f"{__id__}_chat_list",
+                        priority=4,
+                        on_click=self._on_chat_list_toggle_click,
+                    )
+                )
+                self._chat_list_menu_text = text
+                self._chat_list_menu_icon = icon
+                self._chat_list_menu_dialog_id = resolved_id
+            except Exception as e:
+                log(f"[{__id__}] Failed updating chat list menu text: {e}\n{traceback.format_exc()}")
+
+        run_on_ui_thread(_do_update)
+
+    def _install_chat_dialog_hook(self):
+        try:
+            ca_cls = find_class("org.telegram.ui.ChatActivity")
+            if not ca_cls:
+                return
+
+            plugin = self
+
+            class _ChatDialogHook(MethodHook):
+                def after_hooked_method(self, param):
+                    try:
+                        chat = param.thisObject
+                        if chat is not None and hasattr(chat, "getDialogId"):
+                            plugin._update_chat_list_menu_text(int(chat.getDialogId()))
+                    except Exception:
+                        pass
+
+            refs = self.hook_all_methods(ca_cls, "onTransitionAnimationEnd", _ChatDialogHook())
+            if refs:
+                self._chat_dialog_hooks.extend(refs)
+        except Exception as e:
+            log(f"[{__id__}] chat dialog hook failed: {e}\n{traceback.format_exc()}")
+
+    def _uninstall_chat_dialog_hook(self):
+        for ref in self._chat_dialog_hooks:
+            try:
+                self.unhook_method(ref)
+            except Exception:
+                pass
+        self._chat_dialog_hooks = []
+
+    def _add_chat_action_items(self):
+        if self._chat_list_menu_item:
+            self._update_chat_list_menu_text()
+            return
+        self._update_chat_list_menu_text()
+
+    def _remove_chat_action_items(self):
+        try:
+            if self._chat_list_menu_item:
+                self.remove_menu_item(self._chat_list_menu_item)
+                self._chat_list_menu_item = None
+                self._chat_list_menu_text = None
+                self._chat_list_menu_icon = None
+                self._chat_list_menu_dialog_id = None
+        except Exception as e:
+            log(f"[{__id__}] Failed removing chat action items: {e}")
+
+    def _add_undo_menu_item(self):
+        try:
+            if not self._undo_menu_item:
+                self._undo_menu_item = self.add_menu_item(
+                    MenuItemData(
+                        menu_type=MenuItemType.MESSAGE_CONTEXT_MENU,
+                        text=locali.get_string("UNDO_RESTORE"),
+                        subtext=locali.get_string("UNDO_RESTORE_SUB"),
+                        icon="msg_edit",
+                        priority=10,
+                        on_click=self._on_undo_restore_click,
+                    )
+                )
+        except Exception as e:
+            log(f"[{__id__}] Failed adding undo menu item: {e}")
+
+    def _remove_undo_menu_item(self):
+        try:
+            if self._undo_menu_item:
+                self.remove_menu_item(self._undo_menu_item)
+                self._undo_menu_item = None
+        except Exception as e:
+            log(f"[{__id__}] Failed removing undo menu item: {e}")
+
+    def _dialog_id_from_ctx(self, context):
+        for key in ("dialog_id", "chatId", "chat_id", "peer"):
+            val = self._ctx_get(context, key)
+            if val is not None:
+                try:
+                    return int(val)
+                except Exception:
+                    return val
+
+        user_id = self._ctx_get(context, "userId")
+        if user_id is not None:
+            try:
+                return int(user_id)
+            except Exception:
+                pass
+
+        fragment = self._ctx_get(context, "fragment")
+        if fragment is not None and hasattr(fragment, "getDialogId"):
+            try:
+                return int(fragment.getDialogId())
+            except Exception:
+                pass
+
+        nested = self._ctx_get(context, "context")
+        if nested is not None and nested is not context:
+            nested_id = self._dialog_id_from_ctx(nested)
+            if nested_id is not None:
+                return nested_id
+
+        return None
+
+    def _on_chat_list_toggle_click(self, context):
+        try:
+            mode = self._get_chat_filter_mode()
+            if mode == 0:
+                self._show_bulletin(locali.get_string("CHAT_LIST_TOGGLE_NO_MODE"))
+                return
+            dialog_id = self._dialog_id_from_ctx(context)
+            if dialog_id is None:
+                dialog_id = self._dialog_id_from_fragment()
+            if dialog_id is None:
+                log(
+                    f"[{__id__}] toggle list: no dialog_id, keys={list(context.keys()) if isinstance(context, dict) else type(context)}"
+                )
+                self._show_bulletin(locali.get_string("CHAT_DIALOG_ID_ERROR"))
+                return
+            dialog_id = int(dialog_id)
+            list_key = "chat_whitelist" if mode == 1 else "chat_blacklist"
+            added = self._toggle_chat_in_list(list_key, dialog_id)
+            if added is None:
+                return
+            if mode == 1:
+                msg = locali.get_string("CHAT_WHITELIST_ADDED" if added else "CHAT_WHITELIST_REMOVED")
+            else:
+                msg = locali.get_string("CHAT_BLACKLIST_ADDED" if added else "CHAT_BLACKLIST_REMOVED")
+            self._show_bulletin(msg)
+            self._update_chat_list_menu_text(dialog_id)
+        except Exception as e:
+            log(f"[{__id__}] toggle chat list failed: {e}\n{traceback.format_exc()}")
+
+    def _on_undo_restore_click(self, context):
+        try:
+            message = self._ctx_get(context, "message")
+            dialog_id = self._dialog_id_from_ctx(context)
+            if dialog_id is None and message is not None:
+                try:
+                    dialog_id = int(message.getDialogId())
+                except Exception:
+                    pass
+            msg_id = self._message_id_from_ctx(context)
+            key, record = self._find_undo_record(dialog_id, msg_id, message=message)
+            if record is None:
+                self._show_bulletin(locali.get_string("UNDO_NOTHING"))
+                return
+
+            def _do_edit():
+                try:
+                    text = record.get("text", "")
+                    html = record.get("html")
+                    log(
+                        f"[{__id__}] undo edit: key={key}, msg_id={msg_id}, "
+                        f"text_len={len(text)}, html={'yes' if html else 'no'}"
+                    )
+                    if html:
+                        try:
+                            edit_message(message, text=html, parse_mode="html")
+                        except Exception:
+                            try:
+                                edit_message(message, text=html, parse_mode="HTML")
+                            except Exception:
+                                edit_message(message, text=text)
+                    else:
+                        edit_message(message, text=text)
+                    BulletinHelper.show_info(locali.get_string("UNDO_RESTORED"))
+                except Exception:
+                    log(f"[{__id__}] edit_message failed:\n{traceback.format_exc()}")
+                    BulletinHelper.show_info(locali.get_string("UNDO_NOTHING"))
+
+            run_on_ui_thread(_do_edit)
+        except Exception as e:
+            log(f"[{__id__}] undo restore failed: {e}\n{traceback.format_exc()}")
+
+    def _is_cyrillic(self, text):
+        return bool(re.search("[а-яА-Я]", text))
+
+    def _get_chat_list(self, key):
+        raw = self.get_setting(key, "[]")
+        try:
+            data = json.loads(raw) if isinstance(raw, str) else raw
+            if isinstance(data, list):
+                return [int(x) for x in data if x is not None]
+        except Exception:
+            log(f"[{__id__}] {key} parse error: {traceback.format_exc()}")
+        return []
+
+    def _set_chat_list(self, key, ids, reload_settings=True):
+        self.set_setting(key, json.dumps([int(i) for i in ids]), reload_settings=reload_settings)
+        if self._chat_list_menu_item and key == self._active_chat_list_key():
+            self._update_chat_list_menu_text()
+
+    def _active_chat_list_key(self):
+        mode = self._get_chat_filter_mode()
+        if mode == 1:
+            return "chat_whitelist"
+        if mode == 2:
+            return "chat_blacklist"
+        return None
+
+    def _get_dialog_title(self, dialog_id):
+        try:
+            mc = get_messages_controller()
+            dialog_id = int(dialog_id)
+            if DialogObject.isUserDialog(dialog_id):
+                user = mc.getUser(dialog_id)
+                if user is not None:
+                    name = UserObject.getUserName(user)
+                    if name:
+                        return str(name)
+            else:
+                chat_id = -dialog_id
+                if chat_id > 1000000000000:
+                    chat_id -= 1000000000000
+                chat = mc.getChat(int(chat_id))
+                if chat is not None:
+                    title = ChatObject.getTitle(chat)
+                    if title:
+                        return str(title)
+        except Exception:
+            log(f"[{__id__}] get dialog title failed: {traceback.format_exc()}")
+        return str(dialog_id)
+
+    def _remove_chat_from_list(self, dialog_id):
+        key = self._active_chat_list_key()
+        if not key:
+            return
+        dialog_id = int(dialog_id)
+        ids = self._get_chat_list(key)
+        if dialog_id in ids:
+            ids.remove(dialog_id)
+            self._set_chat_list(key, ids, reload_settings=True)
+
+    def _on_chat_filter_mode_change(self, new_index):
+        try:
+            mode = int(new_index)
+        except (TypeError, ValueError):
+            mode = 0
+        self.set_setting("chat_filter_mode", mode, reload_settings=True)
+        self._update_chat_list_menu_text()
+
+    def _build_chat_filter_settings(self):
+        mode = self._get_chat_filter_mode()
+        if mode == 0:
+            return [Divider(text=locali.get_string("CHAT_FILTER_HINT"))]
+
+        key = self._active_chat_list_key()
+        header_key = "CHAT_LIST_HEADER_WHITELIST" if mode == 1 else "CHAT_LIST_HEADER_BLACKLIST"
+        items = [Header(text=locali.get_string(header_key))]
+        chat_ids = self._get_chat_list(key)
+        if not chat_ids:
+            items.append(Text(text=locali.get_string("CHAT_LIST_EMPTY")))
+        else:
+            for dialog_id in chat_ids:
+                title = self._get_dialog_title(dialog_id)
+
+                def _make_remove(did):
+                    def _on_remove(view):
+                        self._remove_chat_from_list(did)
+
+                    return _on_remove
+
+                items.append(
+                    Text(
+                        text=title,
+                        subtext=locali.get_string("CHAT_LIST_REMOVE"),
+                        on_click=_make_remove(dialog_id),
+                    )
+                )
+        items.append(Divider(text=locali.get_string("CHAT_FILTER_HINT")))
+        return items
+
+    def _toggle_chat_in_list(self, key, peer):
+        if peer is None:
+            return None
+        peer = int(peer)
+        ids = self._get_chat_list(key)
+        if peer in ids:
+            ids.remove(peer)
+            self._set_chat_list(key, ids)
+            return False
+        ids.append(peer)
+        self._set_chat_list(key, ids)
+        return True
+
+    def _should_apply_in_chat(self, peer):
+        if peer is None:
+            return True
+        peer = int(peer)
+        mode = self._get_chat_filter_mode()
+        if mode == 1:
+            return peer in self._get_chat_list("chat_whitelist")
+        if mode == 2:
+            return peer not in self._get_chat_list("chat_blacklist")
+        return True
+
+    def create_settings(self):
+        classic_frequency_items = [
+            locali.get_string("FREQUENCY_LOW"),
+            locali.get_string("FREQUENCY_MEDIUM"),
+            locali.get_string("FREQUENCY_HIGH"),
+            locali.get_string("FREQUENCY_MAX"),
+        ]
+
+        extended_frequency_items = [
+            locali.get_string("FREQUENCY_VERY_LOW"),
+            locali.get_string("FREQUENCY_LOW"),
+            locali.get_string("FREQUENCY_MEDIUM"),
+            locali.get_string("FREQUENCY_HIGH"),
+            locali.get_string("FREQUENCY_MAX"),
+        ]
+
+        theme_items = [
+            locali.get_string("THEME_RANDOM"),
+            locali.get_string("THEME_PASTEL"),
+            locali.get_string("THEME_MAGICAL"),
+            locali.get_string("THEME_NATURE"),
+        ]
+
+        settings = [
+            Header(text=locali.get_string("SETTINGS_HEADER")),
+            Switch(key="enabled", text=locali.get_string("ENABLE_SWITCH"), icon="menu_premium_effects", default=True),
+            Switch(
+                key="show_settings_buttons",
+                text=locali.get_string("SHOW_SETTINGS_BUTTONS"),
+                icon="msg_reorder",
+                default=True,
+                subtext=locali.get_string("SHOW_SETTINGS_BUTTONS_DESC"),
+                on_change=self._on_show_settings_buttons_change,
+            ),
+            Divider(),
+            Header(text=locali.get_string("CHAT_FILTER_HEADER")),
+            Selector(
+                key="chat_filter_mode",
+                text=locali.get_string("CHAT_FILTER_MODE"),
+                items=[
+                    locali.get_string("CHAT_FILTER_MODE_ALL"),
+                    locali.get_string("CHAT_FILTER_MODE_WHITELIST"),
+                    locali.get_string("CHAT_FILTER_MODE_BLACKLIST"),
+                ],
+                default=0,
+                icon="msg_groups",
+                on_change=self._on_chat_filter_mode_change,
+            ),
+            *self._build_chat_filter_settings(),
+            Switch(
+                key="ignore_slash_commands",
+                text=locali.get_string("IGNORE_SLASH_COMMANDS_SWITCH"),
+                icon="msg_stories_stealth",
+                default=True,
+            ),
+            Divider(text=locali.get_string("IGNORE_SLASH_COMMANDS_INFO")),
+            Switch(
+                key="ignore_dot_commands",
+                text=locali.get_string("IGNORE_DOT_COMMANDS_SWITCH"),
+                icon="msg_stories_stealth",
+                default=True,
+            ),
+            Divider(text=locali.get_string("IGNORE_DOT_COMMANDS_INFO")),
+            Selector(
+                key="emoji_frequency",
+                text=locali.get_string("EMOJI_FREQUENCY"),
+                items=classic_frequency_items,
+                default=1,
+                icon="msg_forward_replace",
+            ),
+            Selector(
+                key="text_style",
+                text=locali.get_string("TEXT_STYLE"),
+                items=[
+                    locali.get_string("STYLE_EMOJIS"),
+                    locali.get_string("STYLE_KAOMOJI"),
+                    locali.get_string("STYLE_SPARKLES"),
+                    locali.get_string("STYLE_FULL_CLASSIC"),
+                ],
+                default=0,
+                icon="msg_palette",
+            ),
+            Switch(
+                key="enable_text_borders",
+                text=locali.get_string("ENABLE_TEXT_BORDERS"),
+                default=False,
+                icon="floating_check",
+            ),
+            Selector(
+                key="text_borders_frequency",
+                text=locali.get_string("TEXT_BORDERS_FREQUENCY"),
+                items=extended_frequency_items,
+                default=2,
+                icon="msg_forward_replace",
+            ),
+            Selector(
+                key="theme_selector",
+                text=locali.get_string("THEME_SELECTOR"),
+                items=theme_items,
+                default=0,
+                icon="msg_theme",
+            ),
+            Divider(),
+            Header(text=locali.get_string("ADVANCED_SETTINGS_HEADER")),
+            Switch(
+                key="enable_lowercase",
+                text=locali.get_string("ENABLE_LOWERCASE_SWITCH"),
+                default=False,
+                icon="floating_check",
+            ),
+            Divider(text=locali.get_string("LOWERCASE_INFO")),
+            Switch(
+                key="enable_uwu_speak",
+                text=locali.get_string("ENABLE_UWU_SPEAK_SWITCH"),
+                default=False,
+                icon="floating_check",
+            ),
+            Divider(text=locali.get_string("UWU_SPEAK_INFO")),
+            Switch(
+                key="enable_uwu_suffixes",
+                text=locali.get_string("ENABLE_UWU_SUFFIXES_SWITCH"),
+                default=False,
+                icon="msg_filled_plus",
+            ),
+            Selector(
+                key="uwu_suffix_frequency",
+                text=locali.get_string("UWU_SUFFIXES_FREQUENCY"),
+                items=extended_frequency_items,
+                default=2,
+                icon="msg_forward_replace",
+            ),
+            Divider(),
+            Switch(
+                key="enable_stuttering",
+                text=locali.get_string("ENABLE_STUTTERING_SWITCH"),
+                default=False,
+                icon="floating_check",
+            ),
+            Selector(
+                key="stuttering_frequency",
+                text=locali.get_string("STUTTERING_FREQUENCY"),
+                items=extended_frequency_items,
+                default=2,
+                icon="msg_forward_replace",
+            ),
+            Divider(),
+            Switch(
+                key="enable_vowel_stretching",
+                text=locali.get_string("ENABLE_VOWEL_STRETCHING_SWITCH"),
+                default=False,
+                icon="floating_check",
+            ),
+            Selector(
+                key="vowel_stretching_frequency",
+                text=locali.get_string("VOWEL_STRETCHING_FREQUENCY"),
+                items=extended_frequency_items,
+                default=2,
+                icon="msg_forward_replace",
+            ),
+            Selector(
+                key="vowel_stretching_max_length",
+                text=locali.get_string("VOWEL_STRETCHING_MAX_LENGTH"),
+                items=[locali.get_string("MAX_LENGTH_2X"), locali.get_string("MAX_LENGTH_3X")],
+                default=0,
+                icon="msg_noise_on",
+            ),
+            Divider(),
+            Switch(
+                key="enable_soft_sign",
+                text=locali.get_string("ENABLE_SOFT_SIGN_SWITCH"),
+                default=False,
+                icon="floating_check",
+            ),
+            Selector(
+                key="soft_sign_frequency",
+                text=locali.get_string("SOFT_SIGN_FREQUENCY"),
+                items=extended_frequency_items,
+                default=2,
+                icon="msg_forward_replace",
+            ),
+            Divider(text=locali.get_string("SOFT_SIGN_INFO")),
+            Switch(
+                key="enable_cute_punctuation",
+                text=locali.get_string("ENABLE_CUTE_PUNCTUATION_SWITCH"),
+                default=False,
+                icon="floating_check",
+            ),
+            Selector(
+                key="cute_punctuation_frequency",
+                text=locali.get_string("CUTE_PUNCTUATION_FREQUENCY"),
+                items=extended_frequency_items,
+                default=2,
+                icon="msg_forward_replace",
+            ),
+            Divider(text=locali.get_string("CUTE_PUNCTUATION_INFO")),
+            Switch(
+                key="enable_cute_actions",
+                text=locali.get_string("ENABLE_CUTE_ACTIONS_SWITCH"),
+                default=False,
+                icon="msg_filled_plus",
+            ),
+            Selector(
+                key="cute_actions_frequency",
+                text=locali.get_string("CUTE_ACTIONS_FREQUENCY"),
+                items=extended_frequency_items,
+                default=2,
+                icon="msg_forward_replace",
+            ),
+            Switch(
+                key="actions_on_new_line",
+                text=locali.get_string("ACTIONS_ON_NEW_LINE"),
+                subtext=locali.get_string("ACTIONS_ON_NEW_LINE_INFO"),
+                default=False,
+                icon="msg_reorder",
+            ),
+            Divider(text=locali.get_string("CUTE_ACTIONS_INFO")),
+            Divider(text=locali.get_string("INFO_TEXT")),
+            Divider(),
+            Header(text=locali.get_string("DONATE_HEADER")),
+            Text(
+                text=locali.get_string("DONATE_CRYPTO"),
+                icon="menu_cashtag",
+                accent=True,
+                on_click=lambda view: run_on_ui_thread(
+                    lambda: self._copy_to_clipboard("CRYPTO", "http://t.me/send?start=IVaZsLfW7aSn")
+                ),
+            ),
+            Text(
+                text=locali.get_string("DONATE_INFO"),
+                icon="msg_info",
+                accent=True,
+                on_click=lambda view: run_on_ui_thread(
+                    lambda: get_messages_controller().openByUserName("mishabotov", get_last_fragment(), 1)
+                ),
+            ),
+        ]
+
+        return settings
+
+    def on_plugin_load(self):
+        ignore_commands = self.get_setting("ignore_dot_commands", True)
+        priority = -100 if ignore_commands else 200
+        self.add_on_send_message_hook(priority)
+        for req_name in self._SEND_REQUESTS:
+            try:
+                self.add_hook(req_name)
+            except Exception as e:
+                log(f"[{__id__}] failed to register {req_name} hook: {e}")
+        if self.get_setting("show_settings_buttons", True):
+            self._add_settings_menu_items()
+        self._add_chat_action_items()
+        self._add_undo_menu_item()
+        self._install_chat_dialog_hook()
+
+    def on_app_event(self, event_type):
+        if event_type in (AppEvent.START, AppEvent.RESUME):
+            self._update_chat_list_menu_text()
+
+    def on_plugin_unload(self):
+        self._uninstall_chat_dialog_hook()
+        self._remove_settings_menu_items()
+        self._remove_chat_action_items()
+        self._remove_undo_menu_item()
+        try:
+            self._pending_undo.clear()
+            self._undo_cache.clear()
+            self._undo_cache_order.clear()
+        except Exception:
+            pass
+
+    def get_classic_effects_probability(self):
+        frequency = self.get_setting("emoji_frequency", 1)
+        if frequency == 0:
+            return 0.25
+        if frequency == 2:
+            return 0.75
+        if frequency == 3:
+            return 1.0
+        return 0.5
+
+    def _should_skip_text(self, text):
+        if not text or not text.strip():
+            return True
+        stripped = text.strip()
+        if self.get_setting("ignore_dot_commands", True) and stripped.startswith("."):
+            return True
+        if self.get_setting("ignore_slash_commands", True) and stripped.startswith("/"):
+            return True
+        return False
+
+    def _extract_sent_message_info(self, response):
+        msg_ids = set()
+        updates = getattr(response, "updates", None)
+        try:
+            arr = updates if updates is not None else getattr(response, "updatess", None)
+            if arr:
+                for u in self._iter_java(arr):
+                    cls_name = u.getClass().getName()
+                    if cls_name.endswith("TL_updateMessageID"):
+                        mid = getattr(u, "id", None)
+                        if mid is not None:
+                            msg_ids.add(int(mid))
+                    elif cls_name.endswith("TL_updateNewMessage"):
+                        msg_obj = getattr(u, "message", None)
+                        if msg_obj is not None:
+                            try:
+                                msg_ids.add(int(getattr(msg_obj, "id", 0)))
+                            except Exception:
+                                pass
+                    elif cls_name.endswith("TL_updateNewChannelMessage"):
+                        msg_obj = getattr(u, "message", None)
+                        if msg_obj is not None:
+                            try:
+                                msg_ids.add(int(getattr(msg_obj, "id", 0)))
+                            except Exception:
+                                pass
+        except Exception:
+            log(f"[{__id__}] extract sent message info failed: {traceback.format_exc()}")
+        return msg_ids
+
+    def _store_undo_record(self, dialog_id, msg_ids, record):
+        did = int(dialog_id) if dialog_id is not None else 0
+        ids = sorted({int(mid) for mid in msg_ids if mid is not None})
+        if not ids:
+            return
+        primary = (did, ids[0])
+        self._undo_cache[primary] = record
+        self._undo_cache_order.append(primary)
+        for mid in ids[1:]:
+            self._undo_cache[(did, mid)] = record
+        while len(self._undo_cache_order) > self._undo_cache_limit:
+            oldest = self._undo_cache_order.pop(0)
+            self._pop_undo_cache_key(oldest)
+
+    def post_request_hook(self, request_name, account, response, error):
+        try:
+            if error is not None or request_name not in self._SEND_REQUESTS or response is None:
+                return HookResult()
+
+            msg_ids = self._extract_sent_message_info(response)
+            if not msg_ids:
+                return HookResult()
+
+            record = None
+            dialog_id = 0
+            if self._pending_undo:
+                dialog_id, record = self._pending_undo.pop(0)
+
+            log(
+                f"[{__id__}] post_request_hook: msg_ids={sorted(msg_ids)}, dialog_id={dialog_id}, "
+                f"pending_left={len(self._pending_undo)}"
+            )
+            if record is None:
+                return HookResult()
+
+            self._store_undo_record(dialog_id, msg_ids, record)
+        except Exception:
+            log(f"[{__id__}] post_request_hook error:\n{traceback.format_exc()}")
+        return HookResult()
+
+    def on_send_message_hook(self, account, params):
+        original_text_for_error = (
+            params.message
+            if hasattr(params, "message") and params.message
+            else (params.caption if hasattr(params, "caption") and params.caption else None)
+        )
+        try:
+            if hasattr(params, "message") and params.message and params.message.strip() in (".picme", ".cute"):
+                current_state = self.get_setting("enabled", True)
+                new_state = not current_state
+                self.set_setting("enabled", new_state)
+
+                if new_state:
+                    BulletinHelper.show_info(locali.get_string("ENABLED"))
+                else:
+                    BulletinHelper.show_info(locali.get_string("DISABLED"))
+
+                return HookResult(strategy=HookStrategy.CANCEL)
+
+            if not self.get_setting("enabled", True):
+                return HookResult()
+
+            if self._should_skip_text(original_text_for_error):
+                return HookResult()
+
+            peer = getattr(params, "peer", None)
+            if not self._should_apply_in_chat(peer):
+                return HookResult()
+
+            classic_effects_prob = self.get_classic_effects_probability()
+            text_style_setting = self.get_setting("text_style", 0)
+
+            entities = getattr(params, "entities", None)
+            is_caption = False
+            if hasattr(params, "message") and params.message:
+                target_attr = "message"
+            elif hasattr(params, "caption") and params.caption:
+                target_attr = "caption"
+                is_caption = True
+            else:
+                target_attr = None
+
+            original_text = original_text_for_error
+            entities_list = self._snapshot_entities(entities)
+            modified_text, new_entities = self._transform_with_entities(
+                original_text, entities_list, classic_effects_prob, text_style_setting
+            )
+
+            if target_attr:
+                setattr(params, target_attr, modified_text)
+            self._apply_entities_to_params(params, new_entities, is_caption)
+
+            undo_key = self._normalize_dialog_id(peer)
+            self._pending_undo.append(
+                (
+                    undo_key,
+                    {
+                        "text": original_text,
+                        "html": self._entities_to_html(original_text, entities_list),
+                        "ts": time.time(),
+                    },
+                )
+            )
+            return HookResult(strategy=HookStrategy.MODIFY, params=params)
+        except Exception:
+            exc_type, exc_val, exc_tb = sys.exc_info()
+            tb_lines = traceback.format_exception(exc_type, exc_val, exc_tb)
+            tb_text = "".join(tb_lines)
+            log(f"Exception in plugin {__name__}:\n{tb_text}")
+            exc_type_name = exc_type.__name__ if exc_type else "Exception"
+            err_msg = ""
+            try:
+                err_msg = traceback.format_exception_only(exc_type, exc_val)[-1].strip()
+            except Exception:
+                err_msg = str(exc_val) if exc_val else ""
+            tb_last = ""
+            for line in reversed(tb_lines):
+                m = re.search(r'File\s+"([^"]+)",\s+line\s+(\d+),\s+in\s+(.+)', line)
+                if m:
+                    fname = m.group(1).replace("\\", "/").split("/")[-1]
+                    tb_last = f"{fname}:{m.group(2)} in {m.group(3).strip()}"
+                    break
+            debug_suffix = f"\n\n[debug: {exc_type_name}: {err_msg}"
+            if tb_last:
+                debug_suffix += f" @ {tb_last}"
+            debug_suffix += "]"
+            error_prefix = locali.get_string("ERROR_MESSAGE_CUTE")
+            if hasattr(params, "message") and params.message is not None:
+                params.message = f"{error_prefix}\n\n{original_text_for_error}{debug_suffix}"
+            elif hasattr(params, "caption") and params.caption is not None:
+                params.caption = f"{error_prefix}\n\n{original_text_for_error}{debug_suffix}"
+            return HookResult(strategy=HookStrategy.MODIFY_FINAL, params=params)
+
+    def _transform_lowercase(self, text):
+        return text.lower()
+
+    _ENTITY_HTML_TAG = {
+        "MessageEntityBold": ("b", "b"),
+        "MessageEntityItalic": ("i", "i"),
+        "MessageEntityUnderline": ("u", "u"),
+        "MessageEntityStrike": ("s", "s"),
+        "MessageEntitySpoiler": ("spoiler", "spoiler"),
+        "MessageEntityBlockquote": ("blockquote", "blockquote"),
+        "MessageEntityCode": ("code", "code"),
+        "MessageEntityPre": ("pre", "pre"),
+        "MessageEntityUrl": (None, None),
+        "MessageEntityTextUrl": ("a", "a"),
+        "MessageEntityMentionName": (None, None),
+        "MessageEntityMention": (None, None),
+        "MessageEntityHashtag": (None, None),
+        "MessageEntityBotCommand": (None, None),
+        "MessageEntityCustomEmoji": (None, None),
+    }
+
+    _ENTITY_NO_TRANSFORM = ("MessageEntityCode", "MessageEntityPre")
+
+    def _entity_class_name(self, entity):
+        try:
+            cls = entity.getClass()
+            name = cls.getName().rsplit(".", 1)[-1]
+            if name.startswith("TL_messageEntity"):
+                name = "MessageEntity" + name[len("TL_messageEntity") :]
+            return name
+        except Exception:
+            try:
+                name = type(entity).__name__
+                if name.startswith("TL_messageEntity"):
+                    name = "MessageEntity" + name[len("TL_messageEntity") :]
+                return name
+            except Exception:
+                return ""
+
+    def _iter_java(self, obj):
+        if obj is None:
+            return []
+        if isinstance(obj, (list, tuple, set)):
+            return list(obj)
+        try:
+            if hasattr(obj, "toArray"):
+                return list(obj.toArray())
+        except Exception:
+            pass
+        try:
+            if hasattr(obj, "size") and hasattr(obj, "get"):
+                size = int(obj.size())
+                return [obj.get(i) for i in range(size)]
+        except Exception:
+            pass
+        try:
+            if hasattr(obj, "hasNext") and hasattr(obj, "next"):
+                items = []
+                while obj.hasNext():
+                    items.append(obj.next())
+                return items
+        except Exception:
+            pass
+        try:
+            return list(obj)
+        except Exception:
+            return []
+
+    def _snapshot_entities(self, entities):
+        result = []
+        if entities is None:
+            return result
+        items = self._iter_java(entities)
+        for ent in items:
+            try:
+                result.append(
+                    {
+                        "offset": int(getattr(ent, "offset", 0)),
+                        "length": int(getattr(ent, "length", 0)),
+                        "type": self._entity_class_name(ent),
+                        "url": getattr(ent, "url", None),
+                        "language": getattr(ent, "language", None),
+                        "document_id": getattr(ent, "document_id", None),
+                        "java": ent,
+                    }
+                )
+            except Exception:
+                log(f"[{__id__}] entity snapshot skip: {traceback.format_exc()}")
+        return result
+
+    def _apply_entities_to_params(self, params, entities_list, is_caption):
+        try:
+            if not entities_list:
+                return
+            target_field = "captionEntities" if is_caption else "entities"
+            existing = getattr(params, target_field, None)
+            if existing is None or not hasattr(existing, "add"):
+                new_list = ArrayList()
+                for rec in entities_list:
+                    java_ent = rec.get("java")
+                    if java_ent is not None:
+                        try:
+                            java_ent.offset = int(rec.get("new_offset", rec.get("offset", 0)))
+                            java_ent.length = int(rec.get("new_length", rec.get("length", 0)))
+                        except Exception:
+                            pass
+                        new_list.add(java_ent)
+                setattr(params, target_field, new_list)
+            else:
+                existing.clear()
+                for rec in entities_list:
+                    java_ent = rec.get("java")
+                    if java_ent is not None:
+                        try:
+                            java_ent.offset = int(rec.get("new_offset", rec.get("offset", 0)))
+                            java_ent.length = int(rec.get("new_length", rec.get("length", 0)))
+                        except Exception:
+                            pass
+                        existing.add(java_ent)
+        except Exception:
+            log(f"[{__id__}] apply entities failed: {traceback.format_exc()}")
+
+    def _transform_with_entities(self, text, entities_list, classic_prob, style_setting):
+        if not entities_list:
+            return self.apply_cute_transformations(text, classic_prob, style_setting), []
+
+        for rec in entities_list:
+            rec["new_offset"] = rec["offset"]
+            rec["new_length"] = rec["length"]
+
+        boundaries = set([0, len(text)])
+        protected = []
+        for rec in entities_list:
+            start = max(0, min(rec["offset"], len(text)))
+            end = max(0, min(rec["offset"] + rec["length"], len(text)))
+            if end <= start:
+                continue
+            boundaries.add(start)
+            boundaries.add(end)
+            if rec["type"] in self._ENTITY_NO_TRANSFORM:
+                protected.append((start, end))
+
+        points = sorted(boundaries)
+        new_text_parts = []
+        delta_by_pos = {p: 0 for p in points}
+        cumulative_delta = 0
+
+        for i in range(len(points) - 1):
+            seg_start = points[i]
+            seg_end = points[i + 1]
+            if seg_end <= seg_start:
+                new_text_parts.append(text[seg_start:seg_end])
+                continue
+            segment = text[seg_start:seg_end]
+            is_protected = any(p_start <= seg_start and seg_end <= p_end for p_start, p_end in protected)
+            if is_protected or not segment.strip():
+                new_segment = segment
+            else:
+                new_segment = self.apply_cute_transformations(segment, classic_prob, style_setting)
+            new_text_parts.append(new_segment)
+            seg_delta = len(new_segment) - len(segment)
+            delta_by_pos[seg_end] = seg_delta
+            cumulative_delta += seg_delta
+
+        new_text = "".join(new_text_parts)
+
+        for rec in entities_list:
+            old_start = max(0, min(rec["offset"], len(text)))
+            old_end = max(0, min(rec["offset"] + rec["length"], len(text)))
+            new_start = old_start
+            new_end = old_end
+            for p in points:
+                if p <= old_start:
+                    new_start += delta_by_pos.get(p, 0)
+                if p < old_end:
+                    new_end += delta_by_pos.get(p, 0)
+            new_start = max(0, min(new_start, len(new_text)))
+            new_end = max(new_start, min(new_end, len(new_text)))
+            rec["new_offset"] = new_start
+            rec["new_length"] = max(0, new_end - new_start)
+
+        return new_text, entities_list
+
+    def _html_escape(self, value):
+        return value.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+    def _entities_to_html(self, text, entities_list):
+        if not entities_list:
+            return None
+        spans = []
+        for rec in entities_list:
+            typ = rec["type"]
+            tag_info = self._ENTITY_HTML_TAG.get(typ)
+            if not tag_info or tag_info[0] is None:
+                continue
+            start = max(0, min(rec["offset"], len(text)))
+            end = max(0, min(rec["offset"] + rec["length"], len(text)))
+            if end <= start:
+                continue
+            spans.append((start, end, tag_info, rec))
+        if not spans:
+            return None
+        spans.sort(key=lambda s: (s[0], -(s[1] - s[0])))
+        out = []
+        cursor = 0
+        open_stack = []
+        positions = sorted({s[0] for s in spans} | {s[1] for s in spans} | {0, len(text)})
+        for pos in positions:
+            if pos > cursor:
+                out.append(self._html_escape(text[cursor:pos]))
+            closing = [s for s in open_stack if s[1] == pos]
+            for s in reversed(closing):
+                tag = s[2][1]
+                attrs = ""
+                if tag == "a" and s[3].get("url"):
+                    attrs = f' href="{self._html_escape(s[3]["url"])}"'
+                out.append(f"</{tag.split(' ', 1)[0]}>")
+                open_stack.remove(s)
+            opening = [s for s in spans if s[0] == pos and s not in open_stack]
+            for s in opening:
+                tag = s[2][0]
+                if tag is None:
+                    continue
+                if tag == "pre" and s[3].get("language"):
+                    out.append(f'<pre language="{self._html_escape(s[3]["language"])}">')
+                elif tag == "a" and s[3].get("url"):
+                    out.append(f'<a href="{self._html_escape(s[3]["url"])}">')
+                else:
+                    out.append(f"<{tag}>")
+                open_stack.append(s)
+            cursor = pos
+        if cursor < len(text):
+            out.append(self._html_escape(text[cursor:]))
+        for s in reversed(open_stack):
+            out.append(f"</{s[2][1]}>")
+        return "".join(out)
+
+    def _transform_uwu_speak(self, text):
+        text = text.replace("r", "w").replace("l", "w").replace("R", "W").replace("L", "W")
+        text = text.replace("р", "в").replace("л", "в").replace("Р", "В").replace("Л", "В")
+        return text
+
+    def _transform_stutter(self, word):
+        if len(word) > 1 and self.letter_pattern.match(word) and "-" not in word:
+            first_char = word[0]
+            stutter_prefix = first_char.lower() + "-"
+            if random.random() < 0.4:
+                stutter_prefix += first_char.lower() + "-"
+            return stutter_prefix + word
+        return word
+
+    def _transform_vowel_stretch(self, word, stretch_probability, max_stretch_factor, vowels_for_lang):
+        if not word or not vowels_for_lang:
+            return word
+        output_chars = []
+        for char_w in word:
+            output_chars.append(char_w)
+            if char_w in vowels_for_lang and random.random() < stretch_probability:
+                current_streak = 0
+                for k_idx in range(len(output_chars) - 1, -1, -1):
+                    if output_chars[k_idx] == char_w:
+                        current_streak += 1
+                    else:
+                        break
+                if current_streak < max_stretch_factor:
+                    num_additional_chars = random.randint(1, max_stretch_factor - current_streak)
+                    output_chars.extend([char_w] * num_additional_chars)
+        return "".join(output_chars)
+
+    def _transform_exclamations(self, ending_punctuation):
+        def replace_match(match):
+            return random.choice(self.extended_exclamations)
+
+        return re.sub(r"!", replace_match, ending_punctuation)
+
+    def apply_cute_transformations(self, text, classic_effects_probability, style_setting):
+        apply_lowercase = self.get_setting("enable_lowercase", False)
+        apply_uwu_speak = self.get_setting("enable_uwu_speak", False)
+
+        enable_uwu_suffixes = self.get_setting("enable_uwu_suffixes", False)
+        uwu_suffix_prob = self._get_frequency_prob_for_new_effects("uwu_suffix_frequency")
+
+        enable_stutter = self.get_setting("enable_stuttering", False)
+        stutter_prob = self._get_frequency_prob_for_new_effects("stuttering_frequency")
+
+        enable_vowel_stretch = self.get_setting("enable_vowel_stretching", False)
+        vowel_stretch_word_prob = self._get_frequency_prob_for_new_effects("vowel_stretching_frequency")
+        vowel_stretch_per_vowel_prob = 0.6
+        max_vowel_stretch_idx = self.get_setting("vowel_stretching_max_length", 0)
+        max_stretch_factor = 2 if max_vowel_stretch_idx == 0 else 3
+
+        enable_soft_sign = self.get_setting("enable_soft_sign", False)
+        soft_sign_prob = self._get_frequency_prob_for_new_effects("soft_sign_frequency")
+
+        enable_cute_punctuation = self.get_setting("enable_cute_punctuation", False)
+        cute_punctuation_prob = self._get_frequency_prob_for_new_effects("cute_punctuation_frequency")
+
+        enable_cute_actions = self.get_setting("enable_cute_actions", False)
+        cute_actions_prob = self._get_frequency_prob_for_new_effects("cute_actions_frequency")
+        actions_on_new_line = self.get_setting("actions_on_new_line", False)
+        current_cute_actions = self.cute_actions_map.get(locali.language, self.cute_actions_map["en"])
+
+        enable_text_borders = self.get_setting("enable_text_borders", False)
+        text_borders_prob = self._get_frequency_prob_for_new_effects("text_borders_frequency", 2)
+
+        theme_idx = self.get_setting("theme_selector", 0)
+        current_theme = None
+        if theme_idx > 0:
+            theme_names = list(self.themes.keys())
+            if theme_idx - 1 < len(theme_names):
+                current_theme = self.themes[theme_names[theme_idx - 1]]
+        elif random.random() < 0.3:
+            current_theme = random.choice(list(self.themes.values()))
+
+        if apply_lowercase:
+            text = self._transform_lowercase(text)
+        if apply_uwu_speak:
+            text = self._transform_uwu_speak(text)
+
+        sentences = re.split(r"([.!?]+\s*)", text)
+        result_parts = []
+
+        if current_theme and random.random() < 0.7:
+            if len(text) < 100 and random.random() < 0.5:
+                prefix = random.choice(current_theme["prefix"])
+                suffix = random.choice(current_theme["suffix"])
+                if random.random() < 0.3:
+                    text = f"{prefix} {text} {suffix}"
+
+            if len(text) > 20 and random.random() < 0.3:
+                theme_word = random.choice(current_theme["words"])
+                theme_emoji = random.choice(current_theme["emojis"])
+                insert_text = f" {theme_word} {theme_emoji} "
+                words = text.split()
+                if len(words) > 5:
+                    insert_pos = random.randint(2, len(words) - 2)
+                    words.insert(insert_pos, insert_text)
+                    text = " ".join(words)
+                    sentences = re.split(r"([.!?]+\s*)", text)
+
+        for i in range(0, len(sentences), 2):
+            sentence_part = sentences[i].strip() if i < len(sentences) else ""
+            ending_punctuation = sentences[i + 1] if i + 1 < len(sentences) else ""
+
+            if not sentence_part and ending_punctuation:
+                if (style_setting == 2 or style_setting == 3) and "!" in ending_punctuation:
+                    if random.random() < classic_effects_probability:
+                        ending_punctuation = self._transform_exclamations(ending_punctuation)
+                if enable_cute_punctuation and random.random() < cute_punctuation_prob:
+                    if "?" in ending_punctuation and self.cute_question_mark_replacements:
+                        m = re.search(r"([?!]+)(\s*)$", ending_punctuation)
+                        if m and "?" in m.group(1):
+                            ending_punctuation = (
+                                ending_punctuation[: m.start(1)]
+                                + random.choice(self.cute_question_mark_replacements)
+                                + m.group(2)
+                            )
+                    elif (
+                        "." in ending_punctuation and "..." not in ending_punctuation and self.cute_period_replacements
+                    ):
+                        m = re.search(r"(\.+)(\s*)$", ending_punctuation)
+                        if m and len(m.group(1)) == 1:
+                            ending_punctuation = (
+                                ending_punctuation[: m.start(1)]
+                                + random.choice(self.cute_period_replacements)
+                                + m.group(2)
+                            )
+                result_parts.append(ending_punctuation)
+                continue
+
+            if not sentence_part and not ending_punctuation:
+                continue
+
+            words = sentence_part.split()
+            processed_words = []
+            for word_idx, word in enumerate(words):
+                leading_punc, temp_word, trailing_punc = "", word, ""
+                m_lead = re.match(r"^([^\w\s]+)", temp_word)
+                if m_lead:
+                    leading_punc, temp_word = m_lead.group(1), temp_word[len(leading_punc) :]
+                m_trail = re.search(r"([^\w\s]+)$", temp_word)
+                if m_trail:
+                    trailing_punc, temp_word = m_trail.group(1), temp_word[: -len(trailing_punc)]
+
+                if not temp_word:
+                    processed_words.append(word)
+                    continue
+
+                vowels_for_word = self.vowels_map["ru"] if self._is_cyrillic(temp_word) else self.vowels_map["en"]
+
+                if enable_stutter and random.random() < stutter_prob:
+                    temp_word = self._transform_stutter(temp_word)
+
+                if enable_vowel_stretch and random.random() < vowel_stretch_word_prob:
+                    temp_word = self._transform_vowel_stretch(
+                        temp_word, vowel_stretch_per_vowel_prob, max_stretch_factor, vowels_for_word
+                    )
+
+                if (
+                    enable_soft_sign
+                    and temp_word
+                    and temp_word[-1].lower() in self.consonants_ru
+                    and temp_word[-1].lower() not in "ьъ"
+                    and random.random() < soft_sign_prob
+                ):
+                    if len(temp_word) > 1 or temp_word[-1].lower() != "й":
+                        temp_word += "ь"
+
+                processed_words.append(leading_punc + temp_word + trailing_punc)
+            sentence_part = " ".join(processed_words)
+
+            if style_setting == 0 or style_setting == 3:
+                words_for_emojis = sentence_part.split()
+                emoji_list = self.emojis
+                if current_theme and random.random() < 0.7:
+                    emoji_list = current_theme["emojis"]
+                sentence_part = " ".join(
+                    w + (f" {random.choice(emoji_list)}" if w and random.random() < classic_effects_probability else "")
+                    for w in words_for_emojis
+                ).strip()
+
+            if style_setting == 1 or style_setting == 3:
+                if random.random() < classic_effects_probability:
+                    sentence_part = (sentence_part + f" {random.choice(self.kaomojis)}").strip()
+
+            if enable_uwu_suffixes and random.random() < uwu_suffix_prob:
+                if sentence_part:
+                    sentence_part += f" {random.choice(self.uwu_suffixes)}"
+                else:
+                    sentence_part = random.choice(self.uwu_suffixes)
+                sentence_part = sentence_part.strip()
+
+            if enable_cute_punctuation and random.random() < cute_punctuation_prob:
+                if "?" in ending_punctuation and self.cute_question_mark_replacements:
+                    m = re.search(r"([?!]+)(\s*)$", ending_punctuation)
+                    if m and "?" in m.group(1):
+                        ending_punctuation = (
+                            ending_punctuation[: m.start(1)]
+                            + random.choice(self.cute_question_mark_replacements)
+                            + m.group(2)
+                        )
+                elif "." in ending_punctuation and "..." not in ending_punctuation and self.cute_period_replacements:
+                    m = re.search(r"(\.+)(\s*)$", ending_punctuation)
+                    if m and len(m.group(1)) == 1:
+                        ending_punctuation = (
+                            ending_punctuation[: m.start(1)] + random.choice(self.cute_period_replacements) + m.group(2)
+                        )
+
+            if style_setting == 2 or style_setting == 3:
+                if random.random() < classic_effects_probability * 0.7:
+                    sentence_part = (
+                        f"{random.choice(self.sparkles)} {sentence_part} {random.choice(self.sparkles)}".strip()
+                    )
+                if "!" in ending_punctuation and random.random() < classic_effects_probability:
+                    ending_punctuation = self._transform_exclamations(ending_punctuation)
+
+            if enable_text_borders and sentence_part and random.random() < text_borders_prob:
+                if len(sentence_part) < 50:
+                    borders = random.choice(self.text_borders)
+                    sentence_part = f"{borders[0]}{sentence_part}{borders[1]}"
+
+            result_parts.append(sentence_part)
+            result_parts.append(ending_punctuation)
+
+            if enable_cute_actions and sentence_part and current_cute_actions and random.random() < cute_actions_prob:
+                action_str = random.choice(current_cute_actions)
+                if actions_on_new_line:
+                    if result_parts and result_parts[-1]:
+                        result_parts[-1] = result_parts[-1].rstrip(" \t")
+                    result_parts.append("\n" + action_str)
+                else:
+                    if result_parts and result_parts[-1] and not result_parts[-1].endswith((" ", "\n", "\t")):
+                        result_parts.append(" " + action_str)
+                    else:
+                        result_parts.append(action_str)
+
+        return "".join(result_parts)

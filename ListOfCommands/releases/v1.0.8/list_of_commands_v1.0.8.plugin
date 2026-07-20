@@ -1,0 +1,270 @@
+import os
+import re
+from typing import Any
+
+from base_plugin import BasePlugin, MethodHook, HookResult, HookStrategy
+from hook_utils import find_class, jarray
+from android_utils import run_on_ui_thread, log
+from ui.bulletin import BulletinHelper
+from ui.settings import Header, Switch, Input, Divider
+from java.util import ArrayList, Arrays
+
+__id__ = "list_of_commands"
+__name__ = "Меню доступных команд"
+__author__ = "@bandaliyev"
+__version__ = "1.0.8"
+__description__ = "Оптимизированное отображение команд"
+__icon__ = "pus_heen/12"
+__min_version__ = "11.12.0"
+
+
+class CommandSuggestionsHook(MethodHook):
+    def __init__(self, plugin_instance):
+        self.plugin = plugin_instance
+        self.plugins_dir = os.path.dirname(os.path.realpath(__file__))
+        self.harvester = PluginCommandHarvester(self.plugins_dir)
+        self._command_cache = {"items": []}
+        self._dir_signature = None
+        self._enabled_plugin_ids = set()
+        self._enabled_signature = None
+
+        self.StringClass = find_class("java.lang.String").getClass()
+        self.AdapterClass = find_class("org.telegram.ui.Adapters.MentionsAdapter").getClass()
+        self.PluginsController = find_class("com.exteragram.messenger.plugins.PluginsController")
+
+        self.f_commands = self.AdapterClass.getDeclaredField("searchResultCommands")
+        self.f_help = self.AdapterClass.getDeclaredField("searchResultCommandsHelp")
+        self.f_delegate = self.AdapterClass.getDeclaredField("delegate")
+
+        for f in [self.f_commands, self.f_help, self.f_delegate]:
+            f.setAccessible(True)
+
+    def _sanitize_key(self, command: str) -> str:
+        return command.replace('.', '_dot_')
+
+    def _get_dir_signature(self):
+        signature = []
+        try:
+            for name in sorted(os.listdir(self.plugins_dir)):
+                if name == os.path.basename(__file__) or not name.endswith(('.py', '.plugin')):
+                    continue
+                path = os.path.join(self.plugins_dir, name)
+                try:
+                    stat = os.stat(path)
+                    signature.append((name, int(stat.st_mtime), stat.st_size))
+                except OSError:
+                    continue
+        except OSError:
+            pass
+        return tuple(signature)
+
+    def _refresh_enabled_plugins(self):
+        enabled = []
+        try:
+            controller = self.PluginsController.getInstance()
+            plugins_map = controller.plugins
+            for plugin_id in plugins_map.keySet().toArray():
+                try:
+                    plugin = plugins_map.get(plugin_id)
+                    if plugin and plugin.isEnabled() and not plugin.hasError():
+                        enabled.append(str(plugin.getId()))
+                except Exception:
+                    continue
+        except Exception as e:
+            log(f"[{__id__}] enabled plugins lookup failed: {e}")
+
+        enabled.sort()
+        signature = tuple(enabled)
+        if signature != self._enabled_signature:
+            self._enabled_signature = signature
+            self._enabled_plugin_ids = set(enabled)
+
+    def _ensure_fresh_cache(self):
+        current_signature = self._get_dir_signature()
+        if self._dir_signature != current_signature:
+            self._rebuild_cache()
+            self._dir_signature = current_signature
+        self._refresh_enabled_plugins()
+
+    def before_hooked_method(self, param):
+        try:
+            if not param.args or param.args[0] is None:
+                return
+
+            text = str(param.args[0].toString())
+            if not text.startswith('.'):
+                return
+
+            mentions_adapter = param.thisObject
+
+            def update_ui():
+                self._ensure_fresh_cache()
+
+                items = self._command_cache.get("items", [])
+                text_lower = text.lower()
+                final_cmds, final_helps = [], []
+
+                for item in items:
+                    plugin_id = item.get("plugin_id")
+                    if plugin_id and plugin_id not in self._enabled_plugin_ids:
+                        continue
+
+                    cmd = item["command"]
+                    if not cmd.lower().startswith(text_lower):
+                        continue
+
+                    if not self.plugin.get_setting(f"cmd_enabled_{self._sanitize_key(cmd)}", True):
+                        continue
+
+                    final_cmds.append(cmd)
+                    final_helps.append(item["help"])
+
+                j_cmds = ArrayList(Arrays.asList(jarray(self.StringClass)(final_cmds)))
+                j_helps = ArrayList(Arrays.asList(jarray(self.StringClass)(final_helps)))
+
+                self.f_commands.set(mentions_adapter, j_cmds)
+                self.f_help.set(mentions_adapter, j_helps)
+
+                mentions_adapter.notifyDataSetChanged()
+
+                delegate = self.f_delegate.get(mentions_adapter)
+                if delegate:
+                    delegate.needChangePanelVisibility(len(final_cmds) > 0)
+
+            run_on_ui_thread(update_ui)
+
+        except Exception as e:
+            log(f"[{__id__}] Hook error: {e}")
+
+    def _rebuild_cache(self):
+        plugins = self.harvester.get_plugins()
+        items = []
+        known_cmds = set()
+
+        for plugin in plugins:
+            plugin_id = plugin.get("id")
+            help_text = plugin.get("name") or plugin_id or plugin.get("file")
+            for cmd in plugin.get("commands", []):
+                if cmd.startswith('.') and cmd not in known_cmds:
+                    known_cmds.add(cmd)
+                    items.append({
+                        "command": cmd,
+                        "help": help_text,
+                        "plugin_id": plugin_id,
+                    })
+
+        custom = self.plugin.get_setting("custom_commands", "")
+        if custom:
+            for pair in filter(None, custom.split(',')):
+                if ':' in pair:
+                    c, d = pair.split(':', 1)
+                    c = c.strip()
+                    if c.startswith('.') and c not in known_cmds:
+                        known_cmds.add(c)
+                        items.append({
+                            "command": c,
+                            "help": d.strip(),
+                            "plugin_id": None,
+                        })
+
+        self._command_cache = {"items": items}
+
+
+class CommandHelperPlugin(BasePlugin):
+    def on_plugin_load(self) -> None:
+        try:
+            char_seq = find_class("java.lang.CharSequence")
+            bool_t = find_class("java.lang.Boolean").TYPE
+            int_t = find_class("java.lang.Integer").TYPE
+            arr_list = find_class("java.util.ArrayList")
+
+            m_class = find_class("org.telegram.ui.Adapters.MentionsAdapter").getClass()
+            target = m_class.getDeclaredMethod("searchUsernameOrHashtag", char_seq, int_t, arr_list, bool_t, bool_t)
+
+            self.handler = CommandSuggestionsHook(self)
+            self.handler._ensure_fresh_cache()
+            self.unhook_ref = self.hook_method(target, self.handler, priority=10)
+
+            self.add_on_send_message_hook()
+        except Exception as e:
+            log(f"[{__id__}] Load failed: {e}")
+
+    def on_send_message_hook(self, account: int, params: Any) -> HookResult:
+        if params.message.strip().lower() == ".preload":
+            if hasattr(self, 'handler'):
+                self.handler._command_cache = {"items": []}
+                self.handler._dir_signature = None
+                self.handler._enabled_signature = None
+                self.handler._enabled_plugin_ids = set()
+                self.handler._ensure_fresh_cache()
+                BulletinHelper.show_success("Кэш обновлен")
+            return HookResult(strategy=HookStrategy.CANCEL)
+        return HookResult()
+
+    def create_settings(self):
+        harvester = PluginCommandHarvester(os.path.dirname(os.path.realpath(__file__)))
+        plugins = harvester.get_plugins()
+
+        ui = [Header(text="Активные подсказки")]
+
+        for plugin in sorted(plugins, key=lambda x: ((x.get("name") or x.get("id") or x.get("file") or "").lower(), x.get("file") or "")):
+            plugin_label = plugin.get("name") or plugin.get("id") or plugin.get("file")
+            for cmd in plugin.get("commands", []):
+                key = f"cmd_enabled_{cmd.replace('.', '_dot_')}"
+                ui.append(Switch(key=key, text=cmd, subtext=f"Плагин: {plugin_label}", default=True))
+
+        ui.extend([
+            Divider(),
+            Input(key="custom_commands", text="Свои команды", subtext=".cmd:инфо"),
+            Divider(text="Скрывает команды удалённых и выключенных плагинов. Обновить вручную: .preload")
+        ])
+        return ui
+
+    def on_plugin_unload(self):
+        if hasattr(self, 'unhook_ref') and self.unhook_ref:
+            self.unhook_ref.unhook()
+
+
+class PluginCommandHarvester:
+    def __init__(self, path: str):
+        self.path = path
+        self.p_name_re = re.compile(r"__name__\s*=\s*['\"]([^'\"]+)['\"]")
+        self.p_id_re = re.compile(r"__id__\s*=\s*['\"]([^'\"]+)['\"]")
+        self.cmd_re = re.compile(r"['\"](\.[a-zA-Z0-9_-]+)[\s'\"]")
+
+    def _parse_plugin_file(self, file_path: str):
+        with open(file_path, 'r', encoding='utf-8') as src:
+            content = src.read()
+
+        plugin_name_match = self.p_name_re.search(content)
+        plugin_id_match = self.p_id_re.search(content)
+
+        plugin_name = plugin_name_match.group(1) if plugin_name_match else os.path.basename(file_path)
+        plugin_id = plugin_id_match.group(1) if plugin_id_match else None
+        commands = sorted(set(self.cmd_re.findall(content)))
+
+        return {
+            "id": plugin_id,
+            "name": plugin_name,
+            "file": os.path.basename(file_path),
+            "commands": commands,
+        }
+
+    def get_plugins(self):
+        result = []
+        if not os.path.exists(self.path):
+            return result
+
+        for f in sorted(os.listdir(self.path)):
+            if not f.endswith(('.py', '.plugin')) or f == os.path.basename(__file__):
+                continue
+
+            file_path = os.path.join(self.path, f)
+            try:
+                plugin = self._parse_plugin_file(file_path)
+                if plugin.get('commands'):
+                    result.append(plugin)
+            except Exception:
+                continue
+
+        return result
