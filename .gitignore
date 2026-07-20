@@ -2,3 +2,7 @@
 *.txt
 .ayu_session.pkl
 AIEdit/
+
+__pycache__/
+*.pyc
+*.pyo
