@@ -89,7 +89,7 @@ tools\build_plugin.bat CuteMessages
 | TomatoBom | низкий–средний | Overlay + загрузка ассетов с gitflic |
 | AIEdit | низкий–средний | Вызов официального AI API Telegram; текст уходит на сервер Cocoon |
 
-Подробности — в `docs.md` каждого плагина.
+Подробности — в `docs.md` каждого плагина и в `secure.md` (отчёты сгенерированы [Pluggy Bot](https://t.me/pluggy_robot)).
 
 ## Структура репозитория
 
@@ -154,7 +154,7 @@ awesome-plugins/
 ## Заметки
 
 - **CuteMessages** — единственный плагин с отдельным `.py` исходником; остальные хранятся как `.plugin` (валидный Python).
-- У каждого плагина есть `releases/v{version}/` — снимок `{name}_v{version}.plugin` и отчёт `secure_{version}.md` (версия и в папке, и в имени файла).
+- У каждого плагина есть `secure.md` в корне папки (актуальная проверка) и `releases/v{version}/` — снимок `{name}_v{version}.plugin` и архивный отчёт `secure_{version}.md`. Отчёты генерируются **[Pluggy Bot](https://t.me/pluggy_robot)** (pluggy_robot.t.me).
 - **CuteMessages/docs.md** содержит также общую базу знаний по SDK exteraGram (хуки, entities, локализация).
 - При извлечении `.plugin` → `.py` для других плагинов — обновить таблицу «Исходник» в этом файле.
 
