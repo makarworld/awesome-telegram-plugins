@@ -9,14 +9,14 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.YC_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.YC_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: ru-central1
     steps:
       - uses: actions/checkout@v4
-      - uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.YC_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.YC_SECRET_ACCESS_KEY }}
-          aws-region: ru-central1
-      - run: |
+      - name: Upload to Yandex Object Storage
+        run: |
           aws s3 cp plugin-integrity.json \
             s3://awesomeplugins/AwesomePlugins/plugin-integrity.json \
             --endpoint-url https://storage.yandexcloud.net \
