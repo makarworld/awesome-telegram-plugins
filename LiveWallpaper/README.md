@@ -15,12 +15,18 @@
 | `__icon__` | Animasha26/22 |
 | `__min_version__` | 11.12.0 |
 
+## Скачать
+
+[Скачать live_wallpaper.plugin](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/LiveWallpaper/live_wallpaper.plugin)
+
+Установка: скачай файл → открой в exteraGram / AyuGram (или импортируй через менеджер плагинов).
+
 ## Файлы в папке
 
 ```
 LiveWallpaper/
   live_wallpaper.plugin
-  docs.md
+  README.md
   secure.md
   releases/
     v1.1/

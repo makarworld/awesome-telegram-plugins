@@ -15,12 +15,18 @@
 | `__icon__` | EmojiAnimations/12 |
 | `__min_version__` | не указан |
 
+## Скачать
+
+[Скачать misha_unlimited_pins.plugin](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/UnlimitedPins/misha_unlimited_pins.plugin)
+
+Установка: скачай файл → открой в exteraGram / AyuGram (или импортируй через менеджер плагинов).
+
 ## Файлы в папке
 
 ```
 UnlimitedPins/
   misha_unlimited_pins.plugin
-  docs.md
+  README.md
   releases/
     v2.0/
       misha_unlimited_pins_v2.0.plugin

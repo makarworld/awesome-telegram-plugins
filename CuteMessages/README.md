@@ -1,7 +1,7 @@
 # CuteMessages (`cutemessagesenhanced`)
 
 > Плагин: стилизация исходящих сообщений (cute-эффекты, UwU, рамки, undo).  
-> Исходник: `cutemessagesenhanced.py` · Версия: **1.7.8** · Обновлено: 2026-07-20
+> Исходник: `cutemessagesenhanced.py` · Версия: **1.7.0** · Обновлено: 2026-07-20
 
 ## Метаданные
 
@@ -9,11 +9,17 @@
 |------|----------|
 | `__id__` | `cutemessagesenhanced` |
 | `__name__` | CuteMessages |
-| `__version__` | 1.7.8 |
-| `__author__` | @mihailkotovski & @mishabotov & idea - @bleizix (updated by @abuztrade) |
+| `__version__` | 1.7.0 |
+| `__author__` | @mihailkotovski & @mishabotov & idea - @bleizix (updated by @abuztrade & @AwesomeTelegramPlugins) |
 | `__description__` | Makes your messages extra cute with many adorable styles! |
 | `__icon__` | ColorfulMessages/28 |
 | `__min_version__` | 11.9.0 |
+
+## Скачать
+
+[Скачать cutemessagesenhanced.plugin](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/CuteMessages/cutemessagesenhanced.plugin)
+
+Установка: скачай файл → открой в exteraGram / AyuGram (или импортируй через менеджер плагинов).
 
 ## Файлы в папке
 
@@ -21,7 +27,7 @@
 CuteMessages/
   cutemessagesenhanced.py          # исходник (рабочий)
   cutemessagesenhanced copy.plugin # локальная копия артефакта
-  docs.md                          # этот файл
+  README.md                        # этот файл
   releases/
     v1.7.0/
       cutemessagesenhanced_v1.7.0.plugin
@@ -205,7 +211,7 @@ edit_message(message, text="...", parse_mode="HTML")
 
 ---
 
-## 4. Архитектура CuteMessages v1.7.6
+## 4. Архитектура CuteMessages v1.7.0
 
 ### Поток обработки сообщения
 ```
@@ -376,7 +382,7 @@ except Exception:
 
 ---
 
-## 9. Текущее состояние v1.7.6 (что есть в файле)
+## 9. Текущее состояние v1.7.0 (что есть в файле)
 
 ### Настройки
 - `enabled`, `show_settings_buttons`
@@ -391,20 +397,15 @@ except Exception:
 | `CHAT_ACTION_MENU` | Настройки, добавить/убрать из белого или чёрного списка (один пункт) |
 | `MESSAGE_CONTEXT_MENU` | Вернуть оригинал (только свои, последние 5) |
 
-### v1.7.8
-- Иконки: `menu_premium_effects` (настройки), `msg_favorite` / `msg_block` (список чатов)
-- Undo: очередь pending FIFO, несколько msg_id из ответа сервера, fallback по последнему сообщению в чате
+### Что вошло в 1.7.0 (относительно 1.6.1)
 
-### v1.7.7
-- Текст кнопки «добавить/убрать из списка» обновляется при смене чата (`ChatActivity.onTransitionAnimationEnd`)
-- Обновление текста кнопки после удаления чата из настроек (`_set_chat_list`)
-- Кеш текста кнопки учитывает `dialog_id`, а не только строку
+Полный список: [releases/v1.7.0/CHANGELOG.md](releases/v1.7.0/CHANGELOG.md).
 
-### v1.7.6
-- Список чатов в настройках обновляется сразу при добавлении/удалении (не только при смене режима)
-- Undo: поддержка Java Map в контексте меню, fallback поиск кеша по `msg_id`, нормализация `dialog_id`
-- Undo: `edit_message` на UI thread, fallback parse_mode при ошибке HTML
-- `post_request_hook`: также `TL_messages_sendMultiMedia`
+- Фильтр чатов: whitelist / blacklist, список в настройках, кнопка в меню ⋯
+- Undo: «вернуть оригинал» (последние 5 сообщений), сохранение entities
+- Команды `.cute` / `.picme`, игнор slash-команд (`/start`, `/help`)
+- Иконки: `menu_premium_effects`, `msg_favorite`, `msg_block`
+- Синхронизация текста кнопки списка при смене чата и после правок в настройках
 
 ### Удалено в 1.7.x
 - Long-press хук на Send
@@ -447,8 +448,8 @@ except Exception:
 
 ```
 Контекст: разрабатываю плагин exteraGram/AyuGram на Python (Chaquopy).
-Файл: cutemessagesenhanced.py, версия 1.7.6.
-База знаний: CuteMessages/docs.md
+Файл: cutemessagesenhanced.py, версия 1.7.0.
+База знаний: CuteMessages/README.md
 
 Плагин перехватывает исходящие сообщения через on_send_message_hook,
 трансформирует текст (cute-эффекты), сохраняет entities,

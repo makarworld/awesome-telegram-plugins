@@ -15,12 +15,18 @@
 | `__icon__` | Kangelcons_by_fStikBot/5 |
 | `__min_version__` | 12.1.1 |
 
+## Скачать
+
+[Скачать kangel_plugins_manager.plugin](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/KangelPluginsManager/kangel_plugins_manager.plugin)
+
+Установка: скачай файл → открой в exteraGram / AyuGram (или импортируй через менеджер плагинов).
+
 ## Файлы в папке
 
 ```
 KangelPluginsManager/
   kangel_plugins_manager.plugin   # рабочая копия (~5757 строк)
-  docs.md
+  README.md
   secure.md
   releases/
     v1.3.2/
@@ -150,4 +156,4 @@ PoW защищает API mkStats, но **не** защищает от вредо
 
 - Для правок нужно извлечь `.plugin` → `.py` или работать напрямую с `.plugin` (это валидный Python).
 - Локализация: `_tr()` — ru/en строки в начале файла.
-- При добавлении фич обновлять этот `docs.md` и корневой `docs.md`.
+- При добавлении фич обновлять этот `README.md` и корневой `docs.md`.

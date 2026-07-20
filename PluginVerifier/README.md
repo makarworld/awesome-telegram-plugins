@@ -15,12 +15,18 @@
 | `__icon__` | не указан |
 | `__min_version__` | не указан |
 
+## Скачать
+
+[Скачать plugin_verifier.plugin](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/PluginVerifier/plugin_verifier.plugin)
+
+Установка: скачай файл → открой в exteraGram / AyuGram (или импортируй через менеджер плагинов).
+
 ## Файлы в папке
 
 ```
 PluginVerifier/
   plugin_verifier.plugin
-  docs.md
+  README.md
   releases/
     v2.4.8/
       plugin_verifier_v2.4.8.plugin

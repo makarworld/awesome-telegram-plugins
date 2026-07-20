@@ -6,13 +6,13 @@
 
 ## О репозитории
 
-Монорепозиторий плагинов. Каждый плагин — отдельная папка с исходником (`.py` или `.plugin`) и `docs.md` с детальной документацией.
+Монорепозиторий плагинов. Каждый плагин — отдельная папка с исходником (`.py` или `.plugin`) и `README.md` с детальной документацией.
 
 ### Флоу работы
 
-1. Читать **этот файл** — обзор всех плагинов.
-2. Читать **`ПапкаПлагина/docs.md`** — детали конкретного плагина.
-3. После изменений обновлять оба уровня документации.
+1. Читать **[`README.md`](README.md)** — обзор для пользователей.
+2. Читать **`ПапкаПлагина/README.md`** — детали плагина (**обязательно перед правками**).
+3. Этот **`docs.md`** — сводная таблица версий и статусов (обновлять при релизах).
 
 Правило для агента: `.cursor/rules/plugin-workflow.mdc`
 
@@ -42,14 +42,14 @@ tools\build_plugin.bat CuteMessages
 
 | Папка | ID | Версия | Автор | Назначение | Исходник | docs |
 |-------|----|--------|-------|------------|----------|------|
-| [CuteMessages](CuteMessages/docs.md) | `cutemessagesenhanced` | 1.7.4 | @mihailkotovski & @mishabotov | Стилизация исходящих сообщений | `cutemessagesenhanced.py` | ✅ |
-| [KangelPluginsManager](KangelPluginsManager/docs.md) | `kangel_plugins_manager` | 1.3.2 | @ArThirtyFour \| @KangelPlugins | Магазин плагинов | `.plugin` | ✅ |
-| [LiveWallpaper](LiveWallpaper/docs.md) | `live_wallpaper` | 1.1 | @swagnonher | Живые обои в чатах | `.plugin` | ✅ |
-| [UnlimitedPins](UnlimitedPins/docs.md) | `misha_unlimited_pins` | 2.0 | @mihailkotovski & @mishabotov | Больше закреплённых чатов | `.plugin` | ✅ |
-| [PluginVerifier](PluginVerifier/docs.md) | `plugin_verifier` | 2.4.8 | @JasonVurhyz | Верификация и анализ плагинов | `.plugin` | ✅ |
-| [ListOfCommands](ListOfCommands/docs.md) | `list_of_commands` | 1.0.8 | @bandaliyev | Подсказки dot-команд | `.plugin` | ✅ |
-| [TomatoBom](TomatoBom/docs.md) | `tomato_bom` | 1.2.8 | Windukk | Кидает помидоры | `.plugin` | ✅ |
-| [AIEdit](AIEdit/docs.md) | `ai_edit` | 1.0.1 | @abuztrade | AI-редактирование исходящих сообщений | `ai_edit.py` | ✅ |
+| [CuteMessages](CuteMessages/README.md) | `cutemessagesenhanced` | 1.7.0 | @mihailkotovski & @mishabotov | Стилизация исходящих сообщений | `cutemessagesenhanced.py` | ✅ |
+| [KangelPluginsManager](KangelPluginsManager/README.md) | `kangel_plugins_manager` | 1.3.2 | @ArThirtyFour \| @KangelPlugins | Магазин плагинов | `.plugin` | ✅ |
+| [LiveWallpaper](LiveWallpaper/README.md) | `live_wallpaper` | 1.1 | @swagnonher | Живые обои в чатах | `.plugin` | ✅ |
+| [UnlimitedPins](UnlimitedPins/README.md) | `misha_unlimited_pins` | 2.0 | @mihailkotovski & @mishabotov | Больше закреплённых чатов | `.plugin` | ✅ |
+| [PluginVerifier](PluginVerifier/README.md) | `plugin_verifier` | 2.4.8 | @JasonVurhyz | Верификация и анализ плагинов | `.plugin` | ✅ |
+| [ListOfCommands](ListOfCommands/README.md) | `list_of_commands` | 1.0.8 | @bandaliyev | Подсказки dot-команд | `.plugin` | ✅ |
+| [TomatoBom](TomatoBom/README.md) | `tomato_bom` | 1.2.8 | Windukk | Кидает помидоры | `.plugin` | ✅ |
+| [AIEdit](AIEdit/README.md) | `ai_edit` | 1.0.1 | @abuztrade | AI-редактирование исходящих сообщений | `ai_edit.py` | ✅ |
 
 ## Сводка по типам
 
@@ -89,7 +89,7 @@ tools\build_plugin.bat CuteMessages
 | TomatoBom | низкий–средний | Overlay + загрузка ассетов с gitflic |
 | AIEdit | низкий–средний | Вызов официального AI API Telegram; текст уходит на сервер Cocoon |
 
-Подробности — в `docs.md` каждого плагина и в `secure.md` (отчёты сгенерированы [Pluggy Bot](https://t.me/pluggy_robot)).
+Подробности — в `README.md` каждого плагина и в `secure.md` (отчёты сгенерированы [Pluggy Bot](https://t.me/pluggy_robot)).
 
 ## Структура репозитория
 
@@ -99,63 +99,63 @@ awesome-plugins/
   .cursor/rules/plugin-workflow.mdc
   CuteMessages/
     cutemessagesenhanced.py
-    docs.md
+    README.md
     releases/
       v1.7.0/
         cutemessagesenhanced_v1.7.0.plugin
         secure_1.7.0.md
   KangelPluginsManager/
     kangel_plugins_manager.plugin
-    docs.md
+    README.md
     releases/
       v1.3.2/
         kangel_plugins_manager_v1.3.2.plugin
         secure_1.3.2.md
   LiveWallpaper/
     live_wallpaper.plugin
-    docs.md
+    README.md
     releases/
       v1.1/
         live_wallpaper_v1.1.plugin
         secure_1.1.md
   UnlimitedPins/
     misha_unlimited_pins.plugin
-    docs.md
+    README.md
     releases/
       v2.0/
         misha_unlimited_pins_v2.0.plugin
         secure_2.0.md
   PluginVerifier/
     plugin_verifier.plugin
-    docs.md
+    README.md
     releases/
       v2.4.8/
         plugin_verifier_v2.4.8.plugin
         secure_2.4.8.md
   ListOfCommands/
     list_of_commands.plugin
-    docs.md
+    README.md
     releases/
       v1.0.8/
         list_of_commands_v1.0.8.plugin
         secure_1.0.8.md
   TomatoBom/
     tomato_bom.plugin
-    docs.md
+    README.md
     releases/
       v1.2.8/
         tomato_bom_v1.2.8.plugin
         secure_1.2.8.md
   AIEdit/
     ai_edit.py
-    docs.md
+    README.md
 ```
 
 ## Заметки
 
 - **CuteMessages** — единственный плагин с отдельным `.py` исходником; остальные хранятся как `.plugin` (валидный Python).
 - У каждого плагина есть `secure.md` в корне папки (актуальная проверка) и `releases/v{version}/` — снимок `{name}_v{version}.plugin` и архивный отчёт `secure_{version}.md`. Отчёты генерируются **[Pluggy Bot](https://t.me/pluggy_robot)** (pluggy_robot.t.me).
-- **CuteMessages/docs.md** содержит также общую базу знаний по SDK exteraGram (хуки, entities, локализация).
+- **CuteMessages/README.md** содержит также общую базу знаний по SDK exteraGram (хуки, entities, локализация).
 - При извлечении `.plugin` → `.py` для других плагинов — обновить таблицу «Исходник» в этом файле.
 
 ## Полезные ссылки

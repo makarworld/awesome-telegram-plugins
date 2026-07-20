@@ -15,12 +15,18 @@
 | `__icon__` | pus_heen/12 |
 | `__min_version__` | 11.12.0 |
 
+## Скачать
+
+[Скачать list_of_commands.plugin](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/ListOfCommands/list_of_commands.plugin)
+
+Установка: скачай файл → открой в exteraGram / AyuGram (или импортируй через менеджер плагинов).
+
 ## Файлы в папке
 
 ```
 ListOfCommands/
   list_of_commands.plugin
-  docs.md
+  README.md
   secure.md
   releases/
     v1.0.8/

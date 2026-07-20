@@ -2,19 +2,23 @@
 
 Подборка плагинов для **exteraGram / AyuGram** — кастомного Android-клиента Telegram с движком плагинов на Python.
 
-Здесь собраны утилиты, развлечения и инструменты: от милых сообщений и помидорного обстрела до магазина плагинов и аудита безопасности. Каждый плагин — отдельная папка с `.plugin`-файлом, подробным `docs.md` и отчётом безопасности **`secure.md`**.
+Здесь собраны утилиты, развлечения и инструменты: от милых сообщений и помидорного обстрела до магазина плагинов и аудита безопасности. Каждый плагин — отдельная папка с `.plugin`-файлом, подробным `README.md` и отчётом безопасности **`secure.md`**.
 
 Отчёты `secure.md` и архивные `releases/v*/secure_*.md` **сгенерированы [Pluggy Bot](https://t.me/pluggy_robot)** ([@pluggy_robot.t.me](https://t.me/pluggy_robot)) — автоматический статический анализ плагинов exteraGram.
 
-| Плагин | Версия | Зачем ставить | Риск |
-|--------|--------|---------------|------|
-| [CuteMessages](#cutemessages) | 1.7.0 | Милые исходящие сообщения, undo | 🟢 |
-| [Tomato bom](#tomato-bom) | 1.2.8 | Кидать помидоры по UI | 🟡 |
-| [LiveWallpaper](#livewallpaper) | 1.1 | Видео-обои в чатах | 🔴 |
-| [Unlimited Pins](#unlimited-pins) | 2.0 | Без лимита закрепов | 🟢 |
-| [List of Commands](#list-of-commands) | 1.0.8 | Подсказки dot-команд | 🟢 |
-| [Kangel Plugins Manager](#kangel-plugins-manager) | 1.3.2 | Магазин плагинов | 🟠 |
-| [Plugin Verifier](#plugin-verifier) | 2.4.8 | Проверка плагинов на вирусы | 🔴* |
+База для прямых ссылок: `https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/`
+
+| Плагин | Версия | Зачем ставить | Риск | Скачать |
+|--------|--------|---------------|------|---------|
+| [CuteMessages](#cutemessages) | 1.7.0 | Милые исходящие сообщения, undo | 🟢 | [`.plugin`](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/CuteMessages/cutemessagesenhanced.plugin) |
+| [Tomato bom](#tomato-bom) | 1.2.8 | Кидать помидоры по UI | 🟡 | [`.plugin`](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/TomatoBom/tomato_bom.plugin) |
+| [LiveWallpaper](#livewallpaper) | 1.1 | Видео-обои в чатах | 🔴 | [`.plugin`](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/LiveWallpaper/live_wallpaper.plugin) |
+| [Unlimited Pins](#unlimited-pins) | 2.0 | Без лимита закрепов | 🟢 | [`.plugin`](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/UnlimitedPins/misha_unlimited_pins.plugin) |
+| [List of Commands](#list-of-commands) | 1.0.8 | Подсказки dot-команд | 🟢 | [`.plugin`](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/ListOfCommands/list_of_commands.plugin) |
+| [Kangel Plugins Manager](#kangel-plugins-manager) | 1.3.2 | Магазин плагинов | 🟠 | [`.plugin`](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/KangelPluginsManager/kangel_plugins_manager.plugin) |
+| [Plugin Verifier](#plugin-verifier) | 2.4.8 | Проверка плагинов на вирусы | 🔴* | [`.plugin`](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/PluginVerifier/plugin_verifier.plugin) |
+
+**Установка:** скачай `.plugin` по ссылке → открой файл в exteraGram / AyuGram (или импортируй через менеджер плагинов).
 
 ---
 
@@ -23,7 +27,8 @@
 ### CuteMessages
 
 **ID:** `cutemessagesenhanced` · **v1.7.0** · @mihailkotovski, @mishabotov · обновление 1.7.x: @abuztrade, @AwesomeTelegramPlugins  
-**Документация:** [CuteMessages/docs.md](CuteMessages/docs.md) · **Changelog 1.6.1→1.7.0:** [CHANGELOG.md](CuteMessages/releases/v1.7.0/CHANGELOG.md)
+**Документация:** [CuteMessages/README.md](CuteMessages/README.md) · **Changelog 1.6.1→1.7.0:** [CHANGELOG.md](CuteMessages/releases/v1.7.0/CHANGELOG.md)  
+**Скачать:** [cutemessagesenhanced.plugin](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/CuteMessages/cutemessagesenhanced.plugin)
 
 Превращает исходящие сообщения в «милые»: UwU, рамки, эмодзи, растягивание гласных, каомодзи. Можно ограничить чаты whitelist/blacklist, откатить последние 5 сообщений через контекстное меню. Команды `.cute` / `.picme` — быстрый toggle. Локализация ru/en.
 
@@ -39,7 +44,8 @@
 ### Kangel Plugins Manager
 
 **ID:** `kangel_plugins_manager` · **v1.3.2** · @ArThirtyFour, @KangelPlugins  
-**Документация:** [KangelPluginsManager/docs.md](KangelPluginsManager/docs.md)
+**Документация:** [KangelPluginsManager/README.md](KangelPluginsManager/README.md)  
+**Скачать:** [kangel_plugins_manager.plugin](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/KangelPluginsManager/kangel_plugins_manager.plugin)
 
 Полноценный магазин плагинов для exteraGram: каталог с GitHub, установка и обновление одним тапом, inline-поиск `@kpm` прямо в чате, pill-виджет со счётчиком, наборы плагинов (builds), deeplink `tg://kpm_install`. Телеметрия mkStats (отключается в настройках).
 
@@ -53,7 +59,8 @@
 ### Tomato bom
 
 **ID:** `tomato_bom` · **v1.2.8** · Windukk  
-**Документация:** [TomatoBom/docs.md](TomatoBom/docs.md)
+**Документация:** [TomatoBom/README.md](TomatoBom/README.md)  
+**Скачать:** [tomato_bom.plugin](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/TomatoBom/tomato_bom.plugin)
 
 Чистое развлечение. Включаешь из меню чата или бокового меню — поверх всего UI появляется слой, куда можно кидать помидоры. Тап — один помидор, удержание — пулемёт. Звук splat, GIF-анимация. Выход — двойной тап.
 
@@ -67,7 +74,8 @@
 ### LiveWallpaper
 
 **ID:** `live_wallpaper` · **v1.1** · @swagnonher  
-**Документация:** [LiveWallpaper/docs.md](LiveWallpaper/docs.md)
+**Документация:** [LiveWallpaper/README.md](LiveWallpaper/README.md)  
+**Скачать:** [live_wallpaper.plugin](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/LiveWallpaper/live_wallpaper.plugin)
 
 Живые видео-обои вместо скучного фона чата. Python-часть только загружает нативный модуль с сервера — вся магия внутри DEX. При первом запуске — bottom sheet с прогрессом загрузки.
 
@@ -81,7 +89,8 @@
 ### Unlimited Pins
 
 **ID:** `misha_unlimited_pins` · **v2.0** · @mihailkotovski, @mishabotov  
-**Документация:** [UnlimitedPins/docs.md](UnlimitedPins/docs.md)
+**Документация:** [UnlimitedPins/README.md](UnlimitedPins/README.md)  
+**Скачать:** [misha_unlimited_pins.plugin](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/UnlimitedPins/misha_unlimited_pins.plugin)
 
 Снимает лимит закреплённых чатов (до 100 000) и помнит состояние между перезапусками. Перехватывает pin/unpin на уровне `MessagesController` и протокола Telegram, сохраняет в локальный JSON. Кнопка «вернуть закрепы» — принудительное восстановление.
 
@@ -93,7 +102,8 @@
 ### List of Commands
 
 **ID:** `list_of_commands` · **v1.0.8** · @bandaliyev  
-**Документация:** [ListOfCommands/docs.md](ListOfCommands/docs.md)
+**Документация:** [ListOfCommands/README.md](ListOfCommands/README.md)  
+**Скачать:** [list_of_commands.plugin](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/ListOfCommands/list_of_commands.plugin)
 
 Набираешь `.` в чате — видишь все dot-команды установленных плагинов с описаниями. Можно отключать ненужные подсказки и добавлять свои. `.preload` — пересобрать кэш после установки нового плагина.
 
@@ -107,7 +117,8 @@
 ### Plugin Verifier
 
 **ID:** `plugin_verifier` · **v2.4.8** · @JasonVurhyz  
-**Документация:** [PluginVerifier/docs.md](PluginVerifier/docs.md)
+**Документация:** [PluginVerifier/README.md](PluginVerifier/README.md)  
+**Скачать:** [plugin_verifier.plugin](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/PluginVerifier/plugin_verifier.plugin)
 
 «Антивирус» для плагинов. Сверяет SHA256 с whitelist, ищет модификации через MinHash, анализирует `.plugin`/`.dex`/`.so`/`.db`, предупреждает при установке непроверенного, маркирует scammer-аккаунты. В списке плагинов — ✅ или 🔴.
 
@@ -148,8 +159,9 @@
 
 Монорепозиторий: исходники, документация, отчёты безопасности и артефакты `.plugin` для всех семи плагинов выше.
 
-- Технический каталог для разработки — [`docs.md`](docs.md)
-- Детали каждого плагина — `ПапкаПлагина/docs.md`
+- **Этот файл (`README.md`)** — обзор для пользователей и точка входа
+- **Документация плагина** — `ПапкаПлагина/README.md` (читать **перед** любыми правками)
+- **Каталог разработчика** — [`docs.md`](docs.md) (таблица версий и статусов; обновлять при релизах)
 - Правило флоу для агента Cursor — [`.cursor/rules/plugin-workflow.mdc`](.cursor/rules/plugin-workflow.mdc)
 
 ### Окружение
@@ -164,18 +176,19 @@
 
 ### Как обновлять плагины
 
-1. Прочитать `docs.md` (корень + папка плагина).
-2. Править `.py` или `.plugin`.
-3. Обновить документацию на обоих уровнях.
-4. Для `.py` — собрать артефакт и проверить синтаксис:
+1. Прочитать **`README.md`** в папке плагина (обязательно).
+2. При необходимости — этот корневой `README.md` и [`docs.md`](docs.md) (сводная таблица).
+3. Править `.py` или `.plugin`.
+4. Обновить **`README.md`** плагина; при изменении статуса/версии — также [`docs.md`](docs.md).
+5. Для `.py` — собрать артефакт и проверить синтаксис:
 
 ```bat
 python -m py_compile CuteMessages\cutemessagesenhanced.py
 .tools\build_plugin.bat CuteMessages
 ```
 
-5. Установить `.plugin` на устройство вручную через клиент.
-6. При релизе — положить снимок в `releases/v{version}/` и обновить `secure.md` через [Pluggy Bot](https://t.me/pluggy_robot).
+6. Установить `.plugin` на устройство вручную через клиент.
+7. При релизе — положить снимок в `releases/v{version}/` и обновить `secure.md` через [Pluggy Bot](https://t.me/pluggy_robot).
 
 ### Инструменты разработки (Cursor)
 
@@ -194,16 +207,17 @@ python -m py_compile CuteMessages\cutemessagesenhanced.py
 
 ```
 awesome-plugins/
-  README.md              # этот файл
-  docs.md                # технический каталог
+  README.md              # обзор (этот файл)
+  docs.md                # каталог разработчика: версии, статусы
   .tools/build_plugin.bat
-  CuteMessages/          # .py + .plugin + docs + secure.md + releases/
+  CuteMessages/
+    README.md            # документация плагина
+    cutemessagesenhanced.py
+    cutemessagesenhanced.plugin
+    releases/
   KangelPluginsManager/
-  LiveWallpaper/
-  UnlimitedPins/
-  PluginVerifier/
-  ListOfCommands/
-  TomatoBom/
+    README.md
+    ...
 ```
 
 ### Ссылки

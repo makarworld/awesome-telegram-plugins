@@ -15,12 +15,18 @@
 | `__icon__` | не указан |
 | `__min_version__` | не указан |
 
+## Скачать
+
+[Скачать tomato_bom.plugin](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/TomatoBom/tomato_bom.plugin)
+
+Установка: скачай файл → открой в exteraGram / AyuGram (или импортируй через менеджер плагинов).
+
 ## Файлы в папке
 
 ```
 TomatoBom/
   tomato_bom.plugin
-  docs.md
+  README.md
   releases/
     v1.2.8/
       tomato_bom_v1.2.8.plugin
