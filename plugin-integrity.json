@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "plugins": {
+    "live_wallpaper": {
+      "dex_url": "https://storage.yandexcloud.net/4plugins/EveryoneAskedForThis/LiveWallpaper.dex",
+      "bundled_dex_url": "https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/LiveWallpaper/LiveWallpaper.dex",
+      "dex_sha256": "167ae2d499f575e156b3aea44956844b332c5e885482e0ff7d707ceee18f8e77"
+    }
+  }
+}
