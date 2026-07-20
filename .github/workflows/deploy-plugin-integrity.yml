@@ -5,6 +5,11 @@ on:
     branches: [main]
     paths:
       - 'plugin-integrity.json'
+      - '.github/workflows/deploy-plugin-integrity.yml'
+  workflow_dispatch:
+
+# Yandex Object Storage — S3 API, НЕ AWS.
+# Не использовать aws-actions/configure-aws-credentials (лезет в sts.amazonaws.com).
 
 jobs:
   deploy:
@@ -17,7 +22,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Upload to Yandex Object Storage
         run: |
+          aws --version
           aws s3 cp plugin-integrity.json \
-            s3://awesomeplugins/AwesomePlugins/plugin-integrity.json \
-            --endpoint-url https://storage.yandexcloud.net \
-            --content-type application/json
+            "s3://awesomeplugins/AwesomePlugins/plugin-integrity.json" \
+            --endpoint-url "https://storage.yandexcloud.net" \
+            --content-type "application/json"
