@@ -42,7 +42,7 @@ tools\build_plugin.bat CuteMessages
 
 | Папка | ID | Версия | Автор | Назначение | Исходник | docs |
 |-------|----|--------|-------|------------|----------|------|
-| [CuteMessages](CuteMessages/README.md) | `cutemessagesenhanced` | 1.7.0 | @mihailkotovski & @mishabotov | Стилизация исходящих сообщений | `cutemessagesenhanced.py` | ✅ |
+| [CuteMessages](CuteMessages/README.md) | `cutemessagesenhanced` | 1.7.1 | @mihailkotovski & @mishabotov | Стилизация исходящих сообщений | `cutemessagesenhanced.py` | ✅ |
 | [KangelPluginsManager](KangelPluginsManager/README.md) | `kangel_plugins_manager` | 1.3.2 | @ArThirtyFour \| @KangelPlugins | Магазин плагинов | `.plugin` | ✅ |
 | [LiveWallpaper](LiveWallpaper/README.md) | `live_wallpaper` | 1.1 | @swagnonher | Живые обои в чатах | `.plugin` | ✅ |
 | [UnlimitedPins](UnlimitedPins/README.md) | `misha_unlimited_pins` | 2.0 | @mihailkotovski & @mishabotov | Больше закреплённых чатов | `.plugin` | ✅ |

@@ -10,7 +10,7 @@
 
 | Плагин | Версия | Зачем ставить | Риск | Скачать |
 |--------|--------|---------------|------|---------|
-| [CuteMessages](#cutemessages) | 1.7.0 | Милые исходящие сообщения, undo | 🟢 | [`.plugin`](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/CuteMessages/cutemessagesenhanced.plugin) |
+| [CuteMessages](#cutemessages) | 1.7.1 | Милые исходящие сообщения, undo | 🟢 | [`.plugin`](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/CuteMessages/cutemessagesenhanced.plugin) |
 | [Tomato bom](#tomato-bom) | 1.2.8 | Кидать помидоры по UI | 🟡 | [`.plugin`](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/TomatoBom/tomato_bom.plugin) |
 | [LiveWallpaper](#livewallpaper) | 1.1 | Видео-обои в чатах | 🔴 | [`.plugin`](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/LiveWallpaper/live_wallpaper.plugin) |
 | [Unlimited Pins](#unlimited-pins) | 2.0 | Без лимита закрепов | 🟢 | [`.plugin`](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/UnlimitedPins/misha_unlimited_pins.plugin) |
@@ -26,7 +26,7 @@
 
 ### CuteMessages
 
-**ID:** `cutemessagesenhanced` · **v1.7.0** · @mihailkotovski, @mishabotov · обновление 1.7.x: @abuztrade, @AwesomeTelegramPlugins  
+**ID:** `cutemessagesenhanced` · **v1.7.1** · @mihailkotovski, @mishabotov · обновление 1.7.x: @abuztrade, @AwesomeTelegramPlugins  
 **Документация:** [CuteMessages/README.md](CuteMessages/README.md) · **Changelog 1.6.1→1.7.0:** [CHANGELOG.md](CuteMessages/releases/v1.7.0/CHANGELOG.md)  
 **Скачать:** [cutemessagesenhanced.plugin](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/CuteMessages/cutemessagesenhanced.plugin)
 

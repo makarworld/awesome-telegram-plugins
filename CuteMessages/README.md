@@ -1,7 +1,7 @@
 # CuteMessages (`cutemessagesenhanced`)
 
 > Плагин: стилизация исходящих сообщений (cute-эффекты, UwU, рамки, undo).  
-> Исходник: `cutemessagesenhanced.py` · Версия: **1.7.0** · Обновлено: 2026-07-20
+> Исходник: `cutemessagesenhanced.py` · Версия: **1.7.1** · Обновлено: 2026-07-20
 
 ## Метаданные
 
@@ -9,7 +9,7 @@
 |------|----------|
 | `__id__` | `cutemessagesenhanced` |
 | `__name__` | CuteMessages |
-| `__version__` | 1.7.0 |
+| `__version__` | 1.7.1 |
 | `__author__` | @mihailkotovski & @mishabotov & idea - @bleizix (updated by @abuztrade & @AwesomeTelegramPlugins) |
 | `__description__` | Makes your messages extra cute with many adorable styles! |
 | `__icon__` | ColorfulMessages/28 |

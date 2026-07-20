@@ -21,9 +21,9 @@ __description__ = (
     "Makes your messages extra cute with many adorable styles!\n\nДелает твои сообщения милыми с различными стилями!"
 )
 __icon__ = "ColorfulMessages/28"
-__version__ = "1.7.0"
+__version__ = "1.7.1"
 __id__ = "cutemessagesenhanced"
-__author__ = "@mihailkotovski & @mishabotov & idea - @bleizix (updated by @abuztrade & @AwesomeTelegramPlugins)"
+__author__ = "@mihailkotovski & @mishabotov & idea - @bleizix (updated by @AwesomeTelegramPlugins)"
 __min_version__ = "11.9.0"
 
 
@@ -301,7 +301,6 @@ class PicMePlugin(BasePlugin):
             "(๑˃ᴗ˂)ﻭ",
             "(灬ºωº灬)♡",
             "૮₍˶ᵔ ᵕ ᵔ˶₎ა",
-            "ฅ^•ﻌ•^ฅ",
             "(*ฅ́˘ฅ̀*)",
             "(●'◡'●)",
             "ฅ(^◕ᴥ◕^)ฅ",
@@ -314,12 +313,30 @@ class PicMePlugin(BasePlugin):
             "꒰⑅ᵕ༚ᵕ꒱˖♡",
             "ପ(๑•ᴗ•๑)ଓ ♡",
             "(⁄ ⁄•⁄ω⁄•⁄ ⁄)",
+            "(˶ᵔ ᵕ ᵔ˶)",
+            "ʚ(ᵕ̈)ɞ",
+            "(◍•ᴗ•◍)❤",
+            "(*´▽`*)",
+            "(●´ω｀●)",
+            "꒰ᐢ. .ᐢ꒱",
+            "(˶◜ᵕ◝˶)♡",
+            "(ᵔᴥᵔ)",
+            "(｡•ㅅ•｡)",
+            "╰(´︶`)╯♡",
         ]
         self.sparkles = [
             "✨",
             "⭐",
             "★",
             "☆",
+            "✦",
+            "✧",
+            "⋆",
+            "˚",
+            "⊹",
+            "❇",
+            "⁂",
+            "˖°",
             "₊˚⊹",
             "˚₊· ͟͟͞͞➳❥",
             "⋆｡°✩",
@@ -328,6 +345,7 @@ class PicMePlugin(BasePlugin):
             "⊱",
             "✧･ﾟ",
             "♡",
+            "♡⃛",
             "❀",
             "❁",
             "❃",
@@ -348,13 +366,16 @@ class PicMePlugin(BasePlugin):
             "☽˚｡⋆",
             "❥",
             "༘⋆",
-            "⋆⭒˚｡⋆",
             "✮.°:⋆ₓₒ",
             "✧･ﾟ:✧･ﾟ",
             "*ੈ✩‧₊˚",
             "┊͙ ˘͈ᵕ˘͈",
             "ೃ࿔₊",
             "˗ˏˋ ★ ˎˊ˗",
+            "⋆｡˚ ✦ ˚｡⋆",
+            "˚ ༘♡ ⋆｡˚",
+            "✧･ﾟ: *✧",
+            "꒰ ⋆｡˚ ⊹ ˚｡⋆ ꒱",
         ]
 
         self.uwu_suffixes = [
