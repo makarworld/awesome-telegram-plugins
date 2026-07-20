@@ -12,7 +12,7 @@
 |--------|--------|---------------|------|---------|
 | [CuteMessages](#cutemessages) | 1.7.1 | Милые исходящие сообщения, undo | 🟢 | [`.plugin`](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/CuteMessages/cutemessagesenhanced.plugin) |
 | [Tomato bom](#tomato-bom) | 1.2.8 | Кидать помидоры по UI | 🟡 | [`.plugin`](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/TomatoBom/tomato_bom.plugin) |
-| [LiveWallpaper](#livewallpaper) | 1.1 | Видео-обои в чатах | 🔴 | [`.plugin`](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/LiveWallpaper/live_wallpaper.plugin) |
+| [LiveWallpaper](#livewallpaper) | 1.2 | Видео-обои в чатах | 🟠 | [`.plugin`](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/LiveWallpaper/live_wallpaper.plugin) |
 | [Unlimited Pins](#unlimited-pins) | 2.0 | Без лимита закрепов | 🟢 | [`.plugin`](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/UnlimitedPins/misha_unlimited_pins.plugin) |
 | [List of Commands](#list-of-commands) | 1.0.8 | Подсказки dot-команд | 🟢 | [`.plugin`](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/ListOfCommands/list_of_commands.plugin) |
 | [Kangel Plugins Manager](#kangel-plugins-manager) | 1.3.2 | Магазин плагинов | 🟠 | [`.plugin`](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/KangelPluginsManager/kangel_plugins_manager.plugin) |
@@ -37,7 +37,7 @@
 **Безопасность: 🟢 низкий риск** — только локальная обработка текста, сеть не используется (кроме ссылки доната в настройках).  
 Отчёт: [secure.md](CuteMessages/secure.md) — ✅ Безопасно · архив: [v1.7.0](CuteMessages/releases/v1.7.0/secure_1.7.0.md), [v1.6.1](CuteMessages/releases/v1.6.1/secure_1.6.1.md)
 
-> Единственный плагин в репозитории с открытым `.py`-исходником — `cutemessagesenhanced.py`. Остальные дорабатывались и документировались здесь же.
+> Открытые `.py`-исходники: `cutemessagesenhanced.py`, `live_wallpaper.py`. Остальные дорабатывались и документировались здесь же.
 
 ---
 
@@ -73,16 +73,18 @@
 
 ### LiveWallpaper
 
-**ID:** `live_wallpaper` · **v1.1** · @swagnonher  
-**Документация:** [LiveWallpaper/README.md](LiveWallpaper/README.md)  
+**ID:** `live_wallpaper` · **v1.2** · @swagnonher, @AwesomeTelegramPlugins  
+**Документация:** [LiveWallpaper/README.md](LiveWallpaper/README.md) · **Changelog 1.1→1.2:** [CHANGELOG.md](LiveWallpaper/releases/v1.2/CHANGELOG.md)  
 **Скачать:** [live_wallpaper.plugin](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/LiveWallpaper/live_wallpaper.plugin)
 
-Живые видео-обои вместо скучного фона чата. Python-часть только загружает нативный модуль с сервера — вся магия внутри DEX. При первом запуске — bottom sheet с прогрессом загрузки.
+Живые видео-обои вместо скучного фона чата. Python-часть загружает и проверяет нативный DEX-модуль — вся логика обоев внутри DEX. При первом запуске — bottom sheet с прогрессом загрузки.
 
-**Безопасность: 🔴 критический** — remote DEX без подписи и хеша. Любая подмена файла на CDN = произвольный код на устройстве.  
-Отчёт: [secure.md](LiveWallpaper/secure.md) — 📛 Высокий риск · архив: [v1.1](LiveWallpaper/releases/v1.1/secure_1.1.md)
+В **v1.2** добавлена цепочка доверия: SHA256 DEX при скачивании и при каждой инъекции, подписанный manifest [`plugin-integrity.json`](plugin-integrity.json) (RSA), fallback на bundled DEX с GitHub, ручной импорт `.dex` через file picker.
 
-Ставить только если полностью доверяете автору и хостингу.
+**Безопасность: 🟠 средний** — remote DEX остаётся, но подмена без обхода подписи и хеша затруднена; MITM возможен из‑за отсутствия pinning SSL.  
+Отчёт: [secure_1.2.md](LiveWallpaper/releases/v1.2/secure_1.2.md) — ⚠️ Осторожно · архив: [v1.1](LiveWallpaper/releases/v1.1/secure_1.1.md)
+
+Ставить, если доверяете автору, хостингу (Yandex Cloud / GitHub) и цепочке подписи manifest.
 
 ---
 
@@ -140,7 +142,7 @@
 | Unlimited Pins | 🟢 | [secure.md](UnlimitedPins/secure.md) | ✅ Безопасно |
 | Tomato bom | 🟡 | [secure.md](TomatoBom/secure.md) | ❔ Низкий риск |
 | Kangel Plugins Manager | 🟠 | [secure.md](KangelPluginsManager/secure.md) | ⚠️ Осторожно |
-| LiveWallpaper | 🔴 | [secure.md](LiveWallpaper/secure.md) | 📛 Высокий риск |
+| LiveWallpaper | 🟠 | [secure_1.2.md](LiveWallpaper/releases/v1.2/secure_1.2.md) | ⚠️ Осторожно |
 | Plugin Verifier | 🔴* | [secure.md](PluginVerifier/secure.md) | 📛 Высокий риск |
 
 **Где лежат отчёты**

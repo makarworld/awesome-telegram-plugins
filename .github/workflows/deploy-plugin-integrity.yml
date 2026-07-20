@@ -8,8 +8,8 @@ on:
       - '.github/workflows/deploy-plugin-integrity.yml'
   workflow_dispatch:
 
-# Yandex Object Storage — S3 API, НЕ AWS.
-# Не использовать aws-actions/configure-aws-credentials (лезет в sts.amazonaws.com).
+permissions:
+  contents: write
 
 jobs:
   deploy:
@@ -18,12 +18,36 @@ jobs:
       AWS_ACCESS_KEY_ID: ${{ secrets.YC_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.YC_SECRET_ACCESS_KEY }}
       AWS_DEFAULT_REGION: ru-central1
+      AWS_EC2_METADATA_DISABLED: "true"
     steps:
       - uses: actions/checkout@v4
+
+      - name: Sign manifest
+        env:
+          MANIFEST_SIGNING_KEY: ${{ secrets.MANIFEST_SIGNING_KEY }}
+        run: |
+          printf '%s' "$MANIFEST_SIGNING_KEY" > /tmp/manifest_private.pem
+          chmod 600 /tmp/manifest_private.pem
+          openssl dgst -sha256 -sign /tmp/manifest_private.pem \
+            -out /tmp/plugin-integrity.json.sig.bin plugin-integrity.json
+          base64 -w0 /tmp/plugin-integrity.json.sig.bin > plugin-integrity.json.sig
+          rm -f /tmp/manifest_private.pem /tmp/plugin-integrity.json.sig.bin
+
       - name: Upload to Yandex Object Storage
         run: |
-          aws --version
           aws s3 cp plugin-integrity.json \
             "s3://awesomeplugins/AwesomePlugins/plugin-integrity.json" \
             --endpoint-url "https://storage.yandexcloud.net" \
+            --region "ru-central1" \
             --content-type "application/json"
+          aws s3 cp plugin-integrity.json.sig \
+            "s3://awesomeplugins/AwesomePlugins/plugin-integrity.json.sig" \
+            --endpoint-url "https://storage.yandexcloud.net" \
+            --region "ru-central1" \
+            --content-type "text/plain"
+
+      - name: Commit signature file
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: update plugin-integrity.json.sig"
+          file_pattern: plugin-integrity.json.sig

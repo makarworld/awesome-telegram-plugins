@@ -44,7 +44,7 @@ tools\build_plugin.bat CuteMessages
 |-------|----|--------|-------|------------|----------|------|
 | [CuteMessages](CuteMessages/README.md) | `cutemessagesenhanced` | 1.7.1 | @mihailkotovski & @mishabotov | Стилизация исходящих сообщений | `cutemessagesenhanced.py` | ✅ |
 | [KangelPluginsManager](KangelPluginsManager/README.md) | `kangel_plugins_manager` | 1.3.2 | @ArThirtyFour \| @KangelPlugins | Магазин плагинов | `.plugin` | ✅ |
-| [LiveWallpaper](LiveWallpaper/README.md) | `live_wallpaper` | 1.1 | @swagnonher | Живые обои в чатах | `.plugin` | ✅ |
+| [LiveWallpaper](LiveWallpaper/README.md) | `live_wallpaper` | 1.2 | @swagnonher | Живые обои в чатах | `.plugin` | ✅ |
 | [UnlimitedPins](UnlimitedPins/README.md) | `misha_unlimited_pins` | 2.0 | @mihailkotovski & @mishabotov | Больше закреплённых чатов | `.plugin` | ✅ |
 | [PluginVerifier](PluginVerifier/README.md) | `plugin_verifier` | 2.4.8 | @JasonVurhyz | Верификация и анализ плагинов | `.plugin` | ✅ |
 | [ListOfCommands](ListOfCommands/README.md) | `list_of_commands` | 1.0.8 | @bandaliyev | Подсказки dot-команд | `.plugin` | ✅ |
