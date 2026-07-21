@@ -17,7 +17,7 @@
 
 ## Скачать
 
-[Скачать kangel_plugins_manager.plugin](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/KangelPluginsManager/kangel_plugins_manager.plugin)
+[⬇ Скачать kangel_plugins_manager.plugin](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/KangelPluginsManager/kangel_plugins_manager.plugin) · [Код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/KangelPluginsManager/kangel_plugins_manager.plugin)
 
 Установка: скачай файл → открой в exteraGram / AyuGram (или импортируй через менеджер плагинов).
 

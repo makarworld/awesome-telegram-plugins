@@ -17,7 +17,7 @@
 
 ## Скачать
 
-[Скачать plugin_verifier.plugin](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/PluginVerifier/plugin_verifier.plugin)
+[⬇ Скачать plugin_verifier.plugin](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/PluginVerifier/plugin_verifier.plugin) · [Код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/PluginVerifier/plugin_verifier.plugin)
 
 Установка: скачай файл → открой в exteraGram / AyuGram (или импортируй через менеджер плагинов).
 

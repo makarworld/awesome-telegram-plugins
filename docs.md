@@ -38,6 +38,16 @@ tools\build_plugin.bat CuteMessages
 
 Деплой на устройство — вручную через клиент или (если есть) `python tools/deploy.py`.
 
+### Ссылки на артефакты
+
+| Назначение | Шаблон | Поведение в браузере |
+|------------|--------|----------------------|
+| **Скачать** | `https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/{путь}` | сохраняет файл |
+| **Код** | `https://github.com/makarworld/awesome-telegram-plugins/blob/main/{путь}` | просмотр с подсветкой |
+| **Raw** | `https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/{путь}` | для KPM/API; часто открывает текст |
+
+В README плагинов: `[⬇ Скачать …](jsdelivr)` · `[Код](github blob)`.
+
 ## Каталог плагинов
 
 | Папка | ID | Версия | Автор | Назначение | Исходник | docs |

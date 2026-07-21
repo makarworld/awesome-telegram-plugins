@@ -17,7 +17,7 @@
 
 ## Скачать
 
-[Скачать list_of_commands.plugin](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/ListOfCommands/list_of_commands.plugin)
+[⬇ Скачать list_of_commands.plugin](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/ListOfCommands/list_of_commands.plugin) · [Код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/ListOfCommands/list_of_commands.plugin)
 
 Установка: скачай файл → открой в exteraGram / AyuGram (или импортируй через менеджер плагинов).
 

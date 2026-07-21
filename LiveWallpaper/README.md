@@ -17,7 +17,7 @@
 
 ## Скачать
 
-[Скачать live_wallpaper.plugin](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/LiveWallpaper/live_wallpaper.plugin)
+[⬇ Скачать live_wallpaper.plugin](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/LiveWallpaper/live_wallpaper.plugin) · [Код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/LiveWallpaper/live_wallpaper.plugin)
 
 Установка: скачай файл → открой в exteraGram / AyuGram (или импортируй через менеджер плагинов).
 

@@ -17,7 +17,7 @@
 
 ## Скачать
 
-[Скачать tomato_bom.plugin](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/TomatoBom/tomato_bom.plugin)
+[⬇ Скачать tomato_bom.plugin](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/TomatoBom/tomato_bom.plugin) · [Код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/TomatoBom/tomato_bom.plugin)
 
 Установка: скачай файл → открой в exteraGram / AyuGram (или импортируй через менеджер плагинов).
 

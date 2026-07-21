@@ -14,7 +14,7 @@ alwaysApply: true
 | Папка плагина, имя `.py` / `.plugin` | `ПапкаПлагина/README.md` — метаданные, «Файлы в папке», «Скачать» |
 | Новый/удалённый плагин | Корневой `README.md` (таблица + секция), `docs.md` (строка в каталоге) |
 | Версия, путь в `releases/` | `docs.md`, `README.md` плагина — **только при публикации релиза** (после push): `releases/vX.Y.Z/` |
-| Raw-ссылка на скачивание | Формат: `https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/Папка/файл.plugin` |
+| Raw-ссылка на скачивание | Скачать: `https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/Папка/файл.plugin` · Код: `https://github.com/makarworld/awesome-telegram-plugins/blob/main/Папка/файл` · Raw (API): `https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/Папка/файл.plugin` |
 
 Не завершай задачу, пока документация не отражает **актуальные пути и имена**.
 

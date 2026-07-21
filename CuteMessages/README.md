@@ -17,7 +17,7 @@
 
 ## Скачать
 
-[Скачать cutemessagesenhanced.plugin](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/CuteMessages/cutemessagesenhanced.plugin)
+[⬇ Скачать cutemessagesenhanced.plugin](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/CuteMessages/cutemessagesenhanced.plugin) · [Код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/CuteMessages/cutemessagesenhanced.py)
 
 Установка: скачай файл → открой в exteraGram / AyuGram (или импортируй через менеджер плагинов).
 

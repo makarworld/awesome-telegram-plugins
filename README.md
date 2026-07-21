@@ -6,20 +6,23 @@
 
 Отчёты `secure.md` и архивные `releases/v*/secure_*.md` **сгенерированы [Pluggy Bot](https://t.me/pluggy_robot)** ([@pluggy_robot.t.me](https://t.me/pluggy_robot)) — автоматический статический анализ плагинов exteraGram.
 
-База для прямых ссылок: `https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/`
+Ссылки на файлы:
+- **Скачать** — [jsDelivr](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/) (`application/octet-stream`, браузер сохраняет файл)
+- **Код** — [GitHub blob](https://github.com/makarworld/awesome-telegram-plugins/tree/main) (просмотр с подсветкой)
+- **Raw** — `https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/` (для менеджеров плагинов и API)
 
-| Плагин | Версия | Зачем ставить | Риск | Скачать |
-|--------|--------|---------------|------|---------|
-| [CuteMessages](#cutemessages) | 1.7.1 | Милые исходящие сообщения, undo | 🟢 | [`.plugin`](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/CuteMessages/cutemessagesenhanced.plugin) |
-| [Tomato bom](#tomato-bom) | 1.2.8 | Кидать помидоры по UI | 🟡 | [`.plugin`](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/TomatoBom/tomato_bom.plugin) |
-| [LiveWallpaper](#livewallpaper) | 1.2 | Видео-обои в чатах | 🟠 | [`.plugin`](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/LiveWallpaper/live_wallpaper.plugin) |
-| [Unlimited Pins](#unlimited-pins) | 2.0 | Без лимита закрепов | 🟢 | [`.plugin`](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/UnlimitedPins/misha_unlimited_pins.plugin) |
-| [List of Commands](#list-of-commands) | 1.0.8 | Подсказки dot-команд | 🟢 | [`.plugin`](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/ListOfCommands/list_of_commands.plugin) |
-| [Kangel Plugins Manager](#kangel-plugins-manager) | 1.3.2 | Магазин плагинов | 🟠 | [`.plugin`](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/KangelPluginsManager/kangel_plugins_manager.plugin) |
-| [Plugin Verifier](#plugin-verifier) | 2.4.8 | Проверка плагинов на вирусы | 🔴* | [`.plugin`](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/PluginVerifier/plugin_verifier.plugin) |
-| [WS-Bypass](#ws-bypass) | 3.0.5 | Обход блокировок Telegram | 🟡 | [`.plugin`](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/WSBypass/wsbypass.plugin) |
+| Плагин | Версия | Зачем ставить | Риск | Файл |
+|--------|--------|---------------|------|------|
+| [CuteMessages](#cutemessages) | 1.7.1 | Милые исходящие сообщения, undo | 🟢 | [⬇](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/CuteMessages/cutemessagesenhanced.plugin) · [код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/CuteMessages/cutemessagesenhanced.py) |
+| [Tomato bom](#tomato-bom) | 1.2.8 | Кидать помидоры по UI | 🟡 | [⬇](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/TomatoBom/tomato_bom.plugin) · [код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/TomatoBom/tomato_bom.plugin) |
+| [LiveWallpaper](#livewallpaper) | 1.2 | Видео-обои в чатах | 🟠 | [⬇](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/LiveWallpaper/live_wallpaper.plugin) · [код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/LiveWallpaper/live_wallpaper.plugin) |
+| [Unlimited Pins](#unlimited-pins) | 2.0 | Без лимита закрепов | 🟢 | [⬇](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/UnlimitedPins/misha_unlimited_pins.plugin) · [код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/UnlimitedPins/misha_unlimited_pins.plugin) |
+| [List of Commands](#list-of-commands) | 1.0.8 | Подсказки dot-команд | 🟢 | [⬇](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/ListOfCommands/list_of_commands.plugin) · [код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/ListOfCommands/list_of_commands.plugin) |
+| [Kangel Plugins Manager](#kangel-plugins-manager) | 1.3.2 | Магазин плагинов | 🟠 | [⬇](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/KangelPluginsManager/kangel_plugins_manager.plugin) · [код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/KangelPluginsManager/kangel_plugins_manager.plugin) |
+| [Plugin Verifier](#plugin-verifier) | 2.4.8 | Проверка плагинов на вирусы | 🔴* | [⬇](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/PluginVerifier/plugin_verifier.plugin) · [код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/PluginVerifier/plugin_verifier.plugin) |
+| [WS-Bypass](#ws-bypass) | 3.0.5 | Обход блокировок Telegram | 🟡 | [⬇](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/WSBypass/wsbypass.plugin) · [код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/WSBypass/wsbypass.plugin) |
 
-**Установка:** скачай `.plugin` по ссылке → открой файл в exteraGram / AyuGram (или импортируй через менеджер плагинов).
+**Установка:** скачай `.plugin` по ссылке ⬇ → открой файл в exteraGram / AyuGram (или импортируй через менеджер плагинов). Ссылка **код** — только просмотр исходника на GitHub.
 
 ---
 
@@ -29,7 +32,7 @@
 
 **ID:** `cutemessagesenhanced` · **v1.7.1** · @mihailkotovski, @mishabotov · обновление 1.7.x: @abuztrade, @AwesomeTelegramPlugins  
 **Документация:** [CuteMessages/README.md](CuteMessages/README.md) · **Changelog 1.6.1→1.7.0:** [CHANGELOG.md](CuteMessages/releases/v1.7.0/CHANGELOG.md)  
-**Скачать:** [cutemessagesenhanced.plugin](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/CuteMessages/cutemessagesenhanced.plugin)
+**Скачать:** [cutemessagesenhanced.plugin](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/CuteMessages/cutemessagesenhanced.plugin) · **Код:** [cutemessagesenhanced.py](https://github.com/makarworld/awesome-telegram-plugins/blob/main/CuteMessages/cutemessagesenhanced.py)
 
 Превращает исходящие сообщения в «милые»: UwU, рамки, эмодзи, растягивание гласных, каомодзи. Можно ограничить чаты whitelist/blacklist, откатить последние 5 сообщений через контекстное меню. Команды `.cute` / `.picme` — быстрый toggle. Локализация ru/en.
 
@@ -46,7 +49,7 @@
 
 **ID:** `kangel_plugins_manager` · **v1.3.2** · @ArThirtyFour, @KangelPlugins  
 **Документация:** [KangelPluginsManager/README.md](KangelPluginsManager/README.md)  
-**Скачать:** [kangel_plugins_manager.plugin](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/KangelPluginsManager/kangel_plugins_manager.plugin)
+**Скачать:** [kangel_plugins_manager.plugin](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/KangelPluginsManager/kangel_plugins_manager.plugin) · **Код:** [kangel_plugins_manager.plugin](https://github.com/makarworld/awesome-telegram-plugins/blob/main/KangelPluginsManager/kangel_plugins_manager.plugin)
 
 Полноценный магазин плагинов для exteraGram: каталог с GitHub, установка и обновление одним тапом, inline-поиск `@kpm` прямо в чате, pill-виджет со счётчиком, наборы плагинов (builds), deeplink `tg://kpm_install`. Телеметрия mkStats (отключается в настройках).
 
@@ -61,7 +64,7 @@
 
 **ID:** `tomato_bom` · **v1.2.8** · Windukk  
 **Документация:** [TomatoBom/README.md](TomatoBom/README.md)  
-**Скачать:** [tomato_bom.plugin](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/TomatoBom/tomato_bom.plugin)
+**Скачать:** [tomato_bom.plugin](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/TomatoBom/tomato_bom.plugin) · **Код:** [tomato_bom.plugin](https://github.com/makarworld/awesome-telegram-plugins/blob/main/TomatoBom/tomato_bom.plugin)
 
 Чистое развлечение. Включаешь из меню чата или бокового меню — поверх всего UI появляется слой, куда можно кидать помидоры. Тап — один помидор, удержание — пулемёт. Звук splat, GIF-анимация. Выход — двойной тап.
 
@@ -76,7 +79,7 @@
 
 **ID:** `live_wallpaper` · **v1.2** · @swagnonher, @AwesomeTelegramPlugins  
 **Документация:** [LiveWallpaper/README.md](LiveWallpaper/README.md) · **Changelog 1.1→1.2:** [CHANGELOG.md](LiveWallpaper/releases/v1.2/CHANGELOG.md)  
-**Скачать:** [live_wallpaper.plugin](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/LiveWallpaper/live_wallpaper.plugin)
+**Скачать:** [live_wallpaper.plugin](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/LiveWallpaper/live_wallpaper.plugin) · **Код:** [live_wallpaper.plugin](https://github.com/makarworld/awesome-telegram-plugins/blob/main/LiveWallpaper/live_wallpaper.plugin)
 
 Живые видео-обои вместо скучного фона чата. Python-часть загружает и проверяет нативный DEX-модуль — вся логика обоев внутри DEX. При первом запуске — bottom sheet с прогрессом загрузки.
 
@@ -93,7 +96,7 @@
 
 **ID:** `misha_unlimited_pins` · **v2.0** · @mihailkotovski, @mishabotov  
 **Документация:** [UnlimitedPins/README.md](UnlimitedPins/README.md)  
-**Скачать:** [misha_unlimited_pins.plugin](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/UnlimitedPins/misha_unlimited_pins.plugin)
+**Скачать:** [misha_unlimited_pins.plugin](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/UnlimitedPins/misha_unlimited_pins.plugin) · **Код:** [misha_unlimited_pins.plugin](https://github.com/makarworld/awesome-telegram-plugins/blob/main/UnlimitedPins/misha_unlimited_pins.plugin)
 
 Снимает лимит закреплённых чатов (до 100 000) и помнит состояние между перезапусками. Перехватывает pin/unpin на уровне `MessagesController` и протокола Telegram, сохраняет в локальный JSON. Кнопка «вернуть закрепы» — принудительное восстановление.
 
@@ -106,7 +109,7 @@
 
 **ID:** `list_of_commands` · **v1.0.8** · @bandaliyev  
 **Документация:** [ListOfCommands/README.md](ListOfCommands/README.md)  
-**Скачать:** [list_of_commands.plugin](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/ListOfCommands/list_of_commands.plugin)
+**Скачать:** [list_of_commands.plugin](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/ListOfCommands/list_of_commands.plugin) · **Код:** [list_of_commands.plugin](https://github.com/makarworld/awesome-telegram-plugins/blob/main/ListOfCommands/list_of_commands.plugin)
 
 Набираешь `.` в чате — видишь все dot-команды установленных плагинов с описаниями. Можно отключать ненужные подсказки и добавлять свои. `.preload` — пересобрать кэш после установки нового плагина.
 
@@ -121,7 +124,7 @@
 
 **ID:** `plugin_verifier` · **v2.4.8** · @JasonVurhyz  
 **Документация:** [PluginVerifier/README.md](PluginVerifier/README.md)  
-**Скачать:** [plugin_verifier.plugin](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/PluginVerifier/plugin_verifier.plugin)
+**Скачать:** [plugin_verifier.plugin](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/PluginVerifier/plugin_verifier.plugin) · **Код:** [plugin_verifier.plugin](https://github.com/makarworld/awesome-telegram-plugins/blob/main/PluginVerifier/plugin_verifier.plugin)
 
 «Антивирус» для плагинов. Сверяет SHA256 с whitelist, ищет модификации через MinHash, анализирует `.plugin`/`.dex`/`.so`/`.db`, предупреждает при установке непроверенного, маркирует scammer-аккаунты. В списке плагинов — ✅ или 🔴.
 
@@ -136,7 +139,7 @@
 
 **ID:** `wsbypass` · **v3.0.5** · @Th3Nek1t_projects  
 **Документация:** [WSBypass/README.md](WSBypass/README.md)  
-**Скачать:** [wsbypass.plugin](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/WSBypass/wsbypass.plugin)
+**Скачать:** [wsbypass.plugin](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/WSBypass/wsbypass.plugin) · **Код:** [wsbypass.plugin](https://github.com/makarworld/awesome-telegram-plugins/blob/main/WSBypass/wsbypass.plugin)
 
 Поднимает локальный SOCKS-прокси и гонит трафик Telegram через WebSocket-туннель к KWS-серверам (Nimarko / Th3Nekit). Включает прокси в клиенте автоматически. Провайдеры на выбор или авто-режим. Для полной скорости на Th3Nekit нужна подписка на канал автора.
 

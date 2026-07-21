@@ -18,7 +18,7 @@
 
 ## Скачать
 
-[Скачать wsbypass.plugin](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/WSBypass/wsbypass.plugin)
+[⬇ Скачать wsbypass.plugin](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/WSBypass/wsbypass.plugin) · [Код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/WSBypass/wsbypass.plugin)
 
 Установка: скачай файл → открой в exteraGram / AyuGram (или импортируй через менеджер плагинов).
 
