@@ -16,9 +16,9 @@
 | `__app_version__` | >=12.5.1 |
 | `__sdk_version__` | >=1.4.0 |
 
-## ⬇️ Скачать
+## 📥 Скачать
 
-[⬇ Скачать wsbypass.plugin](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/WSBypass/wsbypass.plugin) · [👀 Код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/WSBypass/wsbypass.plugin)
+**[Скачать wsbypass.plugin](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/WSBypass/wsbypass.plugin)** · **[Исходник на GitHub](https://github.com/makarworld/awesome-telegram-plugins/blob/main/WSBypass/wsbypass.plugin)**
 
 📲 **Установка:** скачай файл → открой в exteraGram / AyuGram (или импортируй через менеджер плагинов).
 
@@ -58,7 +58,7 @@ WSBypass/
 
 📢 Для **полной скорости** на провайдере Th3Nekit нужна подписка на канал `@th3nek1t_projects`. Без неё — режим «тонкого канала» 🐌 (достаточно, чтобы открыть Telegram и подписаться).
 
-## 🪝 Хуки
+## 🔗 Хуки
 
 | Хук | Описание |
 |-----|----------|
