@@ -1,9 +1,9 @@
-# WS-Bypass (`wsbypass`)
+# 🛡️ WS-Bypass (`wsbypass`)
 
-> Обход блокировок Telegram через локальный SOCKS-прокси и WebSocket-туннель к KWS-провайдерам.  
-> Исходник: только `wsbypass.plugin` · Версия: **3.0.5** · Обновлено: 2026-07-21
+> 🔓 Обход блокировок Telegram через локальный SOCKS-прокси и WebSocket-туннель к KWS-провайдерам.  
+> 📦 Исходник: только `wsbypass.plugin` · 🏷️ Версия: **3.0.5** · 📅 Обновлено: 2026-07-21
 
-## Метаданные
+## 📋 Метаданные
 
 | Поле | Значение |
 |------|----------|
@@ -16,13 +16,13 @@
 | `__app_version__` | >=12.5.1 |
 | `__sdk_version__` | >=1.4.0 |
 
-## Скачать
+## ⬇️ Скачать
 
-[⬇ Скачать wsbypass.plugin](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/WSBypass/wsbypass.plugin) · [Код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/WSBypass/wsbypass.plugin)
+[⬇ Скачать wsbypass.plugin](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/WSBypass/wsbypass.plugin) · [👀 Код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/WSBypass/wsbypass.plugin)
 
-Установка: скачай файл → открой в exteraGram / AyuGram (или импортируй через менеджер плагинов).
+📲 **Установка:** скачай файл → открой в exteraGram / AyuGram (или импортируй через менеджер плагинов).
 
-## Файлы в папке
+## 📁 Файлы в папке
 
 ```
 WSBypass/
@@ -35,60 +35,60 @@ WSBypass/
       secure_3.0.5.md
 ```
 
-## Назначение
+## 🎯 Назначение
 
-Плагин поднимает локальный SOCKS-прокси на `127.0.0.1`, проксирует трафик Telegram через WebSocket-мост к внешним KWS-серверам и автоматически включает этот прокси в настройках клиента. Предназначен для работы Telegram при блокировках (в т.ч. в РФ).
+Плагин поднимает локальный SOCKS-прокси на `127.0.0.1` 🏠, проксирует трафик Telegram через WebSocket-мост 🌉 к внешним KWS-серверам и автоматически включает этот прокси в настройках клиента ⚙️. Предназначен для работы Telegram при блокировках (в т.ч. в РФ 🇷🇺).
 
-## Архитектура
+## 🏗️ Архитектура
 
 | Компонент | Роль |
 |-----------|------|
-| `TgWsProxyPlugin` | Главный плагин: настройки, автозапуск, обновления |
-| `TgWsCore` | Локальный SOCKS-сервер, маршрутизация, пул WS-соединений |
-| `_TgWsRawWebSocket` / `_TgWsWsPool` | WebSocket-клиент и пул прогретых соединений |
-| `_kws_*` | Регистрация на KWS API, poll/credential, проверка подписки на канал |
+| `TgWsProxyPlugin` | 🎛️ Главный плагин: настройки, автозапуск, обновления |
+| `TgWsCore` | 🔌 Локальный SOCKS-сервер, маршрутизация, пул WS-соединений |
+| `_TgWsRawWebSocket` / `_TgWsWsPool` | 🔄 WebSocket-клиент и пул прогретых соединений |
+| `_kws_*` | 🔑 Регистрация на KWS API, poll/credential, проверка подписки на канал |
 
-## Провайдеры
+## 🌍 Провайдеры
 
 | Режим | API | Релеи | Примечание |
 |-------|-----|-------|------------|
-| `auto` | авто-выбор | — | рекомендуется |
-| `nimarko` | `calls.nimarko.org` | `r1.nimarko.org` | быстрый |
-| `th3` | `kws.th3web.com` | `ws.th3web.com` | медленный, trickle без подписки |
+| `auto` | авто-выбор | — | ✅ рекомендуется |
+| `nimarko` | `calls.nimarko.org` | `r1.nimarko.org` | ⚡ быстрый |
+| `th3` | `kws.th3web.com` | `ws.th3web.com` | 🐢 медленный, trickle без подписки |
 
-Для полной скорости на провайдере Th3Nekit нужна подписка на канал `@th3nek1t_projects`. Без неё — режим «тонкого канала» (достаточно, чтобы открыть Telegram и подписаться).
+📢 Для **полной скорости** на провайдере Th3Nekit нужна подписка на канал `@th3nek1t_projects`. Без неё — режим «тонкого канала» 🐌 (достаточно, чтобы открыть Telegram и подписаться).
 
-## Хуки
+## 🪝 Хуки
 
 | Хук | Описание |
 |-----|----------|
-| `ProxyListActivity$TextDetailProxyCell.setProxy` | Подпись локального прокси «Обход блокировок» |
-| `ConnectionsManager.onProxyError` | Обработка ошибок прокси |
-| `on_app_event` (START/RESUME) | Перезапуск туннеля при возврате в приложение |
+| `ProxyListActivity$TextDetailProxyCell.setProxy` | 🏷️ Подпись локального прокси «Обход блокировок» |
+| `ConnectionsManager.onProxyError` | ⚠️ Обработка ошибок прокси |
+| `on_app_event` (START/RESUME) | 🔁 Перезапуск туннеля при возврате в приложение |
 
-## Настройки
+## ⚙️ Настройки
 
 | Ключ | Описание |
 |------|----------|
-| `tgws_enabled` | Включить туннель |
-| `tgws_provider_mode` | `auto` / `nimarko` / `th3` |
-| `tgws_update_autocheck` | Автопроверка обновлений раз в час |
-| `advanced_enabled` | Расширенные настройки (порт/хост SOCKS) |
-| `local_socks_host` | Хост локального прокси (по умолчанию `127.0.0.1`) |
-| `local_socks_port` | Порт локального прокси (по умолчанию `1443`) |
-| `route_pref` | Сохранённое предпочтение маршрута (JSON) |
-| `kws_ever_authed` / `kws_grace_until` | Grace-период после успешной авторизации |
-| `kws_cred_{provider}` | Кэш credential по провайдеру |
+| `tgws_enabled` | 🟢 Включить туннель |
+| `tgws_provider_mode` | 🌐 `auto` / `nimarko` / `th3` |
+| `tgws_update_autocheck` | 🔄 Автопроверка обновлений раз в час |
+| `advanced_enabled` | 🧰 Расширенные настройки (порт/хост SOCKS) |
+| `local_socks_host` | 🏠 Хост локального прокси (по умолчанию `127.0.0.1`) |
+| `local_socks_port` | 🔢 Порт локального прокси (по умолчанию `1443`) |
+| `route_pref` | 🗺️ Сохранённое предпочтение маршрута (JSON) |
+| `kws_ever_authed` / `kws_grace_until` | ⏳ Grace-период после успешной авторизации |
+| `kws_cred_{provider}` | 💾 Кэш credential по провайдеру |
 
-Пункты меню в чате и боковом drawer ведут в настройки плагина.
+📍 Пункты меню в чате 💬 и боковом drawer ведут в настройки плагина.
 
-## Обновления
+## 🆙 Обновления
 
-- Манифест: `https://th3web.com/wsbypass/version.json`
-- Доверенный хост загрузки: `th3web.com`
-- Проверки: HTTPS, SHA256, Ed25519-подпись, сравнение версии в payload
+- 📄 Манифест: `https://th3web.com/wsbypass/version.json`
+- 🔒 Доверенный хост загрузки: `th3web.com`
+- ✅ Проверки: HTTPS, SHA256, Ed25519-подпись, сравнение версии в payload
 
-## Сеть
+## 🌐 Сеть
 
 | Назначение | URL |
 |------------|-----|
@@ -97,14 +97,14 @@ WSBypass/
 | Обновления | `https://th3web.com/wsbypass/version.json` |
 | WebSocket Origin | `https://web.telegram.org` |
 
-## Безопасность
+## 🔐 Безопасность
 
 **Уровень: 🟡 низкий–средний** — туннелирование через сторонние KWS-серверы и смена прокси; автообновление с `th3web.com` (SHA256 + Ed25519).
 
-Отчёт: [secure.md](secure.md) — ❔ Низкий риск · архив: [v3.0.5](releases/v3.0.5/secure_3.0.5.md)
+📊 Отчёт: [secure.md](secure.md) — ❔ Низкий риск · 📦 архив: [v3.0.5](releases/v3.0.5/secure_3.0.5.md)
 
-## История
+## 📜 История
 
 | Версия | Примечание |
 |--------|------------|
-| 3.0.5 | Добавлен в репозиторий awesome-plugins |
+| 3.0.5 | 🎉 Добавлен в репозиторий awesome-plugins |
