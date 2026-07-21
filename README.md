@@ -2,7 +2,7 @@
 
 Подборка плагинов для **exteraGram / AyuGram** — кастомного Android-клиента Telegram с движком плагинов на Python.
 
-Здесь собраны утилиты, развлечения и инструменты: от милых сообщений 💬 и помидорного обстрела 🍅 до магазина плагинов 🛒 и аудита безопасности 🔍. Каждый плагин — отдельная папка с `.plugin`-файлом, подробным `README.md` и отчётом безопасности **`secure.md`**.
+Здесь собраны утилиты, развлечения и инструменты: от милых сообщений 💬 и помидорного обстрела 🍅 до магазина плагинов 🛒 и аудита безопасности 🔍. Каждый плагин — отдельная папка с `.plugin`-файлом, **`README.md`** (как пользоваться) и отчётом **`secure.md`**.
 
 🔐 Отчёты `secure.md` и архивные `releases/v*/secure_*.md` **сгенерированы [Pluggy Bot](https://t.me/pluggy_robot)** ([@pluggy_robot.t.me](https://t.me/pluggy_robot)) — автоматический статический анализ плагинов exteraGram.
 
@@ -13,7 +13,7 @@
 
 | Плагин | Версия | Зачем ставить | Риск | Файл |
 |--------|--------|---------------|------|------|
-| [CuteMessages](#cutemessages) | 1.7.1 | Милые исходящие сообщения, undo | 🟢 | [скачать](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/CuteMessages/cutemessagesenhanced.plugin) · [код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/CuteMessages/cutemessagesenhanced.py) |
+| [CuteMessages](#cutemessages) | 1.7.1 | Милые исходящие сообщения, undo | 🟢 | [скачать](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/CuteMessages/cutemessagesenhanced.plugin) · [код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/CuteMessages/cutemessagesenhanced.plugin) |
 | [Tomato bom](#tomato-bom) | 1.2.8 | Кидать помидоры по UI | 🟡 | [скачать](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/TomatoBom/tomato_bom.plugin) · [код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/TomatoBom/tomato_bom.plugin) |
 | [LiveWallpaper](#livewallpaper) | 1.2 | Видео-обои в чатах | 🟠 | [скачать](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/LiveWallpaper/live_wallpaper.plugin) · [код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/LiveWallpaper/live_wallpaper.plugin) |
 | [Unlimited Pins](#unlimited-pins) | 2.0 | Без лимита закрепов | 🟢 | [скачать](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/UnlimitedPins/misha_unlimited_pins.plugin) · [код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/UnlimitedPins/misha_unlimited_pins.plugin) |
@@ -22,7 +22,7 @@
 | [Plugin Verifier](#plugin-verifier) | 2.4.8 | Проверка плагинов на вирусы | 🔴* | [скачать](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/PluginVerifier/plugin_verifier.plugin) · [код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/PluginVerifier/plugin_verifier.plugin) |
 | [WS-Bypass](#ws-bypass) | 3.0.5 | Обход блокировок Telegram | 🟡 | [скачать](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/WSBypass/wsbypass.plugin) · [код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/WSBypass/wsbypass.plugin) |
 
-📲 **Установка:** скачай `.plugin` по ссылке **скачать** → открой файл в exteraGram / AyuGram (или импортируй через менеджер плагинов). Ссылка **код** — только просмотр исходника на GitHub.
+📲 **Установка:** скачай `.plugin` по ссылке **скачать** → открой файл в exteraGram / AyuGram (или импортируй через менеджер плагинов). Ссылка **код** — тот же Python-код на GitHub (`.plugin` = исходник, другое расширение).
 
 ---
 
@@ -31,8 +31,8 @@
 ### 💬 CuteMessages
 
 **ID:** `cutemessagesenhanced` · **v1.7.1** · @mihailkotovski, @mishabotov · обновление 1.7.x: @abuztrade, @AwesomeTelegramPlugins  
-**Документация:** [CuteMessages/README.md](CuteMessages/README.md) · **Changelog 1.6.1→1.7.0:** [CHANGELOG.md](CuteMessages/releases/v1.7.0/CHANGELOG.md)  
-**📥 Скачать:** [cutemessagesenhanced.plugin](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/CuteMessages/cutemessagesenhanced.plugin) · **👁️ Код:** [cutemessagesenhanced.py](https://github.com/makarworld/awesome-telegram-plugins/blob/main/CuteMessages/cutemessagesenhanced.py)
+**Документация:** [README](CuteMessages/README.md) · **Changelog 1.6.1→1.7.0:** [CHANGELOG.md](CuteMessages/releases/v1.7.0/CHANGELOG.md)  
+**📥 Скачать:** [cutemessagesenhanced.plugin](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/CuteMessages/cutemessagesenhanced.plugin) · **👁️ Код:** [cutemessagesenhanced.plugin](https://github.com/makarworld/awesome-telegram-plugins/blob/main/CuteMessages/cutemessagesenhanced.plugin)
 
 Превращает исходящие сообщения в «милые»: UwU, рамки, эмодзи, растягивание гласных, каомодзи. Можно ограничить чаты whitelist/blacklist, откатить последние 5 сообщений через контекстное меню. Команды `.cute` / `.picme` — быстрый toggle. Локализация ru/en.
 
@@ -40,8 +40,6 @@
 
 **Безопасность: 🟢 низкий риск** — только локальная обработка текста, сеть не используется (кроме ссылки доната в настройках).  
 📊 Отчёт: [secure.md](CuteMessages/secure.md) — ✅ Безопасно · архив: [v1.7.0](CuteMessages/releases/v1.7.0/secure_1.7.0.md), [v1.6.1](CuteMessages/releases/v1.6.1/secure_1.6.1.md)
-
-> Открытые `.py`-исходники: `cutemessagesenhanced.py`, `live_wallpaper.py`. Остальные дорабатывались и документировались здесь же.
 
 ---
 
@@ -139,7 +137,7 @@
 
 **ID:** `wsbypass` · **v3.0.5** · @Th3Nek1t_projects  
 **Документация:** [WSBypass/README.md](WSBypass/README.md)  
-**📥 Скачать:** [wsbypass.plugin](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/WSBypass/wsbypass.plugin) · **👁️ Код:** [wsbypass.plugin](https://github.com/makarworld/awesome-telegram-plugins/blob/main/WSBypass/wsbypass.plugin)
+**📥 Скачать:** [wsbypass.plugin](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/WSBypass/wsbypass.plugin) (клиент **12.5.1+**) · **старые клиенты 11.9+:** [wsbypass_old_version_fix.plugin](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/WSBypass/releases/v3.0.5/wsbypass_old_version_fix.plugin) · **👁️ Код:** [wsbypass.plugin](https://github.com/makarworld/awesome-telegram-plugins/blob/main/WSBypass/wsbypass.plugin)
 
 Поднимает локальный SOCKS-прокси и гонит трафик Telegram через WebSocket-туннель к KWS-серверам (Nimarko / Th3Nekit). Включает прокси в клиенте автоматически. Провайдеры на выбор или авто-режим. Для полной скорости на Th3Nekit нужна подписка на канал автора.
 
@@ -179,11 +177,12 @@
 
 ## 📚 О репозитории
 
-Монорепозиторий: исходники, документация, отчёты безопасности и артефакты `.plugin` для всех плагинов выше.
+Монорепозиторий: код плагинов в `.plugin` (валидный Python), документация и отчёты `secure.md`. Файлы `.py` в git не публикуются.
 
-- **Этот файл (`README.md`)** — обзор для пользователей и точка входа
-- **Документация плагина** — `ПапкаПлагина/README.md` (читать **перед** любыми правками)
-- **Каталог разработчика** — [`docs.md`](docs.md) (таблица версий и статусов; обновлять при релизах)
+- **Этот файл (`README.md`)** — обзор для пользователей
+- **Документация плагина** — `ПапкаПлагина/README.md` (установка, как пользоваться)
+- **Техническая документация** — `ПапкаПлагина/docs.md` (хуки, архитектура; читать **перед правками**)
+- **Общий каталог разработчика** — [`docs.md`](docs.md) (SDK, сборка, версии)
 - Правило флоу для агента Cursor — [`.cursor/rules/plugin-workflow.mdc`](.cursor/rules/plugin-workflow.mdc)
 
 ### 🛠️ Окружение
@@ -194,21 +193,15 @@
 | SDK | [plugins.exteragram.app/docs](https://plugins.exteragram.app/docs) |
 | Python | Chaquopy (Python ↔ Java) |
 | IDE | `pip install exteragram-utils` |
-| Артефакт | `*.plugin` — файл для установки в клиент |
+| Код в репозитории | `*.plugin` — Python-код для установки в клиент (не `.py`) |
 
 ### 🔄 Как обновлять плагины
 
-1. Прочитать **`README.md`** в папке плагина (обязательно).
-2. При необходимости — этот корневой `README.md` и [`docs.md`](docs.md) (сводная таблица).
-3. Править `.py` или `.plugin`.
-4. Обновить **`README.md`** плагина; при изменении статуса/версии — также [`docs.md`](docs.md).
-5. Для `.py` — собрать артефакт и проверить синтаксис:
-
-```bat
-python -m py_compile CuteMessages\cutemessagesenhanced.py
-.tools\build_plugin.bat CuteMessages
-```
-
+1. Прочитать **`docs.md`** в папке плагина (обязательно).
+2. При необходимости — [`docs.md`](docs.md) в корне (SDK, каталог).
+3. Править `.plugin` (или локально `.py` → собрать в `.plugin` через `build_plugin.bat`).
+4. Обновить **`docs.md`** плагина (техника); **`README.md`** (UX/риски); при релизе — корневой [`docs.md`](docs.md).
+5. В репозиторий коммитить только `.plugin`, не `.py`.
 6. Установить `.plugin` на устройство вручную через клиент.
 7. При релизе — положить снимок в `releases/v{version}/` и обновить `secure.md` через [Pluggy Bot](https://t.me/pluggy_robot).
 
@@ -222,23 +215,24 @@ python -m py_compile CuteMessages\cutemessagesenhanced.py
 | **create-rule** skill | Правило `plugin-workflow.mdc` |
 | **[Pluggy Bot](https://t.me/pluggy_robot)** | Генерация `secure.md` — статический анализ плагинов |
 | **Plugin Verifier** | Локальный аудит, эталон хуков (отдельный плагин) |
-| `.tools/build_plugin.bat` | `.py` → `.plugin` |
+| `.tools/build_plugin.bat` | Локально: копия `.py` → `.plugin` (в git только `.plugin`) |
 | `exteragram-utils` | Автодополнение в IDE |
 
 ### 📁 Структура
 
 ```
 awesome-plugins/
-  README.md              # обзор (этот файл)
-  docs.md                # каталог разработчика: версии, статусы
+  README.md              # обзор для пользователей
+  docs.md                # SDK, сборка, каталог (разработчики)
   .tools/build_plugin.bat
   CuteMessages/
-    README.md            # документация плагина
-    cutemessagesenhanced.py
-    cutemessagesenhanced.plugin
+    README.md
+    docs.md
+    cutemessagesenhanced.plugin   # код (Python), единственный артефакт в git
     releases/
   KangelPluginsManager/
     README.md
+    docs.md
     ...
 ```
 

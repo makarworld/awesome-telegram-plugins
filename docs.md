@@ -1,20 +1,29 @@
-# awesome-plugins
+# awesome-plugins — документация для разработчиков
 
 Коллекция плагинов для **exteraGram / AyuGram** (Android, Python через Chaquopy).
 
 > Обновлено: 2026-07-21
 
-## О репозитории
+## Разделение документации
 
-Монорепозиторий плагинов. Каждый плагин — отдельная папка с исходником (`.py` или `.plugin`) и `README.md` с детальной документацией.
+| Файл | Аудитория | Содержание |
+|------|-----------|------------|
+| [`README.md`](README.md) | Пользователи | Обзор, скачивание, краткое описание плагинов |
+| **`docs.md` (корень)** | Разработчики | Общий флоу, SDK, сборка, каталог |
+| **`ПапкаПлагина/README.md`** | Пользователи | Установка, как пользоваться, риски |
+| **`ПапкаПлагина/docs.md`** | Разработчики | Хуки, архитектура, настройки, алгоритмы |
 
-### Флоу работы
+Правило для агента: [`.cursor/rules/plugin-workflow.mdc`](.cursor/rules/plugin-workflow.mdc)
 
-1. Читать **[`README.md`](README.md)** — обзор для пользователей.
-2. Читать **`ПапкаПлагина/README.md`** — детали плагина (**обязательно перед правками**).
-3. Этот **`docs.md`** — сводная таблица версий и статусов (обновлять при релизах).
+## Флоу работы
 
-Правило для агента: `.cursor/rules/plugin-workflow.mdc`
+1. Прочитать **[`README.md`](README.md)** — обзор для пользователей.
+2. Прочитать **`ПапкаПлагина/docs.md`** — технические детали плагина (**обязательно перед правками**).
+3. При необходимости — этот **`docs.md`** (SDK, сборка, каталог).
+4. После изменений:
+   - пользовательские правки → `ПапкаПлагина/README.md`;
+   - технические детали → `ПапкаПлагина/docs.md`;
+   - версия/статус/каталог → корневой `docs.md` и `README.md`.
 
 ## Окружение
 
@@ -24,56 +33,161 @@
 | SDK | https://plugins.exteragram.app/docs |
 | Python | Chaquopy (Python ↔ Java interop) |
 | IDE | `pip install exteragram-utils` (автодополнение; pyright-ошибки импортов — норма) |
-| Исходник | `*.py` в папке плагина |
-| Артефакт | `*.plugin` — результат сборки |
+| Код в репозитории | `*.plugin` — валидный Python, другое расширение |
+| Локальная разработка | опционально `*.py` → `build_plugin.bat` → `.plugin` (`.py` в git не коммитится) |
 
-### Сборка и деплой
-
-Локальный артефакт (копия `.py` → `.plugin` в папке плагина):
+### Сборка (локально)
 
 ```bat
 tools\build_plugin.bat CuteMessages
-:: → CuteMessages\cutemessagesenhanced.plugin
+:: копирует .py → .plugin рядом с исходником; в репозиторий пушится только .plugin
 ```
 
 Деплой на устройство — вручную через клиент или (если есть) `python tools/deploy.py`.
 
 ### Ссылки на артефакты
 
-| Назначение | Шаблон | Поведение в браузере |
-|------------|--------|----------------------|
-| **Скачать** | `https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/{путь}` | сохраняет файл |
-| **Код** | `https://github.com/makarworld/awesome-telegram-plugins/blob/main/{путь}` | просмотр с подсветкой |
-| **Raw** | `https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/{путь}` | для KPM/API; часто открывает текст |
+| Назначение | Шаблон |
+|------------|--------|
+| **Скачать** | `https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/{путь}` |
+| **Код** | `https://github.com/makarworld/awesome-telegram-plugins/blob/main/{путь}` |
+| **Raw** | `https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/{путь}` |
 
-В README плагинов: `[⬇ Скачать …](jsdelivr)` · `[Код](github blob)`.
+## База знаний: SDK exteraGram
+
+### Анатомия плагина
+
+```python
+__name__ = "MyPlugin"
+__description__ = "..."
+__icon__ = "ColorfulMessages/28"
+__version__ = "1.0.0"
+__id__ = "my_plugin_id"
+__author__ = "..."
+__min_version__ = "11.9.0"
+
+from base_plugin import BasePlugin, HookResult, HookStrategy, MenuItemData, MenuItemType
+
+class MyPlugin(BasePlugin):
+    def on_plugin_load(self): ...
+    def on_plugin_unload(self): ...
+    def create_settings(self): ...
+```
+
+| Метод | Когда вызывается |
+|-------|------------------|
+| `on_plugin_load()` | Плагин включён — регистрация хуков, меню |
+| `on_plugin_unload()` | Плагин выключен — снятие меню, очистка |
+| `create_settings()` | UI настроек в `PluginSettingsActivity` |
+
+### Хук исходящих сообщений
+
+```python
+def on_plugin_load(self):
+    self.add_on_send_message_hook(priority)
+
+def on_send_message_hook(self, account, params) -> HookResult:
+    return HookResult(strategy=HookStrategy.MODIFY, params=params)
+```
+
+| `HookStrategy` | Поведение |
+|----------------|-----------|
+| (пустой) | Не трогать |
+| `MODIFY` | Изменить `params` |
+| `MODIFY_FINAL` | Изменить и не пропускать другие хуки |
+| `CANCEL` | Отменить отправку |
+
+### Post-request хук
+
+```python
+def on_plugin_load(self):
+    self.add_hook("TL_messages_sendMessage")
+
+def post_request_hook(self, request_name, account, response, error) -> HookResult:
+    ...
+```
+
+### Настройки
+
+```python
+from ui.settings import Header, Switch, Selector, Text
+
+def create_settings(self):
+    return [Switch(key="enabled", text="...", default=True)]
+
+self.get_setting("key", default)
+self.set_setting("key", value, reload_settings=True)
+# списки — JSON-строка
+```
+
+### Меню
+
+```python
+self.add_menu_item(MenuItemData(
+    menu_type=MenuItemType.CHAT_ACTION_MENU,
+    text="...", icon="menu_premium_effects", on_click=self._handler,
+))
+```
+
+Типы: `CHAT_ACTION_MENU`, `DRAWER_MENU`, `MESSAGE_CONTEXT_MENU`.
+
+### UI-утилиты
+
+```python
+from ui.bulletin import BulletinHelper
+from android_utils import run_on_ui_thread, log
+from client_utils import get_last_fragment, edit_message
+```
+
+Иконки — **имена ресурсов** Telegram (`"msg_favorite"`), не пути к файлам.
+
+### Итерация Java-коллекций
+
+```python
+def _iter_java(obj):
+    if obj is None: return []
+    if hasattr(obj, "toArray"): return list(obj.toArray())
+    if hasattr(obj, "size") and hasattr(obj, "get"):
+        return [obj.get(i) for i in range(int(obj.size()))]
+    ...
+```
+
+Использовать для `params.entities`, `response.updates`, любых Java `ArrayList`.
+
+### Рекомендации
+
+1. Начни с [first plugin tutorial](https://plugins.exteragram.app/docs/first-plugin).
+2. Один хук — одна ответственность.
+3. Не хука Java UI (`MethodHook`) без крайней необходимости.
+4. Тестируй на устройстве — IDE не видит SDK.
+5. Сложные настройки — JSON в `set_setting`.
+6. Документация SDK: https://plugins.exteragram.app/docs · Context7: `/websites/plugins_exteragram_app`
 
 ## Каталог плагинов
 
-| Папка | ID | Версия | Автор | Назначение | Исходник | docs |
-|-------|----|--------|-------|------------|----------|------|
-| [CuteMessages](CuteMessages/README.md) | `cutemessagesenhanced` | 1.7.1 | @mihailkotovski & @mishabotov | Стилизация исходящих сообщений | `cutemessagesenhanced.py` | ✅ |
-| [KangelPluginsManager](KangelPluginsManager/README.md) | `kangel_plugins_manager` | 1.3.2 | @ArThirtyFour \| @KangelPlugins | Магазин плагинов | `.plugin` | ✅ |
-| [LiveWallpaper](LiveWallpaper/README.md) | `live_wallpaper` | 1.2 | @swagnonher | Живые обои в чатах | `.plugin` | ✅ |
-| [UnlimitedPins](UnlimitedPins/README.md) | `misha_unlimited_pins` | 2.0 | @mihailkotovski & @mishabotov | Больше закреплённых чатов | `.plugin` | ✅ |
-| [PluginVerifier](PluginVerifier/README.md) | `plugin_verifier` | 2.4.8 | @JasonVurhyz | Верификация и анализ плагинов | `.plugin` | ✅ |
-| [ListOfCommands](ListOfCommands/README.md) | `list_of_commands` | 1.0.8 | @bandaliyev | Подсказки dot-команд | `.plugin` | ✅ |
-| [TomatoBom](TomatoBom/README.md) | `tomato_bom` | 1.2.8 | Windukk | Кидает помидоры | `.plugin` | ✅ |
-| [AIEdit](AIEdit/README.md) | `ai_edit` | 1.0.1 | @abuztrade | AI-редактирование исходящих сообщений | `ai_edit.py` | ✅ |
-| [WSBypass](WSBypass/README.md) | `wsbypass` | 3.0.5 | @Th3Nek1t_projects | Обход блокировок Telegram | `.plugin` | ✅ |
+| Папка | ID | Версия | Файл | README | docs |
+|-------|----|--------|------|--------|------|
+| [CuteMessages](CuteMessages/) | `cutemessagesenhanced` | 1.7.1 | `cutemessagesenhanced.plugin` | [README](CuteMessages/README.md) | [docs](CuteMessages/docs.md) |
+| [KangelPluginsManager](KangelPluginsManager/) | `kangel_plugins_manager` | 1.3.2 | `kangel_plugins_manager.plugin` | [README](KangelPluginsManager/README.md) | [docs](KangelPluginsManager/docs.md) |
+| [LiveWallpaper](LiveWallpaper/) | `live_wallpaper` | 1.2 | `live_wallpaper.plugin` | [README](LiveWallpaper/README.md) | [docs](LiveWallpaper/docs.md) |
+| [UnlimitedPins](UnlimitedPins/) | `misha_unlimited_pins` | 2.0 | `misha_unlimited_pins.plugin` | [README](UnlimitedPins/README.md) | [docs](UnlimitedPins/docs.md) |
+| [PluginVerifier](PluginVerifier/) | `plugin_verifier` | 2.4.8 | `plugin_verifier.plugin` | [README](PluginVerifier/README.md) | [docs](PluginVerifier/docs.md) |
+| [ListOfCommands](ListOfCommands/) | `list_of_commands` | 1.0.8 | `list_of_commands.plugin` | [README](ListOfCommands/README.md) | [docs](ListOfCommands/docs.md) |
+| [TomatoBom](TomatoBom/) | `tomato_bom` | 1.2.8 | `tomato_bom.plugin` | [README](TomatoBom/README.md) | [docs](TomatoBom/docs.md) |
+| [WSBypass](WSBypass/) | `wsbypass` | 3.0.5 | `wsbypass.plugin` | [README](WSBypass/README.md) | [docs](WSBypass/docs.md) |
 
 ## Сводка по типам
 
-### По механизму работы
-
 | Тип | Плагины |
 |-----|---------|
-| Send message hook | CuteMessages, KangelPluginsManager (`.kpm_send`), ListOfCommands (`.preload`), AIEdit |
+| Send message hook | CuteMessages, KangelPluginsManager, ListOfCommands, AIEdit* |
 | Method / protocol hooks | UnlimitedPins, PluginVerifier, KangelPluginsManager, ListOfCommands, WSBypass |
 | Remote code (DEX) | LiveWallpaper |
 | UI overlay | TomatoBom |
-| Сеть | KangelPluginsManager, LiveWallpaper, PluginVerifier, TomatoBom, AIEdit, WSBypass |
+| Сеть | KangelPluginsManager, LiveWallpaper, PluginVerifier, TomatoBom, WSBypass |
 | Локальный прокси / туннель | WSBypass |
+
+\* AIEdit — вне этого репозитория.
 
 ### Минимальные версии клиента
 
@@ -83,102 +197,45 @@ tools\build_plugin.bat CuteMessages
 | KangelPluginsManager | 12.1.1 |
 | LiveWallpaper | 11.12.0 |
 | ListOfCommands | 11.12.0 |
-| UnlimitedPins | — |
-| PluginVerifier | — |
-| TomatoBom | — |
-| AIEdit | 12.8.0 |
-| WSBypass | 12.5.1 |
+| WSBypass | 12.5.1 (app) |
 
 ## Безопасность (кратко)
 
 | Плагин | Риск | Причина |
 |--------|------|---------|
-| CuteMessages | низкий | Только модификация исходящих сообщений |
-| KangelPluginsManager | **высокий** | Устанавливает плагины из интернета + телеметрия |
-| LiveWallpaper | **критический** | Загружает и исполняет remote DEX |
+| CuteMessages | низкий | Локальная обработка текста |
+| KangelPluginsManager | **высокий** | Установка плагинов из интернета |
+| LiveWallpaper | **критический** | Remote DEX |
 | UnlimitedPins | низкий | Локальная манипуляция лимитов |
-| PluginVerifier | **критический** | Полезен, но содержит скрытый anti-tamper в себе |
-| ListOfCommands | низкий | Только парсинг файлов плагинов |
-| TomatoBom | низкий–средний | Overlay + загрузка ассетов с gitflic |
-| AIEdit | низкий–средний | Вызов официального AI API Telegram; текст уходит на сервер Cocoon |
-| WSBypass | низкий–средний | Туннель через KWS-серверы, смена прокси, автообновление с th3web.com |
+| PluginVerifier | **критический** | Anti-tamper, широкие привилегии |
+| ListOfCommands | низкий | Regex-парсинг файлов плагинов |
+| TomatoBom | низкий–средний | Overlay + загрузка ассетов |
+| WSBypass | низкий–средний | Туннель через KWS-серверы |
 
-Подробности — в `README.md` каждого плагина и в `secure.md` (отчёты сгенерированы [Pluggy Bot](https://t.me/pluggy_robot)).
+Подробности — `secure.md` в папке плагина. Отчёты: [Pluggy Bot](https://t.me/pluggy_robot).
 
 ## Структура репозитория
 
 ```
 awesome-plugins/
-  docs.md                          # этот файл — каталог
-  .cursor/rules/plugin-workflow.mdc
+  README.md              # обзор для пользователей
+  docs.md                # этот файл — общая документация
+  .cursor/rules/
+  .tools/build_plugin.bat
   CuteMessages/
-    cutemessagesenhanced.py
     README.md
-    releases/
-      v1.7.0/
-        cutemessagesenhanced_v1.7.0.plugin
-        secure_1.7.0.md
-  KangelPluginsManager/
-    kangel_plugins_manager.plugin
-    README.md
-    releases/
-      v1.3.2/
-        kangel_plugins_manager_v1.3.2.plugin
-        secure_1.3.2.md
-  LiveWallpaper/
-    live_wallpaper.plugin
-    README.md
-    releases/
-      v1.1/
-        live_wallpaper_v1.1.plugin
-        secure_1.1.md
-  UnlimitedPins/
-    misha_unlimited_pins.plugin
-    README.md
-    releases/
-      v2.0/
-        misha_unlimited_pins_v2.0.plugin
-        secure_2.0.md
-  PluginVerifier/
-    plugin_verifier.plugin
-    README.md
-    releases/
-      v2.4.8/
-        plugin_verifier_v2.4.8.plugin
-        secure_2.4.8.md
-  ListOfCommands/
-    list_of_commands.plugin
-    README.md
-    releases/
-      v1.0.8/
-        list_of_commands_v1.0.8.plugin
-        secure_1.0.8.md
-  TomatoBom/
-    tomato_bom.plugin
-    README.md
-    releases/
-      v1.2.8/
-        tomato_bom_v1.2.8.plugin
-        secure_1.2.8.md
-  AIEdit/
-    ai_edit.py
-    README.md
-  WSBypass/
-    wsbypass.plugin
-    README.md
-    secure.md
-    releases/
-      v3.0.5/
-        wsbypass_v3.0.5.plugin
-        secure_3.0.5.md
+    docs.md
+    cutemessagesenhanced.plugin   # код (Python), в git только .plugin
+    releases/vX.Y.Z/
 ```
 
-## Заметки
+## Версии и `releases/`
 
-- **CuteMessages** — единственный плагин с отдельным `.py` исходником; остальные хранятся как `.plugin` (валидный Python).
-- У каждого плагина есть `secure.md` в корне папки (актуальная проверка) и `releases/v{version}/` — снимок `{name}_v{version}.plugin` и архивный отчёт `secure_{version}.md`. Отчёты генерируются **[Pluggy Bot](https://t.me/pluggy_robot)** (pluggy_robot.t.me).
-- **CuteMessages/README.md** содержит также общую базу знаний по SDK exteraGram (хуки, entities, локализация).
-- При извлечении `.plugin` → `.py` для других плагинов — обновить таблицу «Исходник» в этом файле.
+- **Текущая разработка** — `*.plugin` в корне папки плагина, `__version__` внутри файла.
+- **`.py` не публикуется** — локально для правок, при необходимости `build_plugin.bat`.
+- **`releases/vX.Y.Z/`** — архив опубликованного релиза, не черновик.
+- Пока версия не запушена в `main` — в `releases/` ничего не добавлять.
+- При релизе: скопировать `.plugin` + `secure_*.md` → обновить каталог здесь и корневой `README.md`.
 
 ## Полезные ссылки
 
@@ -186,5 +243,6 @@ awesome-plugins/
 |--------|-----|
 | SDK docs | https://plugins.exteragram.app/docs |
 | Plugin class API | https://plugins.exteragram.app/docs/plugin-class |
-| First plugin tutorial | https://plugins.exteragram.app/docs/first-plugin |
 | KPM Store | https://github.com/KangelPlugins/Plugins-Store |
+| Pluggy Bot | https://t.me/pluggy_robot |
+| Manifest signing | [keys/README.md](keys/README.md) |
