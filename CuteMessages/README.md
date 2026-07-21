@@ -1,9 +1,9 @@
-# CuteMessages (`cutemessagesenhanced`)
+# 💬 CuteMessages (`cutemessagesenhanced`)
 
-> Плагин: стилизация исходящих сообщений (cute-эффекты, UwU, рамки, undo).  
-> Исходник: `cutemessagesenhanced.py` · Версия: **1.7.1** · Обновлено: 2026-07-20
+> ✨ Плагин: стилизация исходящих сообщений (cute-эффекты, UwU, рамки, undo).  
+> 📦 Исходник: `cutemessagesenhanced.py` · 🏷️ Версия: **1.7.1** · 📅 Обновлено: 2026-07-20
 
-## Метаданные
+## 📋 Метаданные
 
 | Поле | Значение |
 |------|----------|
@@ -15,13 +15,13 @@
 | `__icon__` | ColorfulMessages/28 |
 | `__min_version__` | 11.9.0 |
 
-## Скачать
+## 📥 Скачать
 
-[⬇ Скачать cutemessagesenhanced.plugin](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/CuteMessages/cutemessagesenhanced.plugin) · [Код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/CuteMessages/cutemessagesenhanced.py)
+**[Скачать cutemessagesenhanced.plugin](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/CuteMessages/cutemessagesenhanced.plugin)** · **[Исходник на GitHub](https://github.com/makarworld/awesome-telegram-plugins/blob/main/CuteMessages/cutemessagesenhanced.py)**
 
-Установка: скачай файл → открой в exteraGram / AyuGram (или импортируй через менеджер плагинов).
+📲 **Установка:** скачай файл → открой в exteraGram / AyuGram (или импортируй через менеджер плагинов).
 
-## Файлы в папке
+## 📁 Файлы в папке
 
 ```
 CuteMessages/
@@ -38,7 +38,7 @@ CuteMessages/
       secure_1.6.1.md
 ```
 
-## Кратко
+## 💡 Кратко
 
 - **Класс:** `PicMePlugin` (+ `LocalizationManager` ru/en)
 - **Точка входа:** `on_send_message_hook` — трансформация текста/caption перед отправкой
@@ -49,14 +49,14 @@ CuteMessages/
 
 ---
 
-# База знаний: разработка плагинов exteraGram / AyuGram
+# 📚 База знаний: разработка плагинов exteraGram / AyuGram
 
-> Ниже — общие паттерны SDK и детали реализации CuteMessages.  
+> 📖 Ниже — общие паттерны SDK и детали реализации CuteMessages.  
 > Собрано по итогам доработки `cutemessagesenhanced.py`.
 
 ---
 
-## 1. Окружение и проект
+## 1. 🛠️ Окружение и проект
 
 ### Клиент
 - **exteraGram / AyuGram** (Android), минимум **11.9.0** (в README репо указано 12.8.1+)
@@ -77,7 +77,7 @@ python tools/deploy.py dist/cutemessagesenhanced.plugin
 
 ---
 
-## 2. Анатомия плагина
+## 2. 🏗️ Анатомия плагина
 
 ### Обязательные метаданные (модульный уровень)
 ```python
@@ -109,7 +109,7 @@ class CuteMessagesPlugin(BasePlugin):
 
 ---
 
-## 3. Ключевые API SDK
+## 3. 🔌 Ключевые API SDK
 
 ### 3.1 Хук исходящих сообщений — главный инструмент
 
@@ -211,7 +211,7 @@ edit_message(message, text="...", parse_mode="HTML")
 
 ---
 
-## 4. Архитектура CuteMessages v1.7.0
+## 4. 💬 Архитектура CuteMessages v1.7.0
 
 ### Поток обработки сообщения
 ```
@@ -271,7 +271,7 @@ if name.startswith("TL_messageEntity"):
 
 ---
 
-## 5. Подходы: что пробовали и чем закончилось
+## 5. 🧪 Подходы: что пробовали и чем закончилось
 
 ### ✅ Работает хорошо
 
@@ -313,7 +313,7 @@ if name.startswith("TL_messageEntity"):
 
 ---
 
-## 6. Хелпер `_iter_java` — обязателен для Java-коллекций
+## 6. ☕ Хелпер `_iter_java` — обязателен для Java-коллекций
 
 ```python
 def _iter_java(self, obj):
@@ -349,7 +349,7 @@ def _iter_java(self, obj):
 
 ---
 
-## 7. Локализация
+## 7. 🌐 Локализация
 
 Паттерн в `cutemessagesenhanced.py`:
 ```python
@@ -365,7 +365,7 @@ locali = LocalizationManager()
 
 ---
 
-## 8. Обработка ошибок
+## 8. ⚠️ Обработка ошибок
 
 ```python
 except Exception:
@@ -382,7 +382,7 @@ except Exception:
 
 ---
 
-## 9. Текущее состояние v1.7.0 (что есть в файле)
+## 9. 📌 Текущее состояние v1.7.0 (что есть в файле)
 
 ### Настройки
 - `enabled`, `show_settings_buttons`
@@ -416,7 +416,7 @@ except Exception:
 
 ---
 
-## 10. Рекомендации для новых плагинов
+## 10. 💡 Рекомендации для новых плагинов
 
 1. **Начни с `hello_world`** из SDK docs — минимальный рабочий шаблон
 2. **Один хук — одна ответственность** — не смешивай UI-хуки с бизнес-логикой
@@ -431,7 +431,7 @@ except Exception:
 
 ---
 
-## 11. Полезные ссылки и файлы
+## 11. 🔗 Полезные ссылки и файлы
 
 | Ресурс | Путь / URL |
 |--------|------------|
@@ -444,7 +444,7 @@ except Exception:
 
 ---
 
-## 12. Промпт для нового чата (копипаст)
+## 12. 📋 Промпт для нового чата (копипаст)
 
 ```
 Контекст: разрабатываю плагин exteraGram/AyuGram на Python (Chaquopy).

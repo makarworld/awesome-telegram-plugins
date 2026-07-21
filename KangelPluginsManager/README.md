@@ -1,9 +1,9 @@
-# Kangel Plugins Manager (`kangel_plugins_manager`)
+# 🛒 Kangel Plugins Manager (`kangel_plugins_manager`)
 
-> Магазин и менеджер плагинов для exteraGram / AyuGram.  
-> Исходник: только `kangel_plugins_manager.plugin` · Версия: **1.3.2** · Обновлено: 2026-07-20
+> 🏪 Магазин и менеджер плагинов для exteraGram / AyuGram.  
+> 📦 Исходник: только `kangel_plugins_manager.plugin` · 🏷️ Версия: **1.3.2** · 📅 Обновлено: 2026-07-20
 
-## Метаданные
+## 📋 Метаданные
 
 | Поле | Значение |
 |------|----------|
@@ -15,13 +15,13 @@
 | `__icon__` | Kangelcons_by_fStikBot/5 |
 | `__min_version__` | 12.1.1 |
 
-## Скачать
+## 📥 Скачать
 
-[⬇ Скачать kangel_plugins_manager.plugin](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/KangelPluginsManager/kangel_plugins_manager.plugin) · [Код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/KangelPluginsManager/kangel_plugins_manager.plugin)
+**[Скачать kangel_plugins_manager.plugin](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/KangelPluginsManager/kangel_plugins_manager.plugin)** · **[Исходник на GitHub](https://github.com/makarworld/awesome-telegram-plugins/blob/main/KangelPluginsManager/kangel_plugins_manager.plugin)**
 
-Установка: скачай файл → открой в exteraGram / AyuGram (или импортируй через менеджер плагинов).
+📲 **Установка:** скачай файл → открой в exteraGram / AyuGram (или импортируй через менеджер плагинов).
 
-## Файлы в папке
+## 📁 Файлы в папке
 
 ```
 KangelPluginsManager/
@@ -36,19 +36,19 @@ KangelPluginsManager/
 
 > Исходника `.py` нет — только `.plugin` (валидный Python).
 
-## Назначение
+## 🎯 Назначение
 
 Полноценный магазин плагинов: каталог из GitHub, установка/обновление `.plugin`, inline-поиск в чате, pill-виджет со счётчиком, builds (наборы плагинов), deeplink-установка, телеметрия mkStats.
 
-## Архитектура
+## 🏗️ Архитектура
 
 | Класс | Роль |
 |-------|------|
-| `KangelPluginsManager` | Главный плагин (`BasePlugin`) |
-| `MkStatsCoreClient` | Клиент телеметрии mkStats (PoW handshake) |
-| `KPMSettingsHeaderHook` | Хук заголовка `PluginSettingsActivity` |
+| `KangelPluginsManager` | 🎛️ Главный плагин (`BasePlugin`) |
+| `MkStatsCoreClient` | 📊 Клиент телеметрии mkStats (PoW handshake) |
+| `KPMSettingsHeaderHook` | 🔗 Хук заголовка `PluginSettingsActivity` |
 
-## Хуки
+## 🔗 Хуки
 
 ### Жизненный цикл
 - **`on_plugin_load`**: mkStats, send hook, deeplink (`LaunchActivity.handleIntent`), drawer menu, install/update UI, `PluginsActivity`, settings header, PillStack, inline search.
@@ -64,7 +64,7 @@ KangelPluginsManager/
 - `PluginSettingsActivity.fillItems` — кастомный header
 - PillStack interactions
 
-## Настройки
+## ⚙️ Настройки
 
 Главное меню разбито на подразделы:
 
@@ -100,7 +100,7 @@ KangelPluginsManager/
 - `mkstats_device_id`, `mkstats_install_token`
 - `plugins_sort_mode`, `plugins_status_filter`
 
-## UI / меню
+## 🖥️ UI / меню
 
 | Элемент | Описание |
 |---------|----------|
@@ -110,7 +110,7 @@ KangelPluginsManager/
 | Inline search | `@kpm` / `@trigger` → fake bot results |
 | Deeplinks | `tg://kpm_install?plugin=...`, `tg://kpm_list` |
 
-## Внешние зависимости
+## 🌐 Внешние зависимости
 
 | Тип | URL / ресурс |
 |-----|--------------|
@@ -122,7 +122,7 @@ KangelPluginsManager/
 
 Библиотеки: `requests`, `urllib.request`.
 
-## Алгоритмы
+## 🧮 Алгоритмы
 
 1. **Каталог:** загрузка `store.json` → кэш `.kpm_cache.json` → сравнение версий с локальными.
 2. **Установка:** скачивание `.plugin` → проверка `__min_version__` → установка через SDK.
@@ -131,7 +131,7 @@ KangelPluginsManager/
 5. **Поиск:** trigram index по каталогу.
 6. **Builds:** сохранение/загрузка наборов плагинов.
 
-## Хранение данных
+## 💾 Хранение данных
 
 | Файл / ключ | Содержимое |
 |-------------|------------|
@@ -141,18 +141,18 @@ KangelPluginsManager/
 
 Константы: `KPM_PILL_ID = 34012501`, `PLUGINS_DIR = get_plugins_dir()`.
 
-## Безопасность
+## 🔐 Безопасность
 
 | Риск | Уровень | Комментарий |
 |------|---------|-------------|
-| Установка плагинов из интернета | **высокий** | Основная функция магазина |
-| Телеметрия mkStats | средний | Отключается `telemetry_enabled` |
-| Inline fake bot | средний | Подмена результатов поиска |
-| Version guard | снижает риск | `enforce_version_requirements` |
+| Установка плагинов из интернета | 🔴 **высокий** | Основная функция магазина |
+| Телеметрия mkStats | 🟡 средний | Отключается `telemetry_enabled` |
+| Inline fake bot | 🟡 средний | Подмена результатов поиска |
+| Version guard | 🟢 снижает риск | `enforce_version_requirements` |
 
 PoW защищает API mkStats, но **не** защищает от вредоносных плагинов в каталоге.
 
-## Разработка
+## 🛠️ Разработка
 
 - Для правок нужно извлечь `.plugin` → `.py` или работать напрямую с `.plugin` (это валидный Python).
 - Локализация: `_tr()` — ru/en строки в начале файла.

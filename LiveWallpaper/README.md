@@ -1,9 +1,9 @@
-# LiveWallpaper (`live_wallpaper`)
+# 🎬 LiveWallpaper (`live_wallpaper`)
 
-> Живые (видео) обои в чатах вместо статичного фона.  
-> Исходник: только `live_wallpaper.plugin` · Версия: **1.2** (в разработке) · Обновлено: 2026-07-20
+> 🖼️ Живые (видео) обои в чатах вместо статичного фона.  
+> 📦 Исходник: только `live_wallpaper.plugin` · 🏷️ Версия: **1.2** (в разработке) · 📅 Обновлено: 2026-07-20
 
-## Метаданные
+## 📋 Метаданные
 
 | Поле | Значение |
 |------|----------|
@@ -15,13 +15,13 @@
 | `__icon__` | Animasha26/22 |
 | `__min_version__` | 11.12.0 |
 
-## Скачать
+## 📥 Скачать
 
-[⬇ Скачать live_wallpaper.plugin](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/LiveWallpaper/live_wallpaper.plugin) · [Код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/LiveWallpaper/live_wallpaper.plugin)
+**[Скачать live_wallpaper.plugin](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/LiveWallpaper/live_wallpaper.plugin)** · **[Исходник на GitHub](https://github.com/makarworld/awesome-telegram-plugins/blob/main/LiveWallpaper/live_wallpaper.plugin)**
 
-Установка: скачай файл → открой в exteraGram / AyuGram (или импортируй через менеджер плагинов).
+📲 **Установка:** скачай файл → открой в exteraGram / AyuGram (или импортируй через менеджер плагинов).
 
-## Файлы в папке
+## 📁 Файлы в папке
 
 ```
 LiveWallpaper/
@@ -39,30 +39,30 @@ LiveWallpaper/
       CHANGELOG.md
 ```
 
-## Назначение
+## 🎯 Назначение
 
 Загружает нативный DEX-модуль с сервера и делегирует ему всю логику обоев. Python-часть — загрузчик, мост и UI установки.
 
-## Архитектура
+## 🏗️ Архитектура
 
 | Класс | Роль |
 |-------|------|
-| `LiveWallpaperPlugin` | Главный плагин |
-| `WallpaperRunnableBridge` | `Runnable`-мост Python ↔ DEX |
-| `WallpaperInstallerSheet` | BottomSheet с прогрессом загрузки |
+| `LiveWallpaperPlugin` | 🎛️ Главный плагин |
+| `WallpaperRunnableBridge` | 🌉 `Runnable`-мост Python ↔ DEX |
+| `WallpaperInstallerSheet` | 📥 BottomSheet с прогрессом загрузки |
 
 Нативный класс: `com.swagaplugins.plugin.wallpaper.LiveWallpaper`.
 
-## Хуки
+## 🔗 Хуки
 
 | Хук | Описание |
 |-----|----------|
-| `on_plugin_load` | Фоновый `_smart_init` — проверка/загрузка DEX, инъекция |
-| `on_plugin_unload` | Вызов `LiveWallpaper.unload()` из DEX |
+| `on_plugin_load` | 🔄 Фоновый `_smart_init` — проверка/загрузка DEX, инъекция |
+| `on_plugin_unload` | 🛑 Вызов `LiveWallpaper.unload()` из DEX |
 
 **Нет** message/protocol hooks — вся логика в DEX.
 
-## Настройки
+## ⚙️ Настройки
 
 | Ключ | Описание |
 |------|----------|
@@ -71,13 +71,13 @@ LiveWallpaper/
 
 `create_settings()` возвращает заглушку `Header("Загрузка нативного UI...")` — реальный UI внутри DEX.
 
-## UI
+## 🖥️ UI
 
 - **WallpaperInstallerSheet** — BottomSheet: стикер, прогресс, статус «Подключение к серверу...»
 - Нельзя закрыть свайпом до завершения загрузки
 - Настройки обоев — в нативном модуле
 
-## Внешние зависимости
+## 🌐 Внешние зависимости
 
 | Ресурс | URL / путь |
 |--------|------------|
@@ -97,7 +97,7 @@ LiveWallpaper/
 - `log` — логирование
 - `download` — фоновая загрузка видео на диск
 
-## Алгоритм `_smart_init` (v1.2+)
+## 🧮 Алгоритм `_smart_init` (v1.2+)
 
 ```
 1. GET plugin-integrity.json + .sig (GitHub → YC)
@@ -135,7 +135,7 @@ LiveWallpaper/
 
 Кнопка **«Выбрать LiveWallpaper.dex с устройства»** — хеш сверяется с trusted hash (не с неподписанным manifest).
 
-## Анализ DEX-модуля (`LiveWallpaper.dex`)
+## 🔬 Анализ DEX-модуля (`LiveWallpaper.dex`)
 
 Статический анализ строк и классов (без декомпиляции исходников). SHA256: `167ae2d4…8f8e77`.
 
@@ -198,19 +198,19 @@ LiveWallpaper/
 - **Есть** доступ к файловой системе приложения (кэш, prefs)
 - Рекомендация автора DEX: вертикальные MP4 без звука для производительности
 
-## Безопасность
+## 🔐 Безопасность
 
 | Риск | Уровень | Комментарий |
 |------|---------|-------------|
-| Remote DEX execution | **критический** | SHA256 при download + при каждом inject; подписанный manifest |
-| Подмена manifest | средний | RSA SHA256withRSA; неподписанный manifest игнорируется |
-| Произвольные URL | высокий | DEX может запросить скачивание любого видео |
-| Компрометация bucket | высокий | Manifest дублируется на GitHub; доверие через подпись |
-| Подмена локального DEX | средний | Проверка sha256 перед каждым inject |
+| Remote DEX execution | 🔴 **критический** | SHA256 при download + при каждом inject; подписанный manifest |
+| Подмена manifest | 🟡 средний | RSA SHA256withRSA; неподписанный manifest игнорируется |
+| Произвольные URL | 🟠 высокий | DEX может запросить скачивание любого видео |
+| Компрометация bucket | 🟠 высокий | Manifest дублируется на GitHub; доверие через подпись |
+| Подмена локального DEX | 🟡 средний | Проверка sha256 перед каждым inject |
 
 **Вывод:** v1.2 — вшитый `APPROVED_DEX_SHA256`, подпись manifest, проверка кэша при inject. Обновление хеша через подписанный `plugin-integrity.json` без релиза `.plugin`.
 
-## Разработка
+## 🛠️ Разработка
 
 - Для отладки смотреть логи `[LiveWallpaper]` / `[WallpaperBridge]`.
 - Без исходника DEX изменять поведение обоев из Python нельзя.

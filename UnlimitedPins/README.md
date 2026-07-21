@@ -1,9 +1,9 @@
-# Unlimited Pins (`misha_unlimited_pins`)
+# 📌 Unlimited Pins (`misha_unlimited_pins`)
 
-> Снимает лимит на количество закреплённых чатов.  
-> Исходник: только `misha_unlimited_pins.plugin` · Версия: **2.0** · Обновлено: 2026-07-20
+> 📌 Снимает лимит на количество закреплённых чатов.  
+> 📦 Исходник: только `misha_unlimited_pins.plugin` · 🏷️ Версия: **2.0** · 📅 Обновлено: 2026-07-20
 
-## Метаданные
+## 📋 Метаданные
 
 | Поле | Значение |
 |------|----------|
@@ -15,13 +15,13 @@
 | `__icon__` | EmojiAnimations/12 |
 | `__min_version__` | не указан |
 
-## Скачать
+## 📥 Скачать
 
-[⬇ Скачать misha_unlimited_pins.plugin](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/UnlimitedPins/misha_unlimited_pins.plugin) · [Код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/UnlimitedPins/misha_unlimited_pins.plugin)
+**[Скачать misha_unlimited_pins.plugin](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/UnlimitedPins/misha_unlimited_pins.plugin)** · **[Исходник на GitHub](https://github.com/makarworld/awesome-telegram-plugins/blob/main/UnlimitedPins/misha_unlimited_pins.plugin)**
 
-Установка: скачай файл → открой в exteraGram / AyuGram (или импортируй через менеджер плагинов).
+📲 **Установка:** скачай файл → открой в exteraGram / AyuGram (или импортируй через менеджер плагинов).
 
-## Файлы в папке
+## 📁 Файлы в папке
 
 ```
 UnlimitedPins/
@@ -33,17 +33,17 @@ UnlimitedPins/
       secure_2.0.md
 ```
 
-## Назначение
+## 🎯 Назначение
 
-Подменяет внутренние лимиты `MessagesController` и сохраняет/восстанавливает состояние закрепов при перезапуске, синхронизации с сервером и выгрузке плагина.
+Подменяет внутренние лимиты `MessagesController` и сохраняет/восстанавливает состояние закрепов 📌 при перезапуске, синхронизации с сервером и выгрузке плагина.
 
-## Архитектура
+## 🏗️ Архитектура
 
 | Класс | Роль |
 |-------|------|
-| `UnlimitedPins` | Единственный класс плагина |
+| `UnlimitedPins` | 🎛️ Единственный класс плагина |
 
-## Хуки
+## 🔗 Хуки
 
 ### Method hooks
 - `MessagesController.pinDialog`
@@ -65,23 +65,23 @@ UnlimitedPins/
 - **`pre_request_hook` / `post_request_hook` / `on_update_hook`** — сохранение и восстановление закрепов
 - **`on_app_event`** — `START` / `RESUME` → reapply limits + restore
 
-## Настройки
+## ⚙️ Настройки
 
 ### UI
 | Элемент | Описание |
 |---------|----------|
-| Кнопка «вернуть закрепы» | Принудительное восстановление из сохранённого состояния |
+| Кнопка «вернуть закрепы» | 🔄 Принудительное восстановление из сохранённого состояния |
 
 ### Скрытые ключи (в коде, не в UI)
 | Ключ | Default | Описание |
 |------|---------|----------|
-| `max_value` | 100000 | Новый лимит закрепов |
-| `persist_pins` | true | Сохранять состояние в JSON |
-| `restore_pins_on_start` | true | Восстанавливать при старте |
-| `restore_on_unload` | true | Вернуть оригинальные лимиты при выгрузке |
-| `block_server_updates` | false | Откатывать серверные pin-updates |
+| `max_value` | 100000 | 📌 Новый лимит закрепов |
+| `persist_pins` | true | 💾 Сохранять состояние в JSON |
+| `restore_pins_on_start` | true | 🔄 Восстанавливать при старте |
+| `restore_on_unload` | true | ↩️ Вернуть оригинальные лимиты при выгрузке |
+| `block_server_updates` | false | 🚫 Откатывать серверные pin-updates |
 
-## Подменяемые поля лимитов
+## 📊 Подменяемые поля лимитов
 
 `LIMIT_FIELDS` — 6 полей в `MessagesController`:
 - `maxPinnedDialogsCountDefault`
@@ -89,7 +89,7 @@ UnlimitedPins/
 
 Все заменяются на `max_value` (max 2147483647).
 
-## Алгоритмы
+## 🧮 Алгоритмы
 
 1. **При загрузке:** сохранить оригинальные лимиты → подменить на `max_value` → зарегистрировать хуки.
 2. **При pin/unpin:** перехватить → сохранить состояние в JSON (debounce).
@@ -97,7 +97,7 @@ UnlimitedPins/
 4. **Восстановление:** до 20 попыток (`RESTORE_MAX_ATTEMPTS`), max 300 pins на папку (`MAX_RESTORED_PINS_PER_FOLDER`).
 5. **При выгрузке:** сохранить state → снять хуки → вернуть оригинальные лимиты.
 
-## Хранение данных
+## 💾 Хранение данных
 
 | Файл | Путь |
 |------|------|
@@ -108,7 +108,7 @@ UnlimitedPins/
 
 Runtime: `_original_limits`, `_restore_attempts`, `_restored_folders`, `_restored_filters`.
 
-## Константы
+## 🔢 Константы
 
 ```python
 DEFAULT_MAX = 100000
@@ -118,17 +118,17 @@ RESTORE_MAX_ATTEMPTS = 20
 PINS_STATE_FILE = "unlimited_pins_state.json"
 ```
 
-## Безопасность
+## 🔐 Безопасность
 
 | Риск | Уровень | Комментарий |
 |------|---------|-------------|
-| Манипуляция pinned dialogs | низкий | Ожидаемое поведение |
-| Конфликт с сервером | средний | Сервер может откатывать лишние закрепы |
-| Утечка данных | низкий | Только локальный JSON |
+| Манипуляция pinned dialogs | 🟢 низкий | Ожидаемое поведение |
+| Конфликт с сервером | 🟡 средний | Сервер может откатывать лишние закрепы |
+| Утечка данных | 🟢 низкий | Только локальный JSON |
 
 Сеть не используется.
 
-## Разработка
+## 🛠️ Разработка
 
 - Тестировать на нескольких аккаунтах и папках (folders/filters).
 - При изменении схемы state — инкрементировать `PINS_STATE_VERSION`.

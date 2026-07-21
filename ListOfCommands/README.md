@@ -1,9 +1,9 @@
-# Меню доступных команд (`list_of_commands`)
+# ⌨️ Меню доступных команд (`list_of_commands`)
 
-> Автоподсказки dot-команд всех установленных плагинов при вводе `.` в чате.  
-> Исходник: только `list_of_commands.plugin` · Версия: **1.0.8** · Обновлено: 2026-07-20
+> 💡 Автоподсказки dot-команд всех установленных плагинов при вводе `.` в чате.  
+> 📦 Исходник: только `list_of_commands.plugin` · 🏷️ Версия: **1.0.8** · 📅 Обновлено: 2026-07-20
 
-## Метаданные
+## 📋 Метаданные
 
 | Поле | Значение |
 |------|----------|
@@ -15,13 +15,13 @@
 | `__icon__` | pus_heen/12 |
 | `__min_version__` | 11.12.0 |
 
-## Скачать
+## 📥 Скачать
 
-[⬇ Скачать list_of_commands.plugin](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/ListOfCommands/list_of_commands.plugin) · [Код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/ListOfCommands/list_of_commands.plugin)
+**[Скачать list_of_commands.plugin](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/ListOfCommands/list_of_commands.plugin)** · **[Исходник на GitHub](https://github.com/makarworld/awesome-telegram-plugins/blob/main/ListOfCommands/list_of_commands.plugin)**
 
-Установка: скачай файл → открой в exteraGram / AyuGram (или импортируй через менеджер плагинов).
+📲 **Установка:** скачай файл → открой в exteraGram / AyuGram (или импортируй через менеджер плагинов).
 
-## Файлы в папке
+## 📁 Файлы в папке
 
 ```
 ListOfCommands/
@@ -34,31 +34,31 @@ ListOfCommands/
       secure_1.0.8.md
 ```
 
-## Назначение
+## 🎯 Назначение
 
-Сканирует папку плагинов, находит dot-команды (`.cmd`) в исходниках и показывает их в панели `MentionsAdapter` при вводе `.` в чате. Позволяет включать/отключать подсказки по командам.
+Сканирует папку плагинов 🔍, находит dot-команды (`.cmd`) в исходниках и показывает их в панели `MentionsAdapter` при вводе `.` в чате 💬. Позволяет включать/отключать подсказки по командам.
 
-## Архитектура
+## 🏗️ Архитектура
 
 | Класс | Роль |
 |-------|------|
-| `CommandHelperPlugin` | Главный плагин |
-| `CommandSuggestionsHook` | MethodHook на `MentionsAdapter.searchUsernameOrHashtag` |
-| `PluginCommandHarvester` | Парсер команд из `.py`/`.plugin` |
+| `CommandHelperPlugin` | 🎛️ Главный плагин |
+| `CommandSuggestionsHook` | 🔗 MethodHook на `MentionsAdapter.searchUsernameOrHashtag` |
+| `PluginCommandHarvester` | 🧮 Парсер команд из `.py`/`.plugin` |
 
-## Хуки
+## 🔗 Хуки
 
 | Хук | Описание |
 |-----|----------|
-| `MentionsAdapter.searchUsernameOrHashtag` (priority 10) | Подмена `searchResultCommands` / `searchResultCommandsHelp` |
-| `on_send_message_hook` | `.preload` — сброс и пересборка кэша команд (CANCEL) |
+| `MentionsAdapter.searchUsernameOrHashtag` (priority 10) | 📝 Подмена `searchResultCommands` / `searchResultCommandsHelp` |
+| `on_send_message_hook` | 🔄 `.preload` — сброс и пересборка кэша команд (CANCEL) |
 
-## Настройки
+## ⚙️ Настройки
 
 | Ключ | Описание |
 |------|----------|
-| `cmd_enabled_{cmd}` | Switch для каждой найденной команды (динамически) |
-| `custom_commands` | Свои команды: `.cmd:описание,.cmd2:описание` |
+| `cmd_enabled_{cmd}` | 🟢 Switch для каждой найденной команды (динамически) |
+| `custom_commands` | ✏️ Свои команды: `.cmd:описание,.cmd2:описание` |
 
 UI:
 - Header «Активные подсказки»
@@ -66,7 +66,7 @@ UI:
 - Input для custom commands
 - Подсказка: «Обновить вручную: `.preload`»
 
-## Алгоритм `PluginCommandHarvester`
+## 🧮 Алгоритм `PluginCommandHarvester`
 
 ```
 1. Сканировать папку plugins (*.py, *.plugin)
@@ -82,35 +82,35 @@ UI:
 - `__id__\s*=\s*['"]([^'"]+)['"]`
 - `['"](\.[a-zA-Z0-9_-]+)[\s'"]`
 
-## Кэширование
+## 📦 Кэширование
 
 | Поле | Описание |
 |------|----------|
-| `_command_cache` | `{ "items": [...] }` |
-| `_dir_signature` | mtime/size файлов в папке |
-| `_enabled_plugin_ids` | set ID включённых плагинов |
-| `_enabled_signature` | сигнатура enabled-состояния |
+| `_command_cache` | 💾 `{ "items": [...] }` |
+| `_dir_signature` | 📂 mtime/size файлов в папке |
+| `_enabled_plugin_ids` | 🟢 set ID включённых плагинов |
+| `_enabled_signature` | 🔑 сигнатура enabled-состояния |
 
 Сброс: `.preload` или изменение файлов плагинов.
 
-## UI / меню
+## 🖥️ UI / меню
 
 Нет пунктов меню — работает через автоподсказки в поле ввода чата.
 
-## Внешние зависимости
+## 🌐 Внешние зависимости
 
-- Только SDK
-- Читает локальную папку plugins (`.py`, `.plugin`)
-- Сеть не используется
+- ✅ Только SDK
+- 📂 Читает локальную папку plugins (`.py`, `.plugin`)
+- 🚫 Сеть не используется
 
-## Безопасность
+## 🔐 Безопасность
 
 | Риск | Уровень | Комментарий |
 |------|---------|-------------|
-| Чтение всех plugin-файлов | низкий | Только regex-парсинг, без exec |
-| Ложные команды | низкий | Может найти строки, похожие на команды |
+| Чтение всех plugin-файлов | 🟢 низкий | Только regex-парсинг, без exec |
+| Ложные команды | 🟢 низкий | Может найти строки, похожие на команды |
 
-## Разработка
+## 🛠️ Разработка
 
 - Новая команда в плагине → автоматически появится после `.preload` или перезапуска.
 - Команды из выключенных/ошибочных плагинов скрываются.

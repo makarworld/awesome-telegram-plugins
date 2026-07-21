@@ -1,9 +1,9 @@
-# Plugin Verifier (`plugin_verifier`)
+# 🔍 Plugin Verifier (`plugin_verifier`)
 
-> Локальная верификация и глубокий анализ плагинов, просмотр кода/DB/DEX.  
-> Исходник: только `plugin_verifier.plugin` · Версия: **2.4.8** · Обновлено: 2026-07-20
+> 🛡️ Локальная верификация и глубокий анализ плагинов, просмотр кода/DB/DEX.  
+> 📦 Исходник: только `plugin_verifier.plugin` · 🏷️ Версия: **2.4.8** · 📅 Обновлено: 2026-07-20
 
-## Метаданные
+## 📋 Метаданные
 
 | Поле | Значение |
 |------|----------|
@@ -15,13 +15,13 @@
 | `__icon__` | не указан |
 | `__min_version__` | не указан |
 
-## Скачать
+## 📥 Скачать
 
-[⬇ Скачать plugin_verifier.plugin](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/PluginVerifier/plugin_verifier.plugin) · [Код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/PluginVerifier/plugin_verifier.plugin)
+**[Скачать plugin_verifier.plugin](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/PluginVerifier/plugin_verifier.plugin)** · **[Исходник на GitHub](https://github.com/makarworld/awesome-telegram-plugins/blob/main/PluginVerifier/plugin_verifier.plugin)**
 
-Установка: скачай файл → открой в exteraGram / AyuGram (или импортируй через менеджер плагинов).
+📲 **Установка:** скачай файл → открой в exteraGram / AyuGram (или импортируй через менеджер плагинов).
 
-## Файлы в папке
+## 📁 Файлы в папке
 
 ```
 PluginVerifier/
@@ -33,7 +33,7 @@ PluginVerifier/
       secure_2.4.8.md
 ```
 
-## Назначение
+## 🎯 Назначение
 
 1. Проверяет плагины по SHA256 whitelist и MinHash similarity.
 2. Показывает статус в списке плагинов (✅ / 🔴).
@@ -41,18 +41,18 @@ PluginVerifier/
 4. Предупреждает при установке непроверенного плагина.
 5. Маркирует пользователей из scammer-базы.
 
-## Архитектура
+## 🏗️ Архитектура
 
 | Класс | Роль |
 |-------|------|
-| `PluginVerifierPlugin` | Главный плагин |
-| `CodeViewerBottomSheet` | Просмотр исходного кода |
-| `DbViewerBottomSheet` | Просмотр SQLite |
-| `AnalyzerBottomSheet` | Анализ DEX/SO/payloads |
-| `_OpenForViewHook` | Перехват `AndroidUtilities.openForView` |
-| `CodeLoader` | Асинхронная загрузка кода |
+| `PluginVerifierPlugin` | 🎛️ Главный плагин |
+| `CodeViewerBottomSheet` | 📄 Просмотр исходного кода |
+| `DbViewerBottomSheet` | 🗄️ Просмотр SQLite |
+| `AnalyzerBottomSheet` | 🔬 Анализ DEX/SO/payloads |
+| `_OpenForViewHook` | 🔗 Перехват `AndroidUtilities.openForView` |
+| `CodeLoader` | ⏳ Асинхронная загрузка кода |
 
-## Хуки
+## 🔗 Хуки
 
 | Хук | Описание |
 |-----|----------|
@@ -62,13 +62,13 @@ PluginVerifier/
 | `ChatActivity.onTransitionAnimationEnd` | Диалог «СКАМЕР» при входе в чат |
 | `ChatMessageCell.setMessageObject` | Тег scammer на сообщениях |
 
-## Настройки
+## ⚙️ Настройки
 
 | Ключ | Описание |
 |------|----------|
 | `db_pagination_mode` | 0 = append / 1 = replace при просмотре SQLite |
 
-## UI
+## 🖥️ UI
 
 | Элемент | Описание |
 |---------|----------|
@@ -79,7 +79,7 @@ PluginVerifier/
 | Диалог при установке | Предупреждение о непроверенном плагине |
 | Scammer alert | При входе в чат с user_id из blacklist |
 
-## Внешние зависимости
+## 🌐 Внешние зависимости
 
 | Ресурс | URL |
 |--------|-----|
@@ -92,7 +92,7 @@ PluginVerifier/
 
 При анализе — fetch remote `.dex`/`.so` (timeout 5s).
 
-## Алгоритмы
+## 🧮 Алгоритмы
 
 ### Верификация
 1. SHA256 файла vs глобальный whitelist (Supabase).
@@ -111,13 +111,13 @@ PluginVerifier/
 ### Scammer tagging
 - `user.scam = True`, сброс `premium`/`verified`, переименование `first_name`
 
-## Хранение данных
+## 💾 Хранение данных
 
 - `_global_whitelist` — кэш whitelist из Supabase
 - `_local_scan_cache` — кэш локальных сканов
 - `_scammers_list` — set user_id из DB
 
-## Безопасность
+## 🔐 Безопасность
 
 ### Полезные функции
 - Whitelist проверенных плагинов
@@ -142,7 +142,7 @@ PluginVerifier/
 
 **4. Scammer DB** — централизованный blacklist без прозрачной модерации.
 
-## Разработка
+## 🛠️ Разработка
 
 - `BOILERPLATE_BLACKLIST` — имена, исключаемые из анализа кода.
 - Декоратор `@catch` — глотает исключения с логом.
