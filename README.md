@@ -13,7 +13,7 @@
 
 | Плагин | Версия | Зачем ставить | Риск | Файл |
 |--------|--------|---------------|------|------|
-| [CuteMessages](#cutemessages) | 1.7.3 | Милые исходящие сообщения, undo | 🟢 | [скачать](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/CuteMessages/cutemessagesenhanced.plugin) · [код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/CuteMessages/cutemessagesenhanced.plugin) |
+| [CuteMessages](#cutemessages) | 1.7.1 | Милые исходящие сообщения, Cutify/undo | 🟢 | [скачать](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/CuteMessages/cutemessagesenhanced.plugin) · [код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/CuteMessages/cutemessagesenhanced.plugin) |
 | [Tomato bom](#tomato-bom) | 1.2.8 | Кидать помидоры по UI | 🟡 | [скачать](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/TomatoBom/tomato_bom.plugin) · [код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/TomatoBom/tomato_bom.plugin) |
 | [LiveWallpaper](#livewallpaper) | 1.2 | Видео-обои в чатах | 🟠 | [скачать](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/LiveWallpaper/live_wallpaper.plugin) · [код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/LiveWallpaper/live_wallpaper.plugin) |
 | [Unlimited Pins](#unlimited-pins) | 2.0 | Без лимита закрепов | 🟢 | [скачать](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/UnlimitedPins/misha_unlimited_pins.plugin) · [код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/UnlimitedPins/misha_unlimited_pins.plugin) |
@@ -30,16 +30,16 @@
 
 ### 💬 CuteMessages
 
-**ID:** `cutemessagesenhanced` · **v1.7.3** · @mihailkotovski, @mishabotov · обновление 1.7.x: @abuztrade, @AwesomeTelegramPlugins  
-**Документация:** [README](CuteMessages/README.md) · **Changelog 1.6.1→1.7.0:** [CHANGELOG.md](CuteMessages/releases/v1.7.0/CHANGELOG.md)  
-**📥 Скачать:** [cutemessagesenhanced.plugin](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/CuteMessages/cutemessagesenhanced.plugin) · **👁️ Код:** [cutemessagesenhanced.plugin](https://github.com/makarworld/awesome-telegram-plugins/blob/main/CuteMessages/cutemessagesenhanced.plugin)
+**ID:** `cutemessagesenhanced` · **v1.7.1** · @mihailkotovski, @mishabotov · обновление 1.7.x: @abuztrade, @AwesomeTelegramPlugins  
+**Документация:** [README](CuteMessages/README.md) · **Changelog 1.7.0→1.7.1:** [CHANGELOG.md](CuteMessages/releases/v1.7.1/CHANGELOG.md)  
+**📥 Скачать:** [cutemessagesenhanced.plugin](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/CuteMessages/cutemessagesenhanced.plugin) · **👁️ Код:** [cutemessagesenhanced.plugin](https://github.com/makarworld/awesome-telegram-plugins/blob/main/CuteMessages/cutemessagesenhanced.plugin) · **архив:** [v1.7.1](CuteMessages/releases/v1.7.1/cutemessagesenhanced_v1.7.1.plugin)
 
-Превращает исходящие сообщения в «милые»: UwU, рамки, эмодзи, растягивание гласных, каомодзи. Можно ограничить чаты whitelist/blacklist, откатить последние 5 сообщений через контекстное меню. Команды `.cute` / `.picme` — быстрый toggle. Локализация ru/en.
+Превращает исходящие сообщения в «милые»: UwU, рамки, эмодзи, растягивание гласных, каомодзи. Cutify и undo из меню сообщения (стек версий). Ссылки, @username и телефоны не ломаются. Whitelist/blacklist чатов. Команды `.cute` / `.picme`. Локализация ru/en.
 
 Работает через перехват исходящих сообщений до отправки; форматирование (bold, code и т.д.) сохраняется за счёт пересчёта entities.
 
 **Безопасность: 🟢 низкий риск** — только локальная обработка текста, сеть не используется (кроме ссылки доната в настройках).  
-📊 Отчёт: [secure.md](CuteMessages/secure.md) — ✅ Безопасно · архив: [v1.7.0](CuteMessages/releases/v1.7.0/secure_1.7.0.md), [v1.6.1](CuteMessages/releases/v1.6.1/secure_1.6.1.md)
+📊 Отчёт: [secure.md](CuteMessages/secure.md) — ✅ Безопасно (ручной анализ v1.7.1) · архив: [v1.7.1](CuteMessages/releases/v1.7.1/secure_1.7.1.md), [v1.7.0](CuteMessages/releases/v1.7.0/secure_1.7.0.md), [v1.6.1](CuteMessages/releases/v1.6.1/secure_1.6.1.md)
 
 ---
 

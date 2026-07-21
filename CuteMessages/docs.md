@@ -1,6 +1,6 @@
 # CuteMessages — техническая документация
 
-> ID: `cutemessagesenhanced` · v1.7.3 · файл в репозитории: `cutemessagesenhanced.plugin`
+> ID: `cutemessagesenhanced` · v1.7.1 · файл в репозитории: `cutemessagesenhanced.plugin`
 
 Пользовательская документация: [README.md](README.md)
 
@@ -10,7 +10,7 @@
 |------|----------|
 | `__id__` | `cutemessagesenhanced` |
 | `__name__` | CuteMessages |
-| `__version__` | 1.7.3 |
+| `__version__` | 1.7.1 |
 | `__author__` | @mihailkotovski & @mishabotov & idea - @bleizix (updated by @abuztrade & @AwesomeTelegramPlugins) |
 | `__min_version__` | 11.9.0 |
 | `__icon__` | ColorfulMessages/28 |
@@ -30,7 +30,7 @@
 |-----|----------|
 | `on_send_message_hook` | Трансформация исходящих сообщений |
 | `post_request_hook` | `TL_messages_sendMessage` / sendMedia / sendMultiMedia — привязка undo к msg_id |
-| `MESSAGE_CONTEXT_MENU` | «Омилить ✨», «Отменить омиление 😢» |
+| `MESSAGE_CONTEXT_MENU` | «Омилить (◕‿◕)», «Отменить омиление 😿» |
 | `CHAT_ACTION_MENU` | Настройки, whitelist/blacklist |
 | `DRAWER_MENU` | Настройки |
 
@@ -49,7 +49,7 @@ on_send_message_hook
   └─ HookStrategy.MODIFY
         ↓
 post_request_hook
-  └─ _undo_cache[(dialog_id, msg_id)] = record (лимит 5)
+  └─ _undo_cache[(dialog_id, msg_id)] = record (лимит 16 КБ текста)
 ```
 
 ## Настройки
@@ -82,8 +82,8 @@ post_request_hook
 1. Перед отправкой: стек версий `[оригинал, милое, …]` в `_pending_undo`
 2. После отправки: `_undo_cache[(dialog_id, msg_id)]`, лимит **4096×4 символов** суммарно по всем версиям всех сообщений
 3. Сообщения не режутся — при переполнении удаляется целиком самое старое по времени
-4. **Отменить омиление 😢** — шаг назад по стеку; на оригинале цикл **оригинал ↔ первое милое**
-5. **Cutify ✨** — новая версия в стек (повторные нажатия накапливают историю)
+4. **Отменить омиление** — шаг назад по стеку; на оригинале цикл **оригинал ↔ первое милое**
+5. **Cutify** — новая версия в стек (повторные нажатия накапливают историю)
 6. Контекст меню — Java `Map`: `_ctx_get()`, `_message_id_from_obj()`
 7. При ошибке HTML: повтор `parse_mode="html"`, затем plain
 
@@ -129,9 +129,7 @@ post_request_hook
 
 | Версия | Примечание |
 |--------|------------|
-| 1.7.3 | Лимит кэша по символам (16 КБ), стек версий Cutify/Undo |
-| 1.7.2 | Undo-toggle, Cutify, защита ссылок/@/телефонов |
-| 1.7.1 | |
+| 1.7.1 | Cutify, стек undo, защита ссылок/@/телефонов, фикс оригинала — [CHANGELOG](releases/v1.7.1/CHANGELOG.md) |
 | 1.7.0 | Whitelist/blacklist, undo, `.cute`/`.picme` — [CHANGELOG](releases/v1.7.0/CHANGELOG.md) |
 
 ## Файлы
@@ -141,6 +139,7 @@ CuteMessages/
   cutemessagesenhanced.plugin   # код плагина (Python), в репозиторий заливается только .plugin
   README.md
   docs.md
+  releases/v1.7.1/
   releases/v1.7.0/
 ```
 

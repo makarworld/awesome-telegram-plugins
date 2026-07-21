@@ -1,11 +1,13 @@
 # 💬 CuteMessages
 
 > Делает исходящие сообщения милыми: UwU, рамки, эмодзи и другие эффекты.  
-> 🏷️ Версия **1.7.3** · @mihailkotovski, @mishabotov
+> 🏷️ Версия **1.7.1** · @mihailkotovski, @mishabotov
 
 ## 📥 Скачать
 
 **[cutemessagesenhanced.plugin](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/CuteMessages/cutemessagesenhanced.plugin)** · **[код на GitHub](https://github.com/makarworld/awesome-telegram-plugins/blob/main/CuteMessages/cutemessagesenhanced.plugin)**
+
+Архив релиза: **[v1.7.1](releases/v1.7.1/cutemessagesenhanced_v1.7.1.plugin)**
 
 📲 Скачай файл → открой в exteraGram / AyuGram.
 
@@ -19,8 +21,8 @@
 2. Пиши сообщения как обычно — эффекты применятся автоматически.
 3. **Команды в чате:** `.cute` или `.picme` — быстро вкл/выкл.
 4. **Меню сообщения** (долгий тап на своё):
-   - **Омилить ✨** — омилить вручную (даже если уже милое)
-   - **Отменить омиление 😢** — шаг назад по версиям; на оригинале переключает оригинал ↔ первое милое
+   - **Омилить (◕‿◕)** — омилить вручную (даже если уже милое)
+   - **Отменить омиление 😿** — шаг назад по версиям; на оригинале переключает оригинал ↔ первое милое
 5. **Фильтр чатов:** в меню ⋯ чата — добавить в белый или чёрный список.
 
 ## Настройки
@@ -36,7 +38,7 @@
 
 🟢 **Низкий риск** — только локальная обработка текста, сеть не используется.
 
-📊 [secure.md](secure.md) · архив [v1.7.0](releases/v1.7.0/secure_1.7.0.md)
+📊 [secure.md](secure.md) · архив [v1.7.1](releases/v1.7.1/secure_1.7.1.md) · [v1.7.0](releases/v1.7.0/secure_1.7.0.md)
 
 ## Для разработчиков
 

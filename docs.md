@@ -180,7 +180,7 @@ def _iter_java(obj):
 
 | Папка | ID | Версия | Файл | README | docs |
 |-------|----|--------|------|--------|------|
-| [CuteMessages](CuteMessages/) | `cutemessagesenhanced` | 1.7.3 | `cutemessagesenhanced.plugin` | [README](CuteMessages/README.md) | [docs](CuteMessages/docs.md) |
+| [CuteMessages](CuteMessages/) | `cutemessagesenhanced` | 1.7.1 | `cutemessagesenhanced.plugin` | [README](CuteMessages/README.md) | [docs](CuteMessages/docs.md) |
 | [KangelPluginsManager](KangelPluginsManager/) | `kangel_plugins_manager` | 1.4.3 | `kangel_plugins_manager.plugin` | [README](KangelPluginsManager/README.md) | [docs](KangelPluginsManager/docs.md) |
 | [LiveWallpaper](LiveWallpaper/) | `live_wallpaper` | 1.2 | `live_wallpaper.plugin` | [README](LiveWallpaper/README.md) | [docs](LiveWallpaper/docs.md) |
 | [UnlimitedPins](UnlimitedPins/) | `misha_unlimited_pins` | 2.0 | `misha_unlimited_pins.plugin` | [README](UnlimitedPins/README.md) | [docs](UnlimitedPins/docs.md) |
