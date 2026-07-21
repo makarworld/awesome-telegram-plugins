@@ -2,7 +2,7 @@
 
 Коллекция плагинов для **exteraGram / AyuGram** (Android, Python через Chaquopy).
 
-> Обновлено: 2026-07-20
+> Обновлено: 2026-07-21
 
 ## О репозитории
 
@@ -50,6 +50,7 @@ tools\build_plugin.bat CuteMessages
 | [ListOfCommands](ListOfCommands/README.md) | `list_of_commands` | 1.0.8 | @bandaliyev | Подсказки dot-команд | `.plugin` | ✅ |
 | [TomatoBom](TomatoBom/README.md) | `tomato_bom` | 1.2.8 | Windukk | Кидает помидоры | `.plugin` | ✅ |
 | [AIEdit](AIEdit/README.md) | `ai_edit` | 1.0.1 | @abuztrade | AI-редактирование исходящих сообщений | `ai_edit.py` | ✅ |
+| [WSBypass](WSBypass/README.md) | `wsbypass` | 3.0.5 | @Th3Nek1t_projects | Обход блокировок Telegram | `.plugin` | ✅ |
 
 ## Сводка по типам
 
@@ -58,10 +59,11 @@ tools\build_plugin.bat CuteMessages
 | Тип | Плагины |
 |-----|---------|
 | Send message hook | CuteMessages, KangelPluginsManager (`.kpm_send`), ListOfCommands (`.preload`), AIEdit |
-| Method / protocol hooks | UnlimitedPins, PluginVerifier, KangelPluginsManager, ListOfCommands |
+| Method / protocol hooks | UnlimitedPins, PluginVerifier, KangelPluginsManager, ListOfCommands, WSBypass |
 | Remote code (DEX) | LiveWallpaper |
 | UI overlay | TomatoBom |
-| Сеть | KangelPluginsManager, LiveWallpaper, PluginVerifier, TomatoBom, AIEdit |
+| Сеть | KangelPluginsManager, LiveWallpaper, PluginVerifier, TomatoBom, AIEdit, WSBypass |
+| Локальный прокси / туннель | WSBypass |
 
 ### Минимальные версии клиента
 
@@ -75,6 +77,7 @@ tools\build_plugin.bat CuteMessages
 | PluginVerifier | — |
 | TomatoBom | — |
 | AIEdit | 12.8.0 |
+| WSBypass | 12.5.1 |
 
 ## Безопасность (кратко)
 
@@ -88,6 +91,7 @@ tools\build_plugin.bat CuteMessages
 | ListOfCommands | низкий | Только парсинг файлов плагинов |
 | TomatoBom | низкий–средний | Overlay + загрузка ассетов с gitflic |
 | AIEdit | низкий–средний | Вызов официального AI API Telegram; текст уходит на сервер Cocoon |
+| WSBypass | низкий–средний | Туннель через KWS-серверы, смена прокси, автообновление с th3web.com |
 
 Подробности — в `README.md` каждого плагина и в `secure.md` (отчёты сгенерированы [Pluggy Bot](https://t.me/pluggy_robot)).
 
@@ -149,6 +153,14 @@ awesome-plugins/
   AIEdit/
     ai_edit.py
     README.md
+  WSBypass/
+    wsbypass.plugin
+    README.md
+    secure.md
+    releases/
+      v3.0.5/
+        wsbypass_v3.0.5.plugin
+        secure_3.0.5.md
 ```
 
 ## Заметки

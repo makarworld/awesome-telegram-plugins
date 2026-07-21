@@ -17,6 +17,7 @@
 | [List of Commands](#list-of-commands) | 1.0.8 | Подсказки dot-команд | 🟢 | [`.plugin`](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/ListOfCommands/list_of_commands.plugin) |
 | [Kangel Plugins Manager](#kangel-plugins-manager) | 1.3.2 | Магазин плагинов | 🟠 | [`.plugin`](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/KangelPluginsManager/kangel_plugins_manager.plugin) |
 | [Plugin Verifier](#plugin-verifier) | 2.4.8 | Проверка плагинов на вирусы | 🔴* | [`.plugin`](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/PluginVerifier/plugin_verifier.plugin) |
+| [WS-Bypass](#ws-bypass) | 3.0.5 | Обход блокировок Telegram | 🟡 | [`.plugin`](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/WSBypass/wsbypass.plugin) |
 
 **Установка:** скачай `.plugin` по ссылке → открой файл в exteraGram / AyuGram (или импортируй через менеджер плагинов).
 
@@ -131,6 +132,21 @@
 
 ---
 
+### WS-Bypass
+
+**ID:** `wsbypass` · **v3.0.5** · @Th3Nek1t_projects  
+**Документация:** [WSBypass/README.md](WSBypass/README.md)  
+**Скачать:** [wsbypass.plugin](https://raw.githubusercontent.com/makarworld/awesome-telegram-plugins/refs/heads/main/WSBypass/wsbypass.plugin)
+
+Поднимает локальный SOCKS-прокси и гонит трафик Telegram через WebSocket-туннель к KWS-серверам (Nimarko / Th3Nekit). Включает прокси в клиенте автоматически. Провайдеры на выбор или авто-режим. Для полной скорости на Th3Nekit нужна подписка на канал автора.
+
+Есть встроенное обновление с `th3web.com` (SHA256 + Ed25519).
+
+**Безопасность: 🟡 низкий–средний** — туннель через KWS-серверы, смена прокси, автообновление с проверкой подписи.  
+Отчёт: [secure.md](WSBypass/secure.md) — ❔ Низкий риск · архив: [v3.0.5](WSBypass/releases/v3.0.5/secure_3.0.5.md)
+
+---
+
 ## Безопасность — кратко
 
 Все отчёты ниже сгенерированы **[Pluggy Bot](https://t.me/pluggy_robot)** (pluggy_robot.t.me).
@@ -144,6 +160,7 @@
 | Kangel Plugins Manager | 🟠 | [secure.md](KangelPluginsManager/secure.md) | ⚠️ Осторожно |
 | LiveWallpaper | 🟠 | [secure_1.2.md](LiveWallpaper/releases/v1.2/secure_1.2.md) | ⚠️ Осторожно |
 | Plugin Verifier | 🔴* | [secure.md](PluginVerifier/secure.md) | 📛 Высокий риск |
+| WS-Bypass | 🟡 | [secure.md](WSBypass/secure.md) | ❔ Низкий риск |
 
 **Где лежат отчёты**
 
@@ -159,7 +176,7 @@
 
 ## О репозитории
 
-Монорепозиторий: исходники, документация, отчёты безопасности и артефакты `.plugin` для всех семи плагинов выше.
+Монорепозиторий: исходники, документация, отчёты безопасности и артефакты `.plugin` для всех плагинов выше.
 
 - **Этот файл (`README.md`)** — обзор для пользователей и точка входа
 - **Документация плагина** — `ПапкаПлагина/README.md` (читать **перед** любыми правками)
@@ -233,4 +250,4 @@ awesome-plugins/
 
 ---
 
-*Обновлено: 2026-07-20*
+*Обновлено: 2026-07-21*
