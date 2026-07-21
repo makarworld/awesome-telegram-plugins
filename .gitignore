@@ -2,6 +2,7 @@
 *.txt
 .ayu_session.pkl
 AIEdit/
+VersionOverride/
 
 __pycache__/
 *.pyc

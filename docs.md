@@ -33,17 +33,30 @@
 | SDK | https://plugins.exteragram.app/docs |
 | Python | Chaquopy (Python ↔ Java interop) |
 | IDE | `pip install exteragram-utils` (автодополнение; pyright-ошибки импортов — норма) |
-| Код в репозитории | `*.plugin` — валидный Python, другое расширение |
-| Локальная разработка | опционально `*.py` → `build_plugin.bat` → `.plugin` (`.py` в git не коммитится) |
+| Код в репозитории | `*.plugin` — артефакт для пользователей (валидный Python) |
+| Локальная разработка | `__id__.py` на ПК → деплой на устройство как `.py`; перед релизом копия в `.plugin` |
 
-### Сборка (локально)
+### Разработка и публикация (SDK)
+
+Официальный флоу: [plugins.exteragram.app/docs/setup](https://plugins.exteragram.app/docs/setup)
+
+1. **Исходник** — один файл `<plugin_id>.py` (имя = `__id__` + `.py`).
+2. **На устройстве** — тот же файл в `.../files/plugins/<plugin_id>.py`; developer mode + DevServer (`42690`) или ADB.
+3. **Итерация** — `catalib watch --deploy` ([catalib workflow](https://raito-kyokai.gitbook.io/catalib/deploi/workflow.md)) или ручной push + reload.
+4. **Публикация** — тот же код с расширением `.plugin` (установка из чата / raw-ссылки). Содержимое `.py` и `.plugin` идентично.
+
+В этом репозитории `.py` в git не коммитится (`.gitignore`); в main пушится `.plugin`.
 
 ```bat
-tools\build_plugin.bat CuteMessages
-:: копирует .py → .plugin рядом с исходником; в репозиторий пушится только .plugin
+:: однофайловый плагин — перед коммитом релиза:
+copy /Y VersionOverride\version_override.py VersionOverride\version_override.plugin
+
+:: модульные проекты (несколько файлов) — catalib:
+catalib build
+:: → dist\<id>.py и dist\<id>.plugin (одинаковые)
 ```
 
-Деплой на устройство — вручную через клиент или (если есть) `python tools/deploy.py`.
+Упрощённый хелпер монорепо (не из SDK): `.tools\build_plugin.bat PluginFolder` — копирует единственный `.py` → `.plugin`.
 
 ### Ссылки на артефакты
 
@@ -167,21 +180,22 @@ def _iter_java(obj):
 
 | Папка | ID | Версия | Файл | README | docs |
 |-------|----|--------|------|--------|------|
-| [CuteMessages](CuteMessages/) | `cutemessagesenhanced` | 1.7.1 | `cutemessagesenhanced.plugin` | [README](CuteMessages/README.md) | [docs](CuteMessages/docs.md) |
-| [KangelPluginsManager](KangelPluginsManager/) | `kangel_plugins_manager` | 1.3.2 | `kangel_plugins_manager.plugin` | [README](KangelPluginsManager/README.md) | [docs](KangelPluginsManager/docs.md) |
+| [CuteMessages](CuteMessages/) | `cutemessagesenhanced` | 1.7.3 | `cutemessagesenhanced.plugin` | [README](CuteMessages/README.md) | [docs](CuteMessages/docs.md) |
+| [KangelPluginsManager](KangelPluginsManager/) | `kangel_plugins_manager` | 1.4.3 | `kangel_plugins_manager.plugin` | [README](KangelPluginsManager/README.md) | [docs](KangelPluginsManager/docs.md) |
 | [LiveWallpaper](LiveWallpaper/) | `live_wallpaper` | 1.2 | `live_wallpaper.plugin` | [README](LiveWallpaper/README.md) | [docs](LiveWallpaper/docs.md) |
 | [UnlimitedPins](UnlimitedPins/) | `misha_unlimited_pins` | 2.0 | `misha_unlimited_pins.plugin` | [README](UnlimitedPins/README.md) | [docs](UnlimitedPins/docs.md) |
 | [PluginVerifier](PluginVerifier/) | `plugin_verifier` | 2.4.8 | `plugin_verifier.plugin` | [README](PluginVerifier/README.md) | [docs](PluginVerifier/docs.md) |
 | [ListOfCommands](ListOfCommands/) | `list_of_commands` | 1.0.8 | `list_of_commands.plugin` | [README](ListOfCommands/README.md) | [docs](ListOfCommands/docs.md) |
 | [TomatoBom](TomatoBom/) | `tomato_bom` | 1.2.8 | `tomato_bom.plugin` | [README](TomatoBom/README.md) | [docs](TomatoBom/docs.md) |
 | [WSBypass](WSBypass/) | `wsbypass` | 3.0.5 | `wsbypass.plugin` | [README](WSBypass/README.md) | [docs](WSBypass/docs.md) |
+| [VersionOverride](VersionOverride/) | `version_override` | 1.0.3 | `version_override.plugin` | [README](VersionOverride/README.md) | [docs](VersionOverride/docs.md) |
 
 ## Сводка по типам
 
 | Тип | Плагины |
 |-----|---------|
 | Send message hook | CuteMessages, KangelPluginsManager, ListOfCommands, AIEdit* |
-| Method / protocol hooks | UnlimitedPins, PluginVerifier, KangelPluginsManager, ListOfCommands, WSBypass |
+| Method / protocol hooks | UnlimitedPins, PluginVerifier, KangelPluginsManager, ListOfCommands, WSBypass, VersionOverride |
 | Remote code (DEX) | LiveWallpaper |
 | UI overlay | TomatoBom |
 | Сеть | KangelPluginsManager, LiveWallpaper, PluginVerifier, TomatoBom, WSBypass |
@@ -194,9 +208,10 @@ def _iter_java(obj):
 | Плагин | `__min_version__` |
 |--------|-------------------|
 | CuteMessages | 11.9.0 |
-| KangelPluginsManager | 12.1.1 |
+| KangelPluginsManager | 12.5.1 |
 | LiveWallpaper | 11.12.0 |
 | ListOfCommands | 11.12.0 |
+| VersionOverride | 11.12.0 |
 | WSBypass | 12.5.1 (app) |
 
 ## Безопасность (кратко)
@@ -211,6 +226,7 @@ def _iter_java(obj):
 | ListOfCommands | низкий | Regex-парсинг файлов плагинов |
 | TomatoBom | низкий–средний | Overlay + загрузка ассетов |
 | WSBypass | низкий–средний | Туннель через KWS-серверы |
+| VersionOverride | низкий–средний | Обход проверки версии при установке |
 
 Подробности — `secure.md` в папке плагина. Отчёты: [Pluggy Bot](https://t.me/pluggy_robot).
 

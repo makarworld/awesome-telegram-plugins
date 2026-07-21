@@ -21,7 +21,7 @@ __description__ = (
     "Makes your messages extra cute with many adorable styles!\n\nДелает твои сообщения милыми с различными стилями!"
 )
 __icon__ = "ColorfulMessages/28"
-__version__ = "1.7.1"
+__version__ = "1.7.3"
 __id__ = "cutemessagesenhanced"
 __author__ = "@mihailkotovski & @mishabotov & idea - @bleizix (updated by @AwesomeTelegramPlugins)"
 __min_version__ = "11.9.0"
@@ -118,10 +118,16 @@ class LocalizationManager:
             "CHAT_BLACKLIST_REMOVED": "Чат удалён из чёрного списка",
             "IGNORE_SLASH_COMMANDS_SWITCH": "Игнорировать команды ботов (/)",
             "IGNORE_SLASH_COMMANDS_INFO": "Не форматировать сообщения, начинающиеся с / (например /start, /help).",
-            "UNDO_RESTORE": "Cute: вернуть оригинал",
-            "UNDO_RESTORE_SUB": "Отменить изменение текста (только последние 5 сообщений)",
+            "UNDO_RESTORE": "Отменить омиление 🥺✨",
+            "UNDO_RESTORE_SUB": "Шаг назад по версиям (кэш до 16 КБ текста)",
             "UNDO_RESTORED": "Оригинальный текст восстановлен",
+            "UNDO_TO_CUTE": "Первое милое соо восстановлено",
+            "UNDO_PREVIOUS": "Предыдущая версия",
             "UNDO_NOTHING": "Оригинал недоступен",
+            "CUTIFY": "Омилить ✨",
+            "CUTIFY_SUB": "Сделать сообщение милым",
+            "CUTIFY_DONE": "Сообщение омилено ✨",
+            "CUTIFY_NOT_OWN": "Можно омилить только свои сообщения",
         },
         "en": {
             "ENABLED": "✅ Cute messages enabled",
@@ -202,10 +208,16 @@ class LocalizationManager:
             "CHAT_BLACKLIST_REMOVED": "Chat removed from blacklist",
             "IGNORE_SLASH_COMMANDS_SWITCH": "Ignore bot commands (/)",
             "IGNORE_SLASH_COMMANDS_INFO": "Don't format messages starting with / (e.g. /start, /help).",
-            "UNDO_RESTORE": "Cute: restore original",
-            "UNDO_RESTORE_SUB": "Undo text change (only last 5 messages)",
+            "UNDO_RESTORE": "Undo cutify 🥺",
+            "UNDO_RESTORE_SUB": "Step back through versions (cache up to 16 KB text)",
             "UNDO_RESTORED": "Original text restored",
+            "UNDO_TO_CUTE": "First cute version restored",
+            "UNDO_PREVIOUS": "Previous version",
             "UNDO_NOTHING": "Original is not available",
+            "CUTIFY": "Cutify ✨",
+            "CUTIFY_SUB": "Make message cute",
+            "CUTIFY_DONE": "Message cutified ✨",
+            "CUTIFY_NOT_OWN": "Only your own messages can be cutified",
         },
     }
 
@@ -219,6 +231,7 @@ class PicMePlugin(BasePlugin):
         "TL_messages_sendMedia",
         "TL_messages_sendMultiMedia",
     )
+    _UNDO_CHAR_LIMIT = 4096 * 4
 
     def __init__(self):
         super().__init__()
@@ -230,10 +243,10 @@ class PicMePlugin(BasePlugin):
         self._chat_list_menu_dialog_id = None
         self._chat_dialog_hooks = []
         self._undo_menu_item = None
+        self._cutify_menu_item = None
         self._pending_undo = []
         self._undo_cache = {}
         self._undo_cache_order = []
-        self._undo_cache_limit = 5
         self.emojis = [
             "🥰",
             "😊",
@@ -714,6 +727,9 @@ class PicMePlugin(BasePlugin):
                     pass
         return self._message_id_from_obj(self._ctx_get(context, "message"))
 
+    def _get_undo_cache_key(self, key):
+        return self._undo_cache.get(key)
+
     def _pop_undo_cache_key(self, key):
         record = self._undo_cache.pop(key, None)
         if record is None:
@@ -733,6 +749,11 @@ class PicMePlugin(BasePlugin):
 
     def _find_undo_record(self, dialog_id, msg_id, message=None):
         did = int(dialog_id) if dialog_id is not None else None
+        if did is None and message is not None:
+            try:
+                did = int(message.getDialogId())
+            except Exception:
+                pass
         msg_ids = set()
         if msg_id is not None:
             try:
@@ -745,32 +766,154 @@ class PicMePlugin(BasePlugin):
         for mid in msg_ids:
             if did is not None:
                 key = (did, mid)
-                record = self._pop_undo_cache_key(key)
+                record = self._get_undo_cache_key(key)
                 if record is not None:
                     return key, record
-            for cache_key in list(self._undo_cache_order):
-                if cache_key[1] == mid:
-                    record = self._pop_undo_cache_key(cache_key)
-                    if record is not None:
-                        log(f"[{__id__}] undo fallback by msg_id: wanted={(did, mid)}, found={cache_key}")
-                        return cache_key, record
-
-        if did is not None:
-            for cache_key in reversed(self._undo_cache_order):
-                if cache_key[0] == did:
-                    record = self._pop_undo_cache_key(cache_key)
-                    if record is not None:
-                        log(f"[{__id__}] undo fallback latest for dialog: {did}, key={cache_key}")
-                        return cache_key, record
-
-        for cache_key in reversed(self._undo_cache_order):
-            record = self._pop_undo_cache_key(cache_key)
-            if record is not None:
-                log(f"[{__id__}] undo fallback latest global: key={cache_key}")
-                return cache_key, record
 
         log(f"[{__id__}] undo miss: dialog_id={did}, msg_ids={sorted(msg_ids)}, cache={list(self._undo_cache.keys())}")
         return None, None
+
+    def _make_version(self, text, entities_list):
+        return {
+            "text": text,
+            "html": self._entities_to_html(text, entities_list),
+        }
+
+    def _undo_record_size(self, record):
+        total = 0
+        for version in record.get("versions", []):
+            total += len(version.get("text", "") or "")
+            html = version.get("html")
+            if html:
+                total += len(html)
+        return total
+
+    def _undo_cache_total_chars(self):
+        seen = set()
+        total = 0
+        for key in self._undo_cache_order:
+            record = self._undo_cache.get(key)
+            if record is None:
+                continue
+            record_id = id(record)
+            if record_id in seen:
+                continue
+            seen.add(record_id)
+            total += self._undo_record_size(record)
+        return total
+
+    def _evict_undo_cache_if_needed(self):
+        while self._undo_cache_order and self._undo_cache_total_chars() > self._UNDO_CHAR_LIMIT:
+            oldest = self._undo_cache_order.pop(0)
+            self._pop_undo_cache_key(oldest)
+
+    def _touch_undo_primary(self, primary):
+        if primary in self._undo_cache_order:
+            self._undo_cache_order.remove(primary)
+        self._undo_cache_order.append(primary)
+
+    def _touch_undo_record(self, record):
+        for cache_key in self._undo_cache_order:
+            if self._undo_cache.get(cache_key) is record:
+                self._touch_undo_primary(cache_key)
+                return
+
+    def _build_undo_record(self, original_text, original_entities, modified_text, modified_entities):
+        return {
+            "versions": [
+                self._make_version(original_text, original_entities),
+                self._make_version(modified_text, modified_entities),
+            ],
+            "index": 1,
+            "ts": time.time(),
+        }
+
+    def _append_cute_version(self, record, text, entities_list):
+        modified_text, new_entities = self._transform_with_entities(
+            text,
+            entities_list,
+            self.get_classic_effects_probability(),
+            self.get_setting("text_style", 0),
+        )
+        versions = record["versions"]
+        index = int(record.get("index", len(versions) - 1))
+        if index == 0 and len(versions) > 1:
+            versions = [versions[0], self._make_version(modified_text, new_entities)]
+            index = 1
+        else:
+            versions = versions[: index + 1] + [self._make_version(modified_text, new_entities)]
+            index = len(versions) - 1
+        record["versions"] = versions
+        record["index"] = index
+        record["ts"] = time.time()
+        return modified_text, new_entities
+
+    def _undo_step_version(self, record):
+        versions = record.get("versions", [])
+        if len(versions) < 2:
+            return None, None
+        index = int(record.get("index", len(versions) - 1))
+        if index > 1:
+            record["index"] = index - 1
+            return versions[index - 1], locali.get_string("UNDO_PREVIOUS")
+        if index == 1:
+            record["index"] = 0
+            return versions[0], locali.get_string("UNDO_RESTORED")
+        record["index"] = 1
+        return versions[1], locali.get_string("UNDO_TO_CUTE")
+
+    def _edit_message_content(self, message, text, html=None):
+        if html:
+            try:
+                edit_message(message, text=html, parse_mode="html")
+                return
+            except Exception:
+                try:
+                    edit_message(message, text=html, parse_mode="HTML")
+                    return
+                except Exception:
+                    pass
+        edit_message(message, text=text)
+
+    def _is_outgoing_message(self, message):
+        if message is None:
+            return False
+        if hasattr(message, "isOut"):
+            try:
+                return bool(message.isOut())
+            except Exception:
+                pass
+        owner = getattr(message, "messageOwner", None)
+        if owner is not None:
+            try:
+                return bool(getattr(owner, "out", False))
+            except Exception:
+                pass
+        return False
+
+    def _message_content_from_obj(self, message):
+        text = ""
+        entities = None
+        owner = getattr(message, "messageOwner", None)
+        if owner is not None:
+            text = str(getattr(owner, "message", "") or "")
+            entities = getattr(owner, "entities", None)
+        elif hasattr(message, "getMessageText"):
+            try:
+                text = str(message.getMessageText() or "")
+            except Exception:
+                pass
+        return text, self._snapshot_entities(entities)
+
+    def _dialog_id_from_message(self, message, context=None):
+        if message is not None:
+            try:
+                return int(message.getDialogId())
+            except Exception:
+                pass
+        if context is not None:
+            return self._dialog_id_from_ctx(context)
+        return None
 
     def _dialog_id_from_fragment(self):
         try:
@@ -894,7 +1037,7 @@ class PicMePlugin(BasePlugin):
                         menu_type=MenuItemType.MESSAGE_CONTEXT_MENU,
                         text=locali.get_string("UNDO_RESTORE"),
                         subtext=locali.get_string("UNDO_RESTORE_SUB"),
-                        icon="msg_edit",
+                        icon="chats_undo",
                         priority=10,
                         on_click=self._on_undo_restore_click,
                     )
@@ -909,6 +1052,30 @@ class PicMePlugin(BasePlugin):
                 self._undo_menu_item = None
         except Exception as e:
             log(f"[{__id__}] Failed removing undo menu item: {e}")
+
+    def _add_cutify_menu_item(self):
+        try:
+            if not self._cutify_menu_item:
+                self._cutify_menu_item = self.add_menu_item(
+                    MenuItemData(
+                        menu_type=MenuItemType.MESSAGE_CONTEXT_MENU,
+                        text=locali.get_string("CUTIFY"),
+                        subtext=locali.get_string("CUTIFY_SUB"),
+                        icon="menu_premium_effects",
+                        priority=9,
+                        on_click=self._on_cutify_click,
+                    )
+                )
+        except Exception as e:
+            log(f"[{__id__}] Failed adding cutify menu item: {e}")
+
+    def _remove_cutify_menu_item(self):
+        try:
+            if self._cutify_menu_item:
+                self.remove_menu_item(self._cutify_menu_item)
+                self._cutify_menu_item = None
+        except Exception as e:
+            log(f"[{__id__}] Failed removing cutify menu item: {e}")
 
     def _dialog_id_from_ctx(self, context):
         for key in ("dialog_id", "chatId", "chat_id", "peer"):
@@ -973,37 +1140,29 @@ class PicMePlugin(BasePlugin):
     def _on_undo_restore_click(self, context):
         try:
             message = self._ctx_get(context, "message")
-            dialog_id = self._dialog_id_from_ctx(context)
-            if dialog_id is None and message is not None:
-                try:
-                    dialog_id = int(message.getDialogId())
-                except Exception:
-                    pass
+            if not self._is_outgoing_message(message):
+                self._show_bulletin(locali.get_string("UNDO_NOTHING"))
+                return
+            dialog_id = self._dialog_id_from_message(message, context)
             msg_id = self._message_id_from_ctx(context)
             key, record = self._find_undo_record(dialog_id, msg_id, message=message)
             if record is None:
                 self._show_bulletin(locali.get_string("UNDO_NOTHING"))
                 return
 
+            version, bulletin = self._undo_step_version(record)
+            if version is None:
+                self._show_bulletin(locali.get_string("UNDO_NOTHING"))
+                return
+
             def _do_edit():
                 try:
-                    text = record.get("text", "")
-                    html = record.get("html")
                     log(
-                        f"[{__id__}] undo edit: key={key}, msg_id={msg_id}, "
-                        f"text_len={len(text)}, html={'yes' if html else 'no'}"
+                        f"[{__id__}] undo step: key={key}, msg_id={msg_id}, "
+                        f"index={record.get('index')}/{len(record.get('versions', [])) - 1}"
                     )
-                    if html:
-                        try:
-                            edit_message(message, text=html, parse_mode="html")
-                        except Exception:
-                            try:
-                                edit_message(message, text=html, parse_mode="HTML")
-                            except Exception:
-                                edit_message(message, text=text)
-                    else:
-                        edit_message(message, text=text)
-                    BulletinHelper.show_info(locali.get_string("UNDO_RESTORED"))
+                    self._edit_message_content(message, version.get("text", ""), version.get("html"))
+                    BulletinHelper.show_info(bulletin)
                 except Exception:
                     log(f"[{__id__}] edit_message failed:\n{traceback.format_exc()}")
                     BulletinHelper.show_info(locali.get_string("UNDO_NOTHING"))
@@ -1011,6 +1170,52 @@ class PicMePlugin(BasePlugin):
             run_on_ui_thread(_do_edit)
         except Exception as e:
             log(f"[{__id__}] undo restore failed: {e}\n{traceback.format_exc()}")
+
+    def _on_cutify_click(self, context):
+        try:
+            message = self._ctx_get(context, "message")
+            if not self._is_outgoing_message(message):
+                self._show_bulletin(locali.get_string("CUTIFY_NOT_OWN"))
+                return
+            text, entities_list = self._message_content_from_obj(message)
+            if self._should_skip_text(text):
+                return
+
+            dialog_id = self._dialog_id_from_message(message, context)
+            msg_ids = self._message_ids_from_obj(message)
+            msg_id = self._message_id_from_ctx(context)
+            if msg_id is not None:
+                msg_ids.add(int(msg_id))
+
+            key, existing = self._find_undo_record(dialog_id, msg_id, message=message)
+            if existing:
+                record = existing
+                modified_text, new_entities = self._append_cute_version(record, text, entities_list)
+                self._touch_undo_record(record)
+                self._evict_undo_cache_if_needed()
+            else:
+                classic_effects_prob = self.get_classic_effects_probability()
+                text_style_setting = self.get_setting("text_style", 0)
+                modified_text, new_entities = self._transform_with_entities(
+                    text, entities_list, classic_effects_prob, text_style_setting
+                )
+                record = self._build_undo_record(text, entities_list, modified_text, new_entities)
+                if dialog_id is not None and msg_ids:
+                    self._store_undo_record(dialog_id, msg_ids, record)
+
+            version = record["versions"][record["index"]]
+
+            def _do_edit():
+                try:
+                    self._edit_message_content(message, version.get("text", modified_text), version.get("html"))
+                    BulletinHelper.show_info(locali.get_string("CUTIFY_DONE"))
+                except Exception:
+                    log(f"[{__id__}] cutify edit_message failed:\n{traceback.format_exc()}")
+                    BulletinHelper.show_info(locali.get_string("UNDO_NOTHING"))
+
+            run_on_ui_thread(_do_edit)
+        except Exception as e:
+            log(f"[{__id__}] cutify failed: {e}\n{traceback.format_exc()}")
 
     def _is_cyrillic(self, text):
         return bool(re.search("[а-яА-Я]", text))
@@ -1386,6 +1591,7 @@ class PicMePlugin(BasePlugin):
             self._add_settings_menu_items()
         self._add_chat_action_items()
         self._add_undo_menu_item()
+        self._add_cutify_menu_item()
         self._install_chat_dialog_hook()
 
     def on_app_event(self, event_type):
@@ -1397,6 +1603,7 @@ class PicMePlugin(BasePlugin):
         self._remove_settings_menu_items()
         self._remove_chat_action_items()
         self._remove_undo_menu_item()
+        self._remove_cutify_menu_item()
         try:
             self._pending_undo.clear()
             self._undo_cache.clear()
@@ -1460,13 +1667,17 @@ class PicMePlugin(BasePlugin):
         if not ids:
             return
         primary = (did, ids[0])
+        if primary in self._undo_cache:
+            old_record = self._undo_cache[primary]
+            for alias_key in list(self._undo_cache.keys()):
+                if self._undo_cache.get(alias_key) is old_record:
+                    self._undo_cache.pop(alias_key, None)
+        record["ts"] = time.time()
         self._undo_cache[primary] = record
-        self._undo_cache_order.append(primary)
+        self._touch_undo_primary(primary)
         for mid in ids[1:]:
             self._undo_cache[(did, mid)] = record
-        while len(self._undo_cache_order) > self._undo_cache_limit:
-            oldest = self._undo_cache_order.pop(0)
-            self._pop_undo_cache_key(oldest)
+        self._evict_undo_cache_if_needed()
 
     def post_request_hook(self, request_name, account, response, error):
         try:
@@ -1550,11 +1761,7 @@ class PicMePlugin(BasePlugin):
             self._pending_undo.append(
                 (
                     undo_key,
-                    {
-                        "text": original_text,
-                        "html": self._entities_to_html(original_text, entities_list),
-                        "ts": time.time(),
-                    },
+                    self._build_undo_record(original_text, entities_list, modified_text, new_entities),
                 )
             )
             return HookResult(strategy=HookStrategy.MODIFY, params=params)
@@ -1608,7 +1815,57 @@ class PicMePlugin(BasePlugin):
         "MessageEntityCustomEmoji": (None, None),
     }
 
-    _ENTITY_NO_TRANSFORM = ("MessageEntityCode", "MessageEntityPre")
+    _ENTITY_NO_TRANSFORM = (
+        "MessageEntityCode",
+        "MessageEntityPre",
+        "MessageEntityUrl",
+        "MessageEntityTextUrl",
+        "MessageEntityMention",
+        "MessageEntityMentionName",
+        "MessageEntityPhone",
+        "MessageEntityEmail",
+        "MessageEntityBotCommand",
+    )
+
+    _PLAIN_PROTECTED_PATTERNS = (
+        r"tg://user\?id=\d+",
+        r"tg://\S+",
+        r"t\.me/\S+",
+        r"https?://\S+",
+        r"www\.\S+",
+        r"@[a-zA-Z][a-zA-Z0-9_]{3,}",
+        r"\+[\d][\d\s\-\(\)]{6,}[\d]",
+    )
+
+    def _find_plain_protected_spans(self, text):
+        spans = []
+        for pattern in self._PLAIN_PROTECTED_PATTERNS:
+            for match in re.finditer(pattern, text):
+                spans.append((match.start(), match.end()))
+        return spans
+
+    def _merge_spans(self, spans):
+        if not spans:
+            return []
+        merged = [list(spans[0])]
+        for start, end in sorted(spans[1:]):
+            if start <= merged[-1][1]:
+                merged[-1][1] = max(merged[-1][1], end)
+            else:
+                merged.append([start, end])
+        return [tuple(span) for span in merged]
+
+    def _collect_protected_ranges(self, text, entities_list):
+        protected = []
+        for rec in entities_list:
+            if rec["type"] not in self._ENTITY_NO_TRANSFORM:
+                continue
+            start = max(0, min(rec["offset"], len(text)))
+            end = max(0, min(rec["offset"] + rec["length"], len(text)))
+            if end > start:
+                protected.append((start, end))
+        protected.extend(self._find_plain_protected_spans(text))
+        return self._merge_spans(protected)
 
     def _entity_class_name(self, entity):
         try:
@@ -1710,15 +1967,17 @@ class PicMePlugin(BasePlugin):
             log(f"[{__id__}] apply entities failed: {traceback.format_exc()}")
 
     def _transform_with_entities(self, text, entities_list, classic_prob, style_setting):
-        if not entities_list:
+        if entities_list is None:
+            entities_list = []
+        protected = self._collect_protected_ranges(text, entities_list)
+        if not entities_list and not protected:
             return self.apply_cute_transformations(text, classic_prob, style_setting), []
 
         for rec in entities_list:
             rec["new_offset"] = rec["offset"]
             rec["new_length"] = rec["length"]
 
-        boundaries = set([0, len(text)])
-        protected = []
+        boundaries = {0, len(text)}
         for rec in entities_list:
             start = max(0, min(rec["offset"], len(text)))
             end = max(0, min(rec["offset"] + rec["length"], len(text)))
@@ -1726,13 +1985,13 @@ class PicMePlugin(BasePlugin):
                 continue
             boundaries.add(start)
             boundaries.add(end)
-            if rec["type"] in self._ENTITY_NO_TRANSFORM:
-                protected.append((start, end))
+        for start, end in protected:
+            boundaries.add(start)
+            boundaries.add(end)
 
         points = sorted(boundaries)
         new_text_parts = []
         delta_by_pos = {p: 0 for p in points}
-        cumulative_delta = 0
 
         for i in range(len(points) - 1):
             seg_start = points[i]
@@ -1747,9 +2006,7 @@ class PicMePlugin(BasePlugin):
             else:
                 new_segment = self.apply_cute_transformations(segment, classic_prob, style_setting)
             new_text_parts.append(new_segment)
-            seg_delta = len(new_segment) - len(segment)
-            delta_by_pos[seg_end] = seg_delta
-            cumulative_delta += seg_delta
+            delta_by_pos[seg_end] = len(new_segment) - len(segment)
 
         new_text = "".join(new_text_parts)
 

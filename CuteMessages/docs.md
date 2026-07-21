@@ -1,6 +1,6 @@
 # CuteMessages — техническая документация
 
-> ID: `cutemessagesenhanced` · v1.7.1 · файл в репозитории: `cutemessagesenhanced.plugin`
+> ID: `cutemessagesenhanced` · v1.7.3 · файл в репозитории: `cutemessagesenhanced.plugin`
 
 Пользовательская документация: [README.md](README.md)
 
@@ -10,7 +10,7 @@
 |------|----------|
 | `__id__` | `cutemessagesenhanced` |
 | `__name__` | CuteMessages |
-| `__version__` | 1.7.1 |
+| `__version__` | 1.7.3 |
 | `__author__` | @mihailkotovski & @mishabotov & idea - @bleizix (updated by @abuztrade & @AwesomeTelegramPlugins) |
 | `__min_version__` | 11.9.0 |
 | `__icon__` | ColorfulMessages/28 |
@@ -30,7 +30,7 @@
 |-----|----------|
 | `on_send_message_hook` | Трансформация исходящих сообщений |
 | `post_request_hook` | `TL_messages_sendMessage` / sendMedia / sendMultiMedia — привязка undo к msg_id |
-| `MESSAGE_CONTEXT_MENU` | «Вернуть оригинал» |
+| `MESSAGE_CONTEXT_MENU` | «Омилить ✨», «Отменить омиление 😢» |
 | `CHAT_ACTION_MENU` | Настройки, whitelist/blacklist |
 | `DRAWER_MENU` | Настройки |
 
@@ -45,7 +45,7 @@ on_send_message_hook
   ├─ _should_skip_text → skip
   ├─ _should_apply_in_chat(peer) → skip
   ├─ _snapshot_entities → _transform_with_entities → _apply_entities_to_params
-  ├─ _pending_undo[(dialog_id,)] = {text, html, ts}
+  ├─ _pending_undo[(dialog_id,)] = {versions[], index, ts}
   └─ HookStrategy.MODIFY
         ↓
 post_request_hook
@@ -69,19 +69,41 @@ post_request_hook
 При изменении длины текста offset/length entities пересчитываются сегментной трансформацией:
 
 1. `_snapshot_entities` → копия в Python-dict
-2. Разбить текст по границам entities
-3. Трансформировать сегменты (кроме Code/Pre)
-4. Пересчитать `new_offset` / `new_length`
-5. `_apply_entities_to_params` → Java ArrayList
+2. `_collect_protected_ranges` — Code/Pre, ссылки, @mention, телефоны + regex для plain-текста
+3. Разбить текст по границам entities и protected spans
+4. Трансформировать только незащищённые сегменты
+5. Пересчитать `new_offset` / `new_length`
+6. `_apply_entities_to_params` → Java ArrayList
 
 Нормализация: `TL_messageEntityBold` → `MessageEntityBold`.
 
-## Undo
+## Undo и Cutify
 
-1. Перед отправкой: оригинал + HTML entities в `_pending_undo`
-2. После отправки: `_undo_cache[(dialog_id, msg_id)]`, лимит 5
-3. Контекст меню — Java `Map`: `_ctx_get()`, `_message_id_from_obj()`
-4. При ошибке HTML: повтор `parse_mode="html"`, затем plain
+1. Перед отправкой: стек версий `[оригинал, милое, …]` в `_pending_undo`
+2. После отправки: `_undo_cache[(dialog_id, msg_id)]`, лимит **4096×4 символов** суммарно по всем версиям всех сообщений
+3. Сообщения не режутся — при переполнении удаляется целиком самое старое по времени
+4. **Отменить омиление 😢** — шаг назад по стеку; на оригинале цикл **оригинал ↔ первое милое**
+5. **Cutify ✨** — новая версия в стек (повторные нажатия накапливают историю)
+6. Контекст меню — Java `Map`: `_ctx_get()`, `_message_id_from_obj()`
+7. При ошибке HTML: повтор `parse_mode="html"`, затем plain
+
+Структура записи undo:
+
+```python
+{
+    "versions": [{"text": "...", "html": "..."}, ...],
+    "index": 1,  # текущая позиция в стеке
+    "ts": float,
+}
+```
+
+## Защищённые фрагменты
+
+Не трансформируются (entity + regex в plain-тексте):
+
+- `MessageEntityUrl`, `MessageEntityTextUrl`, `MessageEntityMention`, `MessageEntityMentionName`, `MessageEntityPhone`, `MessageEntityEmail`, `MessageEntityBotCommand`, `Code`, `Pre`
+- URL: `http(s)://`, `www.`, `t.me/`, `tg://`
+- `@username`, `tg://user?id=…`, телефоны `+…`
 
 ## Команды
 
@@ -107,7 +129,9 @@ post_request_hook
 
 | Версия | Примечание |
 |--------|------------|
-| 1.7.1 | Текущая |
+| 1.7.3 | Лимит кэша по символам (16 КБ), стек версий Cutify/Undo |
+| 1.7.2 | Undo-toggle, Cutify, защита ссылок/@/телефонов |
+| 1.7.1 | |
 | 1.7.0 | Whitelist/blacklist, undo, `.cute`/`.picme` — [CHANGELOG](releases/v1.7.0/CHANGELOG.md) |
 
 ## Файлы

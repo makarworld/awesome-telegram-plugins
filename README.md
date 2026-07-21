@@ -13,12 +13,12 @@
 
 | Плагин | Версия | Зачем ставить | Риск | Файл |
 |--------|--------|---------------|------|------|
-| [CuteMessages](#cutemessages) | 1.7.1 | Милые исходящие сообщения, undo | 🟢 | [скачать](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/CuteMessages/cutemessagesenhanced.plugin) · [код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/CuteMessages/cutemessagesenhanced.plugin) |
+| [CuteMessages](#cutemessages) | 1.7.3 | Милые исходящие сообщения, undo | 🟢 | [скачать](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/CuteMessages/cutemessagesenhanced.plugin) · [код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/CuteMessages/cutemessagesenhanced.plugin) |
 | [Tomato bom](#tomato-bom) | 1.2.8 | Кидать помидоры по UI | 🟡 | [скачать](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/TomatoBom/tomato_bom.plugin) · [код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/TomatoBom/tomato_bom.plugin) |
 | [LiveWallpaper](#livewallpaper) | 1.2 | Видео-обои в чатах | 🟠 | [скачать](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/LiveWallpaper/live_wallpaper.plugin) · [код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/LiveWallpaper/live_wallpaper.plugin) |
 | [Unlimited Pins](#unlimited-pins) | 2.0 | Без лимита закрепов | 🟢 | [скачать](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/UnlimitedPins/misha_unlimited_pins.plugin) · [код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/UnlimitedPins/misha_unlimited_pins.plugin) |
 | [List of Commands](#list-of-commands) | 1.0.8 | Подсказки dot-команд | 🟢 | [скачать](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/ListOfCommands/list_of_commands.plugin) · [код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/ListOfCommands/list_of_commands.plugin) |
-| [Kangel Plugins Manager](#kangel-plugins-manager) | 1.3.2 | Магазин плагинов | 🟠 | [скачать](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/KangelPluginsManager/kangel_plugins_manager.plugin) · [код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/KangelPluginsManager/kangel_plugins_manager.plugin) |
+| [Kangel Plugins Manager](#kangel-plugins-manager) | 1.4.3 | Магазин плагинов | 🟠 | [скачать](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/KangelPluginsManager/kangel_plugins_manager.plugin) · [код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/KangelPluginsManager/kangel_plugins_manager.plugin) |
 | [Plugin Verifier](#plugin-verifier) | 2.4.8 | Проверка плагинов на вирусы | 🔴* | [скачать](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/PluginVerifier/plugin_verifier.plugin) · [код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/PluginVerifier/plugin_verifier.plugin) |
 | [WS-Bypass](#ws-bypass) | 3.0.5 | Обход блокировок Telegram | 🟡 | [скачать](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/WSBypass/wsbypass.plugin) · [код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/WSBypass/wsbypass.plugin) |
 
@@ -30,7 +30,7 @@
 
 ### 💬 CuteMessages
 
-**ID:** `cutemessagesenhanced` · **v1.7.1** · @mihailkotovski, @mishabotov · обновление 1.7.x: @abuztrade, @AwesomeTelegramPlugins  
+**ID:** `cutemessagesenhanced` · **v1.7.3** · @mihailkotovski, @mishabotov · обновление 1.7.x: @abuztrade, @AwesomeTelegramPlugins  
 **Документация:** [README](CuteMessages/README.md) · **Changelog 1.6.1→1.7.0:** [CHANGELOG.md](CuteMessages/releases/v1.7.0/CHANGELOG.md)  
 **📥 Скачать:** [cutemessagesenhanced.plugin](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/CuteMessages/cutemessagesenhanced.plugin) · **👁️ Код:** [cutemessagesenhanced.plugin](https://github.com/makarworld/awesome-telegram-plugins/blob/main/CuteMessages/cutemessagesenhanced.plugin)
 
@@ -45,16 +45,16 @@
 
 ### 🛒 Kangel Plugins Manager
 
-**ID:** `kangel_plugins_manager` · **v1.3.2** · @ArThirtyFour, @KangelPlugins  
+**ID:** `kangel_plugins_manager` · **v1.4.3** · @ArThirtyFour, @KangelPlugins  
 **Документация:** [KangelPluginsManager/README.md](KangelPluginsManager/README.md)  
-**📥 Скачать:** [kangel_plugins_manager.plugin](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/KangelPluginsManager/kangel_plugins_manager.plugin) · **👁️ Код:** [kangel_plugins_manager.plugin](https://github.com/makarworld/awesome-telegram-plugins/blob/main/KangelPluginsManager/kangel_plugins_manager.plugin)
+**📥 Скачать:** [kangel_plugins_manager.plugin](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/KangelPluginsManager/kangel_plugins_manager.plugin) · **👁️ Код:** [kangel_plugins_manager.plugin](https://github.com/makarworld/awesome-telegram-plugins/blob/main/KangelPluginsManager/kangel_plugins_manager.plugin) · **архив:** [v1.4.3](KangelPluginsManager/releases/v1.4.3/kangel_plugins_manager_v1.4.3.plugin)
 
 Полноценный магазин плагинов для exteraGram: каталог с GitHub, установка и обновление одним тапом, inline-поиск `@kpm` прямо в чате, pill-виджет со счётчиком, наборы плагинов (builds), deeplink `tg://kpm_install`. Телеметрия mkStats (отключается в настройках).
 
-По сути — App Store внутри Telegram-клиента.
+С v1.4.3 — тонкая обёртка; логика в PyPI-пакете [kangelpluginsmanager](https://pypi.org/project/KangelPluginsManager/) (исходники: [PluginManager](https://github.com/KangelPlugins/PluginManager)). Требуется клиент **12.5.1+**.
 
-**Безопасность: 🟠 высокий** — основная функция = установка произвольного кода из интернета. PoW защищает API статистики, не каталог.  
-📊 Отчёт: [secure.md](KangelPluginsManager/secure.md) — ⚠️ Осторожно · архив: [v1.3.2](KangelPluginsManager/releases/v1.3.2/secure_1.3.2.md)
+**Безопасность: 🟠 высокий** — установка произвольного кода из интернета + внешняя зависимость PyPI. При аудите смотреть и `.plugin`, и wheel библиотеки.  
+📊 Отчёт: [secure.md](KangelPluginsManager/secure.md) — ❔ от Pluggy + **⚠️ Осторожно** с учётом PyPI · архив: [v1.4.3](KangelPluginsManager/releases/v1.4.3/secure_1.4.3.md), [v1.3.2](KangelPluginsManager/releases/v1.3.2/secure_1.3.2.md)
 
 ---
 
