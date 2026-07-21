@@ -106,4 +106,4 @@ SSL fallback: при ошибке верификации сертификата 
 
 | Версия | Примечание |
 |--------|------------|
-| 3.0.5 | Добавлен в awesome-plugins |
+| 3.0.5 | Публикация в awesome-plugins — [CHANGELOG](releases/v3.0.5/CHANGELOG.md) |

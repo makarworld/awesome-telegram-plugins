@@ -1,5 +1,7 @@
 Проверенно с помощью Pluggy Bot (pluggy_robot.t.me)
 
+> Актуальная версия **3.0.5** · архив: [releases/v3.0.5/secure_3.0.5.md](releases/v3.0.5/secure_3.0.5.md) · канал автора: [@th3nek1t_projects](https://t.me/th3nek1t_projects)
+
 ❔ Отчёт • Mistral
 
 ✦ Метаданные плагина ✦
