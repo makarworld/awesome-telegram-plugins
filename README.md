@@ -77,7 +77,7 @@
 
 **ID:** `live_wallpaper` · **v1.2** · @swagnonher, @AwesomeTelegramPlugins  
 **Документация:** [LiveWallpaper/README.md](LiveWallpaper/README.md) · **Changelog 1.1→1.2:** [CHANGELOG.md](LiveWallpaper/releases/v1.2/CHANGELOG.md)  
-**📥 Скачать:** [live_wallpaper.plugin](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/LiveWallpaper/live_wallpaper.plugin) · **👁️ Код:** [live_wallpaper.plugin](https://github.com/makarworld/awesome-telegram-plugins/blob/main/LiveWallpaper/live_wallpaper.plugin)
+**📥 Скачать:** [live_wallpaper.plugin](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/LiveWallpaper/live_wallpaper.plugin) · **👁️ Код:** [live_wallpaper.plugin](https://github.com/makarworld/awesome-telegram-plugins/blob/main/LiveWallpaper/live_wallpaper.plugin) · **архив:** [v1.2](LiveWallpaper/releases/v1.2/live_wallpaper_v1.2.plugin)
 
 Живые видео-обои вместо скучного фона чата. Python-часть загружает и проверяет нативный DEX-модуль — вся логика обоев внутри DEX. При первом запуске — bottom sheet с прогрессом загрузки.
 

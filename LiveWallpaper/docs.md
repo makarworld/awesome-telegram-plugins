@@ -99,4 +99,19 @@
 
 ## Changelog
 
-[v1.2 CHANGELOG](releases/v1.2/CHANGELOG.md)
+| Версия | Примечание |
+|--------|------------|
+| 1.2 | SHA256 DEX, подписанный manifest, fallback, ручной импорт — [CHANGELOG](releases/v1.2/CHANGELOG.md) |
+| 1.1 | Первая версия с remote DEX |
+
+## Файлы
+
+```
+LiveWallpaper/
+  live_wallpaper.plugin
+  README.md
+  docs.md
+  secure.md
+  releases/v1.2/
+  releases/v1.1/
+```

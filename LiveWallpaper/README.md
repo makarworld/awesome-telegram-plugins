@@ -7,6 +7,8 @@
 
 **[live_wallpaper.plugin](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/LiveWallpaper/live_wallpaper.plugin)** · **[исходник](https://github.com/makarworld/awesome-telegram-plugins/blob/main/LiveWallpaper/live_wallpaper.plugin)**
 
+Архив релиза: **[v1.2](releases/v1.2/live_wallpaper_v1.2.plugin)**
+
 📲 Скачай файл → открой в exteraGram / AyuGram.
 
 ## Что делает
@@ -25,7 +27,7 @@
 
 🟠 **Средний риск** — ставь только если доверяешь автору и хостингу.
 
-📊 [secure_1.2.md](releases/v1.2/secure_1.2.md) · архив [v1.1](releases/v1.1/secure_1.1.md)
+📊 [secure.md](secure.md) · архив [v1.2](releases/v1.2/secure_1.2.md) · [v1.1](releases/v1.1/secure_1.1.md)
 
 ## Для разработчиков
 

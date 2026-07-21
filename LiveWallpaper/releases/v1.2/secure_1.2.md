@@ -1,7 +1,5 @@
 Проверенно с помощью Pluggy Bot (pluggy_robot.t.me)
 
-> Актуальная версия **1.2** · архив: [releases/v1.2/secure_1.2.md](releases/v1.2/secure_1.2.md)
-
 ⚠️ Отчёт • Mistral
 
 ✦ Метаданные плагина ✦
