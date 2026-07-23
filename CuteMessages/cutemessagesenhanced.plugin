@@ -39,6 +39,23 @@ __min_version__ = "11.9.0"
 PRESET_SCHEMA_VERSION = 1
 DEEPLINK_SCHEME = "tg://cutemessages_import"
 
+CUSTOM_LIST_SETTING_KEYS = (
+    "custom_emojis",
+    "custom_kaomojis",
+    "custom_sparkles",
+    "custom_uwu_suffixes",
+    "custom_theme_pastel_emojis",
+    "custom_theme_magical_emojis",
+    "custom_theme_nature_emojis",
+    "custom_text_borders",
+    "custom_period_replacements",
+    "custom_question_replacements",
+    "custom_exclamations",
+    "custom_cute_actions_ru",
+    "custom_cute_actions_en",
+)
+CUSTOM_LIST_DRAFT_KEY = "custom_list_draft"
+
 # Telegram message effect IDs (messages.availableEffects / Bot API message_effect_id).
 # Первые 5 — бесплатные анимированные эффекты; индекс 0 = без эффекта.
 EFFECT_IDS = (
@@ -1585,7 +1602,7 @@ class LocalizationManager:
             "PAGE_CHATS": "Чаты и фильтры",
             "PAGE_CHATS_SUB": "Списки, топики, стоп-слово",
             "PAGE_STYLES": "Стили сообщений",
-            "PAGE_STYLES_SUB": "Темы и будущие стили",
+            "PAGE_STYLES_SUB": "Темы и кастомные списки",
             "PAGE_AUTOMATION": "Автоматизация",
             "PAGE_AUTOMATION_SUB": "Эффекты, реакции, premium",
             "PAGE_PRESETS": "Пресеты",
@@ -1653,6 +1670,35 @@ class LocalizationManager:
             "CREDITS_CHANNEL_SUB": "Канал Awesome Telegram Plugins",
             "ADD": "Добавить",
             "CANCEL": "Отмена",
+            "CUSTOM_LISTS": "Кастомные списки",
+            "CUSTOM_LISTS_SUB": "Эмодзи, каомодзи, спарклы и другое",
+            "CUSTOM_LISTS_HUB": "Кастомные списки",
+            "CUSTOM_LIST_COUNT": "элементов: {n}",
+            "CUSTOM_LIST_EMPTY": "Список пуст — эффект этой группы выключен",
+            "CUSTOM_LIST_ADD": "Добавить",
+            "CUSTOM_LIST_ADD_HINT": "Введите элемент и нажмите Добавить",
+            "CUSTOM_LIST_BORDER_HINT": "Формат: лево|право  (пример: 🌸 | 🌸)",
+            "CUSTOM_LIST_REMOVE": "Удалить",
+            "CUSTOM_LIST_RESET": "Сбросить к умолчанию",
+            "CUSTOM_LIST_ADDED": "Добавлено",
+            "CUSTOM_LIST_EXISTS": "Уже есть в списке",
+            "CUSTOM_LIST_BAD_BORDER": "Нужен формат лево|право",
+            "CUSTOM_LIST_RESET_DONE": "Список сброшен",
+            "CUSTOM_LIST_EMOJIS": "Эмодзи",
+            "CUSTOM_LIST_KAOMOJIS": "Каомодзи",
+            "CUSTOM_LIST_SPARKLES": "Спарклы",
+            "CUSTOM_LIST_UWU": "UwU-суффиксы",
+            "CUSTOM_LIST_THEMES": "Эмодзи тем",
+            "CUSTOM_LIST_THEMES_SUB": "Pastel / Magical / Nature",
+            "CUSTOM_LIST_BORDERS": "Рамки текста",
+            "CUSTOM_LIST_PERIODS": "Замены точки",
+            "CUSTOM_LIST_QUESTIONS": "Замены вопроса",
+            "CUSTOM_LIST_EXCLAMATIONS": "Восклицания",
+            "CUSTOM_LIST_ACTIONS": "Cute actions",
+            "CUSTOM_LIST_ACTIONS_SUB": "RU / EN",
+            "CUSTOM_LIST_ACTIONS_RU": "Действия (RU)",
+            "CUSTOM_LIST_ACTIONS_EN": "Действия (EN)",
+            "INCLUDE_CUSTOM_LISTS_EXPORT": "Включать кастомные списки в пресет",
         },
         "en": {
             "ENABLED": "✅ Cute messages enabled",
@@ -1750,7 +1796,7 @@ class LocalizationManager:
             "PAGE_CHATS": "Chats & filters",
             "PAGE_CHATS_SUB": "Lists, topics, stop word",
             "PAGE_STYLES": "Message styles",
-            "PAGE_STYLES_SUB": "Themes and upcoming styles",
+            "PAGE_STYLES_SUB": "Themes and custom lists",
             "PAGE_AUTOMATION": "Automation",
             "PAGE_AUTOMATION_SUB": "Effects, reactions, premium",
             "PAGE_PRESETS": "Presets",
@@ -1818,6 +1864,35 @@ class LocalizationManager:
             "CREDITS_CHANNEL_SUB": "Awesome Telegram Plugins channel",
             "ADD": "Add",
             "CANCEL": "Cancel",
+            "CUSTOM_LISTS": "Custom lists",
+            "CUSTOM_LISTS_SUB": "Emojis, kaomoji, sparkles and more",
+            "CUSTOM_LISTS_HUB": "Custom lists",
+            "CUSTOM_LIST_COUNT": "items: {n}",
+            "CUSTOM_LIST_EMPTY": "List is empty — this effect is off",
+            "CUSTOM_LIST_ADD": "Add",
+            "CUSTOM_LIST_ADD_HINT": "Type an item and tap Add",
+            "CUSTOM_LIST_BORDER_HINT": "Format: left|right  (e.g. 🌸 | 🌸)",
+            "CUSTOM_LIST_REMOVE": "Remove",
+            "CUSTOM_LIST_RESET": "Reset to defaults",
+            "CUSTOM_LIST_ADDED": "Added",
+            "CUSTOM_LIST_EXISTS": "Already in the list",
+            "CUSTOM_LIST_BAD_BORDER": "Need left|right format",
+            "CUSTOM_LIST_RESET_DONE": "List reset",
+            "CUSTOM_LIST_EMOJIS": "Emojis",
+            "CUSTOM_LIST_KAOMOJIS": "Kaomoji",
+            "CUSTOM_LIST_SPARKLES": "Sparkles",
+            "CUSTOM_LIST_UWU": "UwU suffixes",
+            "CUSTOM_LIST_THEMES": "Theme emojis",
+            "CUSTOM_LIST_THEMES_SUB": "Pastel / Magical / Nature",
+            "CUSTOM_LIST_BORDERS": "Text borders",
+            "CUSTOM_LIST_PERIODS": "Period replacements",
+            "CUSTOM_LIST_QUESTIONS": "Question replacements",
+            "CUSTOM_LIST_EXCLAMATIONS": "Exclamations",
+            "CUSTOM_LIST_ACTIONS": "Cute actions",
+            "CUSTOM_LIST_ACTIONS_SUB": "RU / EN",
+            "CUSTOM_LIST_ACTIONS_RU": "Actions (RU)",
+            "CUSTOM_LIST_ACTIONS_EN": "Actions (EN)",
+            "INCLUDE_CUSTOM_LISTS_EXPORT": "Include custom lists in preset",
         },
     }
 
@@ -3667,6 +3742,393 @@ class PicMePlugin(BasePlugin):
             Divider(text=locali.get_string("IGNORE_DOT_COMMANDS_INFO")),
         ]
 
+
+    def _get_string_list(self, key, default):
+        raw = self.get_setting(key, None)
+        if raw is None or raw == "":
+            return list(default)
+        try:
+            data = json.loads(raw) if isinstance(raw, str) else raw
+            if isinstance(data, list):
+                return [str(x) for x in data if x is not None and str(x) != ""]
+        except Exception:
+            log(f"[{__id__}] {key} parse error: {traceback.format_exc()}")
+        return list(default)
+
+    def _set_string_list(self, key, items, reload_settings=True):
+        self.set_setting(key, json.dumps([str(x) for x in items], ensure_ascii=False), reload_settings=reload_settings)
+
+    def _get_border_list(self, key, default):
+        raw = self.get_setting(key, None)
+        if raw is None or raw == "":
+            return [list(p) for p in default]
+        try:
+            data = json.loads(raw) if isinstance(raw, str) else raw
+            if isinstance(data, list):
+                out = []
+                for item in data:
+                    if isinstance(item, (list, tuple)) and len(item) == 2:
+                        left, right = str(item[0]), str(item[1])
+                        if left or right:
+                            out.append([left, right])
+                return out
+        except Exception:
+            log(f"[{__id__}] {key} border parse error: {traceback.format_exc()}")
+        return [list(p) for p in default]
+
+    def _set_border_list(self, key, items, reload_settings=True):
+        cleaned = []
+        for item in items:
+            if isinstance(item, (list, tuple)) and len(item) == 2:
+                cleaned.append([str(item[0]), str(item[1])])
+        self.set_setting(key, json.dumps(cleaned, ensure_ascii=False), reload_settings=reload_settings)
+
+    def _active_emojis(self):
+        return self._get_string_list("custom_emojis", self.emojis)
+
+    def _active_kaomojis(self):
+        return self._get_string_list("custom_kaomojis", self.kaomojis)
+
+    def _active_sparkles(self):
+        return self._get_string_list("custom_sparkles", self.sparkles)
+
+    def _active_uwu_suffixes(self):
+        return self._get_string_list("custom_uwu_suffixes", self.uwu_suffixes)
+
+    def _active_exclamations(self):
+        return self._get_string_list("custom_exclamations", self.extended_exclamations)
+
+    def _active_period_replacements(self):
+        return self._get_string_list("custom_period_replacements", self.cute_period_replacements)
+
+    def _active_question_replacements(self):
+        return self._get_string_list("custom_question_replacements", self.cute_question_mark_replacements)
+
+    def _active_text_borders(self):
+        return self._get_border_list("custom_text_borders", self.text_borders)
+
+    def _active_cute_actions(self, lang=None):
+        lang = lang or locali.language
+        if lang == "ru":
+            return self._get_string_list("custom_cute_actions_ru", self.cute_actions_map["ru"])
+        return self._get_string_list("custom_cute_actions_en", self.cute_actions_map["en"])
+
+    def _theme_with_custom_emojis(self, theme_name, theme_dict):
+        out = dict(theme_dict)
+        key = f"custom_theme_{theme_name}_emojis"
+        out["emojis"] = self._get_string_list(key, theme_dict.get("emojis", []))
+        return out
+
+    def _resolve_theme_by_index(self, theme_idx):
+        theme_names = list(self.themes.keys())
+        if theme_idx > 0 and theme_idx - 1 < len(theme_names):
+            name = theme_names[theme_idx - 1]
+            return self._theme_with_custom_emojis(name, self.themes[name])
+        if theme_idx == 0 and random.random() < 0.3:
+            name = random.choice(theme_names)
+            return self._theme_with_custom_emojis(name, self.themes[name])
+        return None
+
+    def _custom_list_count_sub(self, n):
+        return locali.get_string("CUSTOM_LIST_COUNT").replace("{n}", str(n))
+
+    def _clear_custom_list_draft(self):
+        self.set_setting(CUSTOM_LIST_DRAFT_KEY, "", reload_settings=False)
+
+    def _add_custom_string_item(self, setting_key, default):
+        raw = str(self.get_setting(CUSTOM_LIST_DRAFT_KEY, "") or "").strip()
+        if not raw:
+            BulletinHelper.show_info(locali.get_string("CUSTOM_LIST_ADD_HINT"))
+            return
+        items = self._get_string_list(setting_key, default)
+        if raw in items:
+            BulletinHelper.show_info(locali.get_string("CUSTOM_LIST_EXISTS"))
+            return
+        items.append(raw)
+        self._clear_custom_list_draft()
+        self._set_string_list(setting_key, items, reload_settings=True)
+        BulletinHelper.show_info(locali.get_string("CUSTOM_LIST_ADDED"))
+
+    def _remove_custom_string_item(self, setting_key, default, value):
+        items = self._get_string_list(setting_key, default)
+        value = str(value)
+        if value in items:
+            items.remove(value)
+            self._set_string_list(setting_key, items, reload_settings=True)
+
+    def _reset_custom_string_list(self, setting_key, default):
+        self._set_string_list(setting_key, list(default), reload_settings=True)
+        BulletinHelper.show_info(locali.get_string("CUSTOM_LIST_RESET_DONE"))
+
+    def _add_custom_border_item(self):
+        raw = str(self.get_setting(CUSTOM_LIST_DRAFT_KEY, "") or "").strip()
+        if "|" not in raw:
+            BulletinHelper.show_info(locali.get_string("CUSTOM_LIST_BAD_BORDER"))
+            return
+        left, right = raw.split("|", 1)
+        left, right = left.strip(), right.strip()
+        if not left and not right:
+            BulletinHelper.show_info(locali.get_string("CUSTOM_LIST_BAD_BORDER"))
+            return
+        pair = [left, right]
+        items = self._get_border_list("custom_text_borders", self.text_borders)
+        if pair in items:
+            BulletinHelper.show_info(locali.get_string("CUSTOM_LIST_EXISTS"))
+            return
+        items.append(pair)
+        self._clear_custom_list_draft()
+        self._set_border_list("custom_text_borders", items, reload_settings=True)
+        BulletinHelper.show_info(locali.get_string("CUSTOM_LIST_ADDED"))
+
+    def _remove_custom_border_item(self, index):
+        items = self._get_border_list("custom_text_borders", self.text_borders)
+        if 0 <= index < len(items):
+            items.pop(index)
+            self._set_border_list("custom_text_borders", items, reload_settings=True)
+
+    def _reset_custom_border_list(self):
+        self._set_border_list("custom_text_borders", [list(p) for p in self.text_borders], reload_settings=True)
+        BulletinHelper.show_info(locali.get_string("CUSTOM_LIST_RESET_DONE"))
+
+    def _build_string_list_editor(self, title_key, setting_key, default, hint_key="CUSTOM_LIST_ADD_HINT"):
+        items = self._get_string_list(setting_key, default)
+        out = [
+            Header(text=locali.get_string(title_key)),
+            Input(
+                key=CUSTOM_LIST_DRAFT_KEY,
+                text=locali.get_string("CUSTOM_LIST_ADD"),
+                default="",
+                icon="msg_text",
+                subtext=locali.get_string(hint_key),
+            ),
+            Text(
+                text=locali.get_string("CUSTOM_LIST_ADD"),
+                icon="msg_filled_plus",
+                accent=True,
+                on_click=lambda v, k=setting_key, d=default: run_on_ui_thread(
+                    lambda: self._add_custom_string_item(k, d)
+                ),
+            ),
+            Divider(),
+        ]
+        if not items:
+            out.append(Text(text=locali.get_string("CUSTOM_LIST_EMPTY")))
+        else:
+            for value in items:
+                def _make_remove(val, k=setting_key, d=default):
+                    def _on_remove(view):
+                        self._remove_custom_string_item(k, d, val)
+
+                    return _on_remove
+
+                out.append(
+                    Text(
+                        text=value,
+                        subtext=locali.get_string("CUSTOM_LIST_REMOVE"),
+                        on_click=_make_remove(value),
+                    )
+                )
+        out.append(Divider())
+        out.append(
+            Text(
+                text=locali.get_string("CUSTOM_LIST_RESET"),
+                icon="msg_delete",
+                red=True,
+                on_click=lambda v, k=setting_key, d=default: run_on_ui_thread(
+                    lambda: self._reset_custom_string_list(k, d)
+                ),
+            )
+        )
+        return out
+
+    def _build_border_list_editor(self):
+        items = self._get_border_list("custom_text_borders", self.text_borders)
+        out = [
+            Header(text=locali.get_string("CUSTOM_LIST_BORDERS")),
+            Input(
+                key=CUSTOM_LIST_DRAFT_KEY,
+                text=locali.get_string("CUSTOM_LIST_ADD"),
+                default="",
+                icon="msg_text",
+                subtext=locali.get_string("CUSTOM_LIST_BORDER_HINT"),
+            ),
+            Text(
+                text=locali.get_string("CUSTOM_LIST_ADD"),
+                icon="msg_filled_plus",
+                accent=True,
+                on_click=lambda v: run_on_ui_thread(self._add_custom_border_item),
+            ),
+            Divider(),
+        ]
+        if not items:
+            out.append(Text(text=locali.get_string("CUSTOM_LIST_EMPTY")))
+        else:
+            for idx, pair in enumerate(items):
+                label = f"{pair[0]}|{pair[1]}"
+
+                def _make_remove(i):
+                    def _on_remove(view):
+                        self._remove_custom_border_item(i)
+
+                    return _on_remove
+
+                out.append(
+                    Text(
+                        text=label,
+                        subtext=locali.get_string("CUSTOM_LIST_REMOVE"),
+                        on_click=_make_remove(idx),
+                    )
+                )
+        out.append(Divider())
+        out.append(
+            Text(
+                text=locali.get_string("CUSTOM_LIST_RESET"),
+                icon="msg_delete",
+                red=True,
+                on_click=lambda v: run_on_ui_thread(self._reset_custom_border_list),
+            )
+        )
+        return out
+
+    def _settings_custom_theme_emojis(self):
+        return [
+            Header(text=locali.get_string("CUSTOM_LIST_THEMES")),
+            Text(
+                text=locali.get_string("THEME_PASTEL"),
+                subtext=self._custom_list_count_sub(
+                    len(self._get_string_list("custom_theme_pastel_emojis", self.themes["pastel"]["emojis"]))
+                ),
+                icon="msg_theme",
+                create_sub_fragment=lambda: self._build_string_list_editor(
+                    "THEME_PASTEL", "custom_theme_pastel_emojis", self.themes["pastel"]["emojis"]
+                ),
+            ),
+            Text(
+                text=locali.get_string("THEME_MAGICAL"),
+                subtext=self._custom_list_count_sub(
+                    len(self._get_string_list("custom_theme_magical_emojis", self.themes["magical"]["emojis"]))
+                ),
+                icon="msg_theme",
+                create_sub_fragment=lambda: self._build_string_list_editor(
+                    "THEME_MAGICAL", "custom_theme_magical_emojis", self.themes["magical"]["emojis"]
+                ),
+            ),
+            Text(
+                text=locali.get_string("THEME_NATURE"),
+                subtext=self._custom_list_count_sub(
+                    len(self._get_string_list("custom_theme_nature_emojis", self.themes["nature"]["emojis"]))
+                ),
+                icon="msg_theme",
+                create_sub_fragment=lambda: self._build_string_list_editor(
+                    "THEME_NATURE", "custom_theme_nature_emojis", self.themes["nature"]["emojis"]
+                ),
+            ),
+        ]
+
+    def _settings_custom_actions(self):
+        return [
+            Header(text=locali.get_string("CUSTOM_LIST_ACTIONS")),
+            Text(
+                text=locali.get_string("CUSTOM_LIST_ACTIONS_RU"),
+                subtext=self._custom_list_count_sub(
+                    len(self._get_string_list("custom_cute_actions_ru", self.cute_actions_map["ru"]))
+                ),
+                icon="msg_language",
+                create_sub_fragment=lambda: self._build_string_list_editor(
+                    "CUSTOM_LIST_ACTIONS_RU", "custom_cute_actions_ru", self.cute_actions_map["ru"]
+                ),
+            ),
+            Text(
+                text=locali.get_string("CUSTOM_LIST_ACTIONS_EN"),
+                subtext=self._custom_list_count_sub(
+                    len(self._get_string_list("custom_cute_actions_en", self.cute_actions_map["en"]))
+                ),
+                icon="msg_language",
+                create_sub_fragment=lambda: self._build_string_list_editor(
+                    "CUSTOM_LIST_ACTIONS_EN", "custom_cute_actions_en", self.cute_actions_map["en"]
+                ),
+            ),
+        ]
+
+    def _settings_custom_lists_hub(self):
+        return [
+            Header(text=locali.get_string("CUSTOM_LISTS_HUB")),
+            Text(
+                text=locali.get_string("CUSTOM_LIST_EMOJIS"),
+                subtext=self._custom_list_count_sub(len(self._active_emojis())),
+                icon="msg_smile",
+                create_sub_fragment=lambda: self._build_string_list_editor(
+                    "CUSTOM_LIST_EMOJIS", "custom_emojis", self.emojis
+                ),
+            ),
+            Text(
+                text=locali.get_string("CUSTOM_LIST_KAOMOJIS"),
+                subtext=self._custom_list_count_sub(len(self._active_kaomojis())),
+                icon="msg_smile",
+                create_sub_fragment=lambda: self._build_string_list_editor(
+                    "CUSTOM_LIST_KAOMOJIS", "custom_kaomojis", self.kaomojis
+                ),
+            ),
+            Text(
+                text=locali.get_string("CUSTOM_LIST_SPARKLES"),
+                subtext=self._custom_list_count_sub(len(self._active_sparkles())),
+                icon="msg_smile",
+                create_sub_fragment=lambda: self._build_string_list_editor(
+                    "CUSTOM_LIST_SPARKLES", "custom_sparkles", self.sparkles
+                ),
+            ),
+            Text(
+                text=locali.get_string("CUSTOM_LIST_UWU"),
+                subtext=self._custom_list_count_sub(len(self._active_uwu_suffixes())),
+                icon="msg_filled_plus",
+                create_sub_fragment=lambda: self._build_string_list_editor(
+                    "CUSTOM_LIST_UWU", "custom_uwu_suffixes", self.uwu_suffixes
+                ),
+            ),
+            Text(
+                text=locali.get_string("CUSTOM_LIST_THEMES"),
+                subtext=locali.get_string("CUSTOM_LIST_THEMES_SUB"),
+                icon="msg_theme",
+                create_sub_fragment=self._settings_custom_theme_emojis,
+            ),
+            Text(
+                text=locali.get_string("CUSTOM_LIST_BORDERS"),
+                subtext=self._custom_list_count_sub(len(self._active_text_borders())),
+                icon="floating_check",
+                create_sub_fragment=self._build_border_list_editor,
+            ),
+            Text(
+                text=locali.get_string("CUSTOM_LIST_PERIODS"),
+                subtext=self._custom_list_count_sub(len(self._active_period_replacements())),
+                icon="msg_text",
+                create_sub_fragment=lambda: self._build_string_list_editor(
+                    "CUSTOM_LIST_PERIODS", "custom_period_replacements", self.cute_period_replacements
+                ),
+            ),
+            Text(
+                text=locali.get_string("CUSTOM_LIST_QUESTIONS"),
+                subtext=self._custom_list_count_sub(len(self._active_question_replacements())),
+                icon="msg_text",
+                create_sub_fragment=lambda: self._build_string_list_editor(
+                    "CUSTOM_LIST_QUESTIONS", "custom_question_replacements", self.cute_question_mark_replacements
+                ),
+            ),
+            Text(
+                text=locali.get_string("CUSTOM_LIST_EXCLAMATIONS"),
+                subtext=self._custom_list_count_sub(len(self._active_exclamations())),
+                icon="msg_text",
+                create_sub_fragment=lambda: self._build_string_list_editor(
+                    "CUSTOM_LIST_EXCLAMATIONS", "custom_exclamations", self.extended_exclamations
+                ),
+            ),
+            Text(
+                text=locali.get_string("CUSTOM_LIST_ACTIONS"),
+                subtext=locali.get_string("CUSTOM_LIST_ACTIONS_SUB"),
+                icon="msg_smile",
+                create_sub_fragment=self._settings_custom_actions,
+            ),
+        ]
+
     def _settings_styles_hub(self):
         theme_idx = int(self.get_setting("theme_selector", 0) or 0)
         return [
@@ -3702,6 +4164,13 @@ class PicMePlugin(BasePlugin):
                 text=locali.get_string("STYLE_PATRIOT_SOON"),
                 subtext=locali.get_string("STYLE_PATRIOT_SUB"),
                 icon="msg_smile",
+            ),
+            Divider(),
+            Text(
+                text=locali.get_string("CUSTOM_LISTS"),
+                subtext=locali.get_string("CUSTOM_LISTS_SUB"),
+                icon="msg_reorder",
+                create_sub_fragment=self._settings_custom_lists_hub,
             ),
         ]
 
@@ -3763,6 +4232,12 @@ class PicMePlugin(BasePlugin):
                 default=False,
                 icon="msg_groups",
             ),
+            Switch(
+                key="include_custom_lists_export",
+                text=locali.get_string("INCLUDE_CUSTOM_LISTS_EXPORT"),
+                default=False,
+                icon="msg_reorder",
+            ),
             Text(
                 text=locali.get_string("EXPORT_PRESET"),
                 icon="msg_link",
@@ -3783,6 +4258,9 @@ class PicMePlugin(BasePlugin):
             settings = self.export_settings() or {}
             if not self.get_setting("include_lists_export", False):
                 for key in ("chat_whitelist", "chat_blacklist", "topic_whitelist"):
+                    settings.pop(key, None)
+            if not self.get_setting("include_custom_lists_export", False):
+                for key in CUSTOM_LIST_SETTING_KEYS:
                     settings.pop(key, None)
             payload = {"v": PRESET_SCHEMA_VERSION, "plugin": __id__, "settings": settings}
             encoded = (
@@ -4883,8 +5361,12 @@ class PicMePlugin(BasePlugin):
         return "".join(output_chars)
 
     def _transform_exclamations(self, ending_punctuation):
+        pool = self._active_exclamations()
+        if not pool:
+            return ending_punctuation
+
         def replace_match(match):
-            return random.choice(self.extended_exclamations)
+            return random.choice(pool)
 
         return re.sub(r"!", replace_match, ending_punctuation)
 
@@ -4913,19 +5395,20 @@ class PicMePlugin(BasePlugin):
         enable_cute_actions = self.get_setting("enable_cute_actions", False)
         cute_actions_prob = self._get_frequency_prob_for_new_effects("cute_actions_frequency")
         actions_on_new_line = self.get_setting("actions_on_new_line", False)
-        current_cute_actions = self.cute_actions_map.get(locali.language, self.cute_actions_map["en"])
 
         enable_text_borders = self.get_setting("enable_text_borders", False)
         text_borders_prob = self._get_frequency_prob_for_new_effects("text_borders_frequency", 2)
 
         theme_idx = self.get_setting("theme_selector", 0)
-        current_theme = None
-        if theme_idx > 0:
-            theme_names = list(self.themes.keys())
-            if theme_idx - 1 < len(theme_names):
-                current_theme = self.themes[theme_names[theme_idx - 1]]
-        elif random.random() < 0.3:
-            current_theme = random.choice(list(self.themes.values()))
+        current_theme = self._resolve_theme_by_index(int(theme_idx or 0))
+        current_cute_actions = self._active_cute_actions()
+        active_emojis = self._active_emojis()
+        active_kaomojis = self._active_kaomojis()
+        active_sparkles = self._active_sparkles()
+        active_uwu_suffixes = self._active_uwu_suffixes()
+        active_borders = self._active_text_borders()
+        active_questions = self._active_question_replacements()
+        active_periods = self._active_period_replacements()
 
         if apply_lowercase:
             text = self._transform_lowercase(text)
@@ -4942,7 +5425,7 @@ class PicMePlugin(BasePlugin):
                 if random.random() < 0.3:
                     text = f"{prefix} {text} {suffix}"
 
-            if len(text) > 20 and random.random() < 0.3:
+            if len(text) > 20 and random.random() < 0.3 and current_theme.get("emojis"):
                 theme_word = random.choice(current_theme["words"])
                 theme_emoji = random.choice(current_theme["emojis"])
                 insert_text = f" {theme_word} {theme_emoji} "
@@ -4962,22 +5445,22 @@ class PicMePlugin(BasePlugin):
                     if random.random() < classic_effects_probability:
                         ending_punctuation = self._transform_exclamations(ending_punctuation)
                 if enable_cute_punctuation and random.random() < cute_punctuation_prob:
-                    if "?" in ending_punctuation and self.cute_question_mark_replacements:
+                    if "?" in ending_punctuation and active_questions:
                         m = re.search(r"([?!]+)(\s*)$", ending_punctuation)
                         if m and "?" in m.group(1):
                             ending_punctuation = (
                                 ending_punctuation[: m.start(1)]
-                                + random.choice(self.cute_question_mark_replacements)
+                                + random.choice(active_questions)
                                 + m.group(2)
                             )
                     elif (
-                        "." in ending_punctuation and "..." not in ending_punctuation and self.cute_period_replacements
+                        "." in ending_punctuation and "..." not in ending_punctuation and active_periods
                     ):
                         m = re.search(r"(\.+)(\s*)$", ending_punctuation)
                         if m and len(m.group(1)) == 1:
                             ending_punctuation = (
                                 ending_punctuation[: m.start(1)]
-                                + random.choice(self.cute_period_replacements)
+                                + random.choice(active_periods)
                                 + m.group(2)
                             )
                 result_parts.append(ending_punctuation)
@@ -5026,52 +5509,58 @@ class PicMePlugin(BasePlugin):
 
             if style_setting == 0 or style_setting == 3:
                 words_for_emojis = sentence_part.split()
-                emoji_list = self.emojis
-                if current_theme and random.random() < 0.7:
+                emoji_list = active_emojis
+                if current_theme and current_theme.get("emojis") and random.random() < 0.7:
                     emoji_list = current_theme["emojis"]
-                sentence_part = " ".join(
-                    w + (f" {random.choice(emoji_list)}" if w and random.random() < classic_effects_probability else "")
-                    for w in words_for_emojis
-                ).strip()
+                if emoji_list:
+                    sentence_part = " ".join(
+                        w
+                        + (
+                            f" {random.choice(emoji_list)}"
+                            if w and random.random() < classic_effects_probability
+                            else ""
+                        )
+                        for w in words_for_emojis
+                    ).strip()
 
-            if style_setting == 1 or style_setting == 3:
+            if (style_setting == 1 or style_setting == 3) and active_kaomojis:
                 if random.random() < classic_effects_probability:
-                    sentence_part = (sentence_part + f" {random.choice(self.kaomojis)}").strip()
+                    sentence_part = (sentence_part + f" {random.choice(active_kaomojis)}").strip()
 
-            if enable_uwu_suffixes and random.random() < uwu_suffix_prob:
+            if enable_uwu_suffixes and active_uwu_suffixes and random.random() < uwu_suffix_prob:
                 if sentence_part:
-                    sentence_part += f" {random.choice(self.uwu_suffixes)}"
+                    sentence_part += f" {random.choice(active_uwu_suffixes)}"
                 else:
-                    sentence_part = random.choice(self.uwu_suffixes)
+                    sentence_part = random.choice(active_uwu_suffixes)
                 sentence_part = sentence_part.strip()
 
             if enable_cute_punctuation and random.random() < cute_punctuation_prob:
-                if "?" in ending_punctuation and self.cute_question_mark_replacements:
+                if "?" in ending_punctuation and active_questions:
                     m = re.search(r"([?!]+)(\s*)$", ending_punctuation)
                     if m and "?" in m.group(1):
                         ending_punctuation = (
                             ending_punctuation[: m.start(1)]
-                            + random.choice(self.cute_question_mark_replacements)
+                            + random.choice(active_questions)
                             + m.group(2)
                         )
-                elif "." in ending_punctuation and "..." not in ending_punctuation and self.cute_period_replacements:
+                elif "." in ending_punctuation and "..." not in ending_punctuation and active_periods:
                     m = re.search(r"(\.+)(\s*)$", ending_punctuation)
                     if m and len(m.group(1)) == 1:
                         ending_punctuation = (
-                            ending_punctuation[: m.start(1)] + random.choice(self.cute_period_replacements) + m.group(2)
+                            ending_punctuation[: m.start(1)] + random.choice(active_periods) + m.group(2)
                         )
 
             if style_setting == 2 or style_setting == 3:
-                if random.random() < classic_effects_probability * 0.7:
+                if active_sparkles and random.random() < classic_effects_probability * 0.7:
                     sentence_part = (
-                        f"{random.choice(self.sparkles)} {sentence_part} {random.choice(self.sparkles)}".strip()
+                        f"{random.choice(active_sparkles)} {sentence_part} {random.choice(active_sparkles)}".strip()
                     )
                 if "!" in ending_punctuation and random.random() < classic_effects_probability:
                     ending_punctuation = self._transform_exclamations(ending_punctuation)
 
-            if enable_text_borders and sentence_part and random.random() < text_borders_prob:
+            if enable_text_borders and active_borders and sentence_part and random.random() < text_borders_prob:
                 if len(sentence_part) < 50:
-                    borders = random.choice(self.text_borders)
+                    borders = random.choice(active_borders)
                     sentence_part = f"{borders[0]}{sentence_part}{borders[1]}"
 
             result_parts.append(sentence_part)
