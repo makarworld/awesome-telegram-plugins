@@ -1,0 +1,14 @@
+{
+  "pack_type": "composite",
+  "theme": "genshin_decor",
+  "fallback_tags": ["декор", "genshin", "бордюр", "бант"],
+  "combos": [
+    {"id": "strawberry_box", "layout": "grid", "rows": [[27, 28], [29, 30]], "name": "strawberry_box", "description": "Клубничная коробка 2×2.", "description_emoji": "🍓🎀", "tags": ["клубника", "grid"], "mood": "cute", "use_when": ["сладкий декор"], "render": "block", "complete": true, "glue": true},
+    {"id": "carousel", "layout": "horizontal", "order": [40, 41, 42, 43, 44], "name": "carousel", "description": "Карусель — горизонтальная лента.", "description_emoji": "🎠✨", "tags": ["карусель", "сказка"], "mood": "whimsical", "use_when": ["сказочный декор"], "render": "inline", "complete": true, "glue": true},
+    {"id": "bow_row", "layout": "horizontal", "order": [81, 82, 83, 84], "name": "bow_row", "description": "Ряд бантов.", "description_emoji": "🎀✨", "tags": ["бант", "бордюр"], "mood": "cute", "use_when": ["рамка сообщения"], "render": "inline", "complete": true, "glue": true},
+    {"id": "star_bar", "layout": "horizontal", "order": [136, 137, 138, 139, 140, 141], "name": "star_bar", "description": "Звёздная полоса.", "description_emoji": "⭐️✨", "tags": ["звезды", "бордюр"], "mood": "neutral", "use_when": ["верхний бордюр"], "render": "inline", "complete": true, "glue": true},
+    {"id": "lily_row", "layout": "horizontal", "order": [112, 113, 114, 115, 116, 117], "name": "lily_row", "description": "Лилейный бордюр.", "description_emoji": "🌸🌺", "tags": ["цветы", "бордюр"], "mood": "wholesome", "use_when": ["цветочный декор"], "render": "inline", "complete": true, "glue": true},
+    {"id": "spacer_091", "layout": "spacer", "order": [91], "name": "spacer", "description": "Пустой отступ.", "description_emoji": "⬜", "tags": ["spacer"], "mood": "neutral", "use_when": ["отступ"], "render": "inline", "complete": true, "glue": false},
+    {"id": "spacer_092", "layout": "spacer", "order": [92], "name": "spacer", "description": "Пустой отступ.", "description_emoji": "⬜", "tags": ["spacer"], "mood": "neutral", "use_when": ["отступ"], "render": "inline", "complete": true, "glue": false}
+  ]
+}

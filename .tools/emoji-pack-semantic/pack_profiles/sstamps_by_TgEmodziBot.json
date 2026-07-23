@@ -1,0 +1,11 @@
+{
+  "pack_type": "composite",
+  "theme": "stamps",
+  "fallback_tags": ["штамп", "текст", "декор", "рамка"],
+  "combos": [
+    {"id": "grid_015", "layout": "grid", "rows": [[15, 16], [17, 18]], "name": "stamp_grid_1", "description": "Штамп-композиция 2×2.", "description_emoji": "📎✨", "tags": ["штамп", "grid"], "mood": "neutral", "use_when": ["рамка"], "render": "block", "complete": true, "glue": true},
+    {"id": "grid_185", "layout": "grid", "rows": [[185, 186], [187, 188]], "name": "stamp_grid_2", "description": "Штамп-композиция 2×2.", "description_emoji": "📎✨", "tags": ["штамп", "grid"], "mood": "neutral", "use_when": ["рамка"], "render": "block", "complete": true, "glue": true},
+    {"id": "pair_005", "layout": "horizontal", "order": [5, 6], "name": "stamp_pair_text", "description": "Горизонтальная пара штампов с текстом.", "description_emoji": "📎✨", "tags": ["штамп", "текст"], "mood": "neutral", "use_when": ["бордюр"], "render": "inline", "complete": true, "glue": true, "do_not_insert_text": true},
+    {"id": "pair_191", "layout": "horizontal", "order": [191, 192], "name": "stamp_spacer_pair", "description": "Пара пустых отступов.", "description_emoji": "⬜", "tags": ["spacer"], "mood": "neutral", "use_when": ["отступ"], "render": "inline", "complete": true, "glue": true, "do_not_insert_text": true}
+  ]
+}

@@ -1,8 +1,11 @@
 *.py
+!.tools/emoji-pack-semantic/*.py
 *.txt
+!.tools/emoji-pack-semantic/requirements.txt
 .ayu_session.pkl
 AIEdit/
 VersionOverride/
+plans/
 
 __pycache__/
 *.pyc

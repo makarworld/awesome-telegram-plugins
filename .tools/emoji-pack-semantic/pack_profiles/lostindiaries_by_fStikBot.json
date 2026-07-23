@@ -1,0 +1,18 @@
+{
+  "pack_type": "composite",
+  "theme": "lost_in_diaries",
+  "fallback_tags": ["лес", "скрапбук", "ностальгия", "природа"],
+  "combos": [
+    {"id": "moss_078", "layout": "horizontal", "order": [78, 79, 80], "name": "moss_strip", "description": "Моховая полоса.", "description_emoji": "🌿🍃", "tags": ["мох", "лес"], "mood": "wholesome", "use_when": ["лесной декор"], "render": "inline", "complete": true, "glue": true},
+    {"id": "moss_166", "layout": "horizontal", "order": [166, 167, 168], "name": "moss_cluster", "description": "Крупный моховой кластер.", "description_emoji": "🌿🪨", "tags": ["мох", "камень"], "mood": "wholesome", "use_when": ["лесной декор"], "render": "inline", "complete": true, "glue": true},
+    {"id": "apple_164", "layout": "horizontal", "order": [164, 165], "name": "apple_half", "description": "Разрезанное яблоко.", "description_emoji": "🍎🍂", "tags": ["яблоко", "осень"], "mood": "nostalgic", "use_when": ["осенний акцент"], "render": "inline", "complete": true, "glue": true},
+    {"id": "scissors", "layout": "horizontal", "order": [113, 114, 115], "name": "scissors", "description": "Ножницы — три сегмента.", "description_emoji": "✂️📎", "tags": ["ножницы", "скрап"], "mood": "neutral", "use_when": ["скрапбук"], "render": "inline", "complete": true, "glue": true},
+    {"id": "birch_091", "layout": "horizontal", "order": [91, 92, 93, 94], "name": "birch_branch", "description": "Тонкая берёзовая ветка.", "description_emoji": "🌿🪵", "tags": ["берёза", "ветка"], "mood": "nostalgic", "use_when": ["лесной декор"], "render": "inline", "complete": true, "glue": true},
+    {"id": "birch_101", "layout": "horizontal", "order": [101, 102], "name": "birch_segment", "description": "Сегмент берёзовой ветки.", "description_emoji": "🪵🌿", "tags": ["берёза"], "mood": "nostalgic", "use_when": ["декор"], "render": "inline", "complete": true, "glue": true},
+    {"id": "birch_103", "layout": "horizontal", "order": [103, 104], "name": "birch_segment", "description": "Сегмент берёзовой ветки.", "description_emoji": "🪵🌿", "tags": ["берёза"], "mood": "nostalgic", "use_when": ["декор"], "render": "inline", "complete": true, "glue": true},
+    {"id": "birch_169", "layout": "horizontal", "order": [169, 170, 171], "name": "birch_branch", "description": "Берёзовая ветка.", "description_emoji": "🪵🌿", "tags": ["берёза"], "mood": "nostalgic", "use_when": ["декор"], "render": "inline", "complete": true, "glue": true},
+    {"id": "barbed_wire", "layout": "horizontal", "order": [178, 179, 180], "name": "barbed_wire", "description": "Колючая проволока.", "description_emoji": "⚡️🔗", "tags": ["проволока", "граница"], "mood": "edgy", "use_when": ["драматичный декор"], "render": "inline", "complete": true, "glue": true},
+    {"id": "spacer_191", "layout": "spacer", "order": [191], "name": "spacer", "description": "Пустой отступ.", "description_emoji": "⬜", "tags": ["spacer"], "mood": "neutral", "use_when": ["отступ"], "render": "inline", "complete": true, "glue": false},
+    {"id": "spacer_192", "layout": "spacer", "order": [192], "name": "spacer", "description": "Пустой отступ.", "description_emoji": "⬜", "tags": ["spacer"], "mood": "neutral", "use_when": ["отступ"], "render": "inline", "complete": true, "glue": false}
+  ]
+}

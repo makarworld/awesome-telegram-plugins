@@ -1,14 +1,24 @@
 from base_plugin import BasePlugin, HookResult, HookStrategy, MenuItemData, MenuItemType, AppEvent, MethodHook  # pyright: ignore[reportMissingImports]
 from hook_utils import find_class  # pyright: ignore[reportMissingImports]
-from ui.settings import Header, Divider, Switch, Selector, Text  # pyright: ignore[reportMissingImports]
+from ui.settings import Header, Divider, Switch, Selector, Text, Input  # pyright: ignore[reportMissingImports]
 from ui.bulletin import BulletinHelper  # pyright: ignore[reportMissingImports]
+from ui.alert import AlertDialogBuilder  # pyright: ignore[reportMissingImports]
 from android_utils import run_on_ui_thread, log  # pyright: ignore[reportMissingImports]
-from client_utils import get_messages_controller, get_last_fragment, edit_message  # pyright: ignore[reportMissingImports]
+from client_utils import (  # pyright: ignore[reportMissingImports]
+    get_messages_controller,
+    get_last_fragment,
+    get_send_messages_helper,
+    edit_message,
+    send_request,
+    run_on_queue,
+)
 from org.telegram.messenger import AndroidUtilities, DialogObject, UserObject, ChatObject  # pyright: ignore[reportMissingImports]
+from org.telegram.tgnet import TLRPC  # pyright: ignore[reportMissingImports]
 from com.exteragram.messenger.plugins import PluginsController  # pyright: ignore[reportMissingImports]
 from com.exteragram.messenger.plugins.ui import PluginSettingsActivity  # pyright: ignore[reportMissingImports]
 
 from java.util import Locale, ArrayList  # pyright: ignore[reportMissingImports]
+import base64
 import json
 import sys
 import time
@@ -21,16 +31,1456 @@ __description__ = (
     "Makes your messages extra cute with many adorable styles!\n\nДелает твои сообщения милыми с различными стилями!"
 )
 __icon__ = "ColorfulMessages/28"
-__version__ = "1.7.1"
+__version__ = "1.8.0"
 __id__ = "cutemessagesenhanced"
 __author__ = "@mihailkotovski & @mishabotov & idea - @bleizix (updated by @AwesomeTelegramPlugins)"
 __min_version__ = "11.9.0"
 
+PRESET_SCHEMA_VERSION = 1
+DEEPLINK_SCHEME = "tg://cutemessages_import"
+
+# Telegram message effect IDs (messages.availableEffects / Bot API message_effect_id).
+# Первые 5 — бесплатные анимированные эффекты; индекс 0 = без эффекта.
+EFFECT_IDS = (
+    0,
+    5159385139981059251,  # ❤️
+    5046509860389126442,  # 🎉
+    5104841245755180586,  # 🔥
+    5107584321108051014,  # 👍
+)
+
+# Custom emoji: список записей с document_id.
+# replace — подмена unicode (use_premium_emoji).
+# nature — составной блок при природной теме (ids всегда вместе).
+# decoration — составной блок при любой теме (use_premium_emoji).
+# mur — горизонтальная полоса adapemoji при UwU/мур-стиле (пак не в общем декоре).
+# block_line — крупный блок на отдельной строке сверху/снизу.
+# Источник: .tools/emoji-pack-semantic/output/*/agent_index.json
+# slot — unicode-fallback в тексте (виден на Desktop без пака; exteraGram рисует premium поверх).
+_PREMIUM_SLOT_DEFAULT = "🌿"
+_PREMIUM_SLOT_BY_ID = {
+    5222227465073613816: "🌷",
+    5222458310975838479: "🌸",
+    5226644418030752084: "🌺",
+    5355144737105933810: "🌼",
+    5355213946208938345: "🍄",
+    5357097190583989563: "🧚",
+    5357478128413335401: "🏠",
+    5417840715482811533: "😭",
+    5418008004458988642: "🥰",
+    5418013119765038361: "😏",
+    5418160115020744932: "🍑",
+    5418265152740935418: "🔥",
+    5418361458792612793: "🌿",
+    5422821361422725954: "✨",
+    5357088003648945265: "🗿",
+    5357289467679894642: "🌸",
+    5359833651687221858: "🌻",
+    5355059791242753553: "🦋",
+    5422395944912056203: "🍎",
+    5413752860099768012: "🍀",
+    5402266270714325818: "🪴",
+    5460627669311832158: "❤️",
+    5465535399591950233: "🎀",
+    5366071236986178267: "💛",
+    5370619104841463681: "🥺",
+    5285457428144493469: "🍎",
+}
+
+CUSTOM_EMOJI = [
+    {"ids": [5370619104841463681], "replace": "\ud83e\udd7a"},
+    {"ids": [5366071236986178267], "replace": "\ud83d\udc9b"},
+    {"ids": [5222458310975838479], "replace": "\ud83c\udf38"},
+    {"ids": [5222227465073613816], "replace": "\ud83c\udf37"},
+    {"ids": [5226644418030752084], "replace": "\ud83c\udf3a"},
+    {"ids": [5460627669311832158], "replace": "❤️"},
+    {"ids": [5460627669311832158], "replace": "\ud83d\udc95"},
+    {"ids": [5460627669311832158], "replace": "\ud83d\udc96"},
+    {"ids": [5460627669311832158], "replace": "\ud83d\udc97"},
+    {"ids": [5465535399591950233], "replace": "\ud83c\udf80"},
+    {"ids": [5285457428144493469], "replace": "\ud83c\udf4e"},
+    {"ids": [5357097190583989563], "replace": "\ud83e\uddda"},
+    {"ids": [5355144737105933810], "replace": "\ud83c\udf3c"},
+    {"ids": [5422821361422725954], "replace": "✨"},
+    {"ids": [5422821361422725954], "replace": "\ud83c\udf1f"},
+    {"ids": [5422821361422725954], "replace": "\ud83d\udcab"},
+    {"ids": [5418265152740935418], "replace": "\ud83d\udd25"},
+    {"ids": [5418008004458988642], "replace": "\ud83e\udd70"},
+    {"ids": [5418013119765038361], "replace": "\ud83d\ude0f"},
+    {"ids": [5418361458792612793], "replace": "\ud83c\udf3f"},
+    {"ids": [5417840715482811533], "replace": "\ud83d\ude2d"},
+    {"ids": [5418160115020744932], "replace": "\ud83c\udf51"},
+    {
+        "decoration": True,
+        "block_line": True,
+        "ids": [
+            5355237203456845887,
+            5354811778356244649,
+            5354914866161284755,
+            5357059592440275846,
+            5354886296038828559,
+            5355076412766187371,
+            5355326543071573702,
+            5355321470715194523,
+        ],
+        "weight": 5,
+    },
+    {
+        "decoration": True,
+        "block_line": True,
+        "layout": "grid",
+        "rows": [
+            [5357088003648945265, 5359699768966670907],
+            [5357547547969744464, 5359830250073124442],
+        ],
+        "weight": 4,
+    },
+    {
+        "decoration": True,
+        "layout": "grid",
+        "rows": [
+            [5355144737105933810],
+            [5354853929165285453],
+        ],
+        "weight": 3,
+    },
+    {
+        "decoration": True,
+        "block_line": True,
+        "ids": [5346333126366895596, 5345865786680450008, 5346071167721578101],
+        "weight": 4,
+    },
+    {"decoration": True, "ids": [5354831844443452149, 5354781649160659650], "weight": 2},
+    {"decoration": True, "ids": [5355030740083959688, 5354978779569612365], "weight": 2},
+    {
+        "decoration": True,
+        "block_line": True,
+        "ids": [
+            5408874546050655029,
+            5409002351392487096,
+            5409216038900359470,
+            5409037703268295118,
+            5408862159364977580,
+            5355231813272892184,
+            5357091014421012244,
+            5354911846799274528,
+        ],
+        "weight": 5,
+    },
+    {
+        "decoration": True,
+        "block_line": True,
+        "layout": "grid",
+        "rows": [
+            [5409385952101556975, 5409186322021642052],
+            [5355249817775794552],
+        ],
+        "weight": 5,
+    },
+    {
+        "decoration": True,
+        "block_line": True,
+        "layout": "grid",
+        "rows": [
+            [5409020849816632163, 5409365482287426684],
+            [5408968073258494546, 5409136942782642617],
+            [5409330907800695252],
+        ],
+        "weight": 4,
+    },
+    {
+        "decoration": True,
+        "block_line": True,
+        "layout": "grid",
+        "rows": [
+            [5402468237256454506, 5402591197875172183],
+            [5402435440886182286, 5402424656223300688],
+        ],
+        "weight": 4,
+    },
+    {
+        "decoration": True,
+        "block_line": True,
+        "layout": "grid",
+        "rows": [
+            [5355152854594121362, 5355181622285073635],
+            [5355223532575946993, 5354831449306461915],
+        ],
+        "weight": 4,
+    },
+    {
+        "decoration": True,
+        "block_line": True,
+        "layout": "grid",
+        "rows": [
+            [5402266270714325818, 5402248382175536822],
+            [5402466927291429044],
+        ],
+        "weight": 5,
+    },
+    {
+        "decoration": True,
+        "block_line": True,
+        "layout": "grid",
+        "rows": [
+            [5422481775538501363, 5425023077622768856, 5422806887382940538],
+            [5422343967217839527, 5422359678208210584, 5422515984953015168],
+        ],
+        "weight": 5,
+    },
+    {
+        "decoration": True,
+        "block_line": True,
+        "layout": "grid",
+        "rows": [
+            [5413752860099768012, 5413768682759286169],
+            [5413543841221343052, 5415820848198086422],
+        ],
+        "weight": 4,
+    },
+    {
+        "decoration": True,
+        "block_line": True,
+        "ids": [
+            5409081640783736240,
+            5409345257286429925,
+            5408963211355515495,
+            5409187597626930822,
+            5408983049809453722,
+        ],
+        "weight": 4,
+    },
+    {
+        "decoration": True,
+        "block_line": True,
+        "layout": "grid",
+        "rows": [
+            [5355213946208938345, 5357478128413335401],
+            [5355035627756746908, 5354832724911746662],
+        ],
+        "weight": 4,
+    },
+    {
+        "decoration": True,
+        "block_line": True,
+        "layout": "grid",
+        "rows": [
+            [5357040681699273712, 5357323604079964208],
+            [5357289467679894642, 5357129252514853319],
+        ],
+        "weight": 4,
+    },
+    {
+        "decoration": True,
+        "block_line": True,
+        "layout": "grid",
+        "rows": [
+            [5402255825353864835, 5404840944694486303],
+            [5402325747421450584, 5404535538160002056],
+            [5402376501049977863, 5402490059985286023],
+        ],
+        "weight": 4,
+    },
+    {
+        "decoration": True,
+        "block_line": True,
+        "layout": "grid",
+        "rows": [
+            [5402196245567530152, 5402358960403543485],
+            [5402355666163628311, 5402208726742495352],
+            [5404828738397429472, 5402207833389299089],
+        ],
+        "weight": 4,
+    },
+    {
+        "decoration": True,
+        "block_line": True,
+        "layout": "grid",
+        "rows": [
+            [5357590115390617249, 5357330909819334499, 5357367240947690998, 5357167056816992693],
+            [5357306102088234103, 5357317049959871591, 5359833651687221858, 5357367442811153288],
+        ],
+        "weight": 4,
+    },
+    {
+        "decoration": True,
+        "block_line": True,
+        "layout": "grid",
+        "rows": [
+            [5404597690631741718, 5402346676797074269],
+            [5402204732422907456, 5404831439931860491],
+            [5402623646353096629, 5404784130867096618],
+        ],
+        "weight": 4,
+    },
+    {
+        "decoration": True,
+        "block_line": True,
+        "layout": "grid",
+        "rows": [
+            [5422407519848918979, 5425095576670728884],
+            [5422343967217839527, 5422359678208210584],
+        ],
+        "weight": 3,
+    },
+    {"decoration": True, "ids": [5402214555013113178], "weight": 2},
+    {"decoration": True, "ids": [5402622821719371440], "weight": 2},
+    {"decoration": True, "ids": [5413473768829906494], "weight": 3},
+    {"decoration": True, "ids": [5413366905748614235, 5413780554048894558], "weight": 3},
+    {
+        "decoration": True,
+        "layout": "grid",
+        "rows": [
+            [5357097190583989563],
+            [5357181298928546272],
+        ],
+        "weight": 3,
+    },
+    {"decoration": True, "ids": [5422781332327527287, 5422345126859011832], "weight": 2},
+    {"decoration": True, "ids": [5357457796038159753], "weight": 2},
+    {"decoration": True, "ids": [5359758146162158065], "weight": 2},
+    {"decoration": True, "ids": [5355059791242753553, 5355115187730936365], "weight": 2},
+    {"decoration": True, "ids": [5422769022951255994], "weight": 2},
+    {"decoration": True, "ids": [5357040681699273712, 5357323604079964208], "weight": 2},
+    {"decoration": True, "ids": [5357289467679894642, 5357129252514853319], "weight": 2},
+    {"decoration": True, "ids": [5359833651687221858, 5357367442811153288], "weight": 2},
+    {"decoration": True, "ids": [5355183602264993185, 5357183794304540711], "weight": 2},
+    {"decoration": True, "ids": [5422688792962165396, 5422767906259761644], "weight": 2},
+    {"decoration": True, "ids": [5452027413913432944, 5453983986265122596], "weight": 2},
+    {"decoration": True, "ids": [5400275677926681386, 5402317183256655509], "weight": 2},
+    {
+        "nature": True,
+        "layout": "grid",
+        "rows": [
+            [5282997962367075396, 5280607967685674990],
+            [5283044446798120475, 5280535816530072517],
+        ],
+        "block_line": True,
+        "weight": 3,
+    },
+    {
+        "nature": True,
+        "layout": "grid",
+        "rows": [
+            [5280569467598835008, 5283006522236897832],
+            [5280847549551379349, 5282910074451297063],
+        ],
+        "block_line": True,
+        "weight": 3,
+    },
+    {
+        "nature": True,
+        "layout": "grid",
+        "rows": [
+            [5283207380677461429, 5282888247427501634],
+            [5283186837848885344, 5283147049271857008],
+        ],
+        "block_line": True,
+        "weight": 2,
+    },
+    {
+        "nature": True,
+        "layout": "grid",
+        "rows": [
+            [5280657643277418891, 5283022628364261430],
+            [5283099740207089080, 5282745147707132831],
+        ],
+        "block_line": True,
+        "weight": 2,
+    },
+    {
+        "nature": True,
+        "layout": "grid",
+        "rows": [
+            [5283229078852241321, 5282988380295037033, 5283112509144862047],
+            [5280786814418843280, 5282930080408962352, 5280752403140871668],
+            [5283173802623144066, 5280833376159305472, 5280744508990984624],
+        ],
+        "block_line": True,
+        "weight": 2,
+    },
+    {
+        "ids": [5282759634631822769],
+        "nature": True,
+        "weight": 1,
+    },
+    {
+        "ids": [5280655328290060493, 5283260539487686174],
+        "nature": True,
+        "weight": 2,
+    },
+    {
+        "ids": [5282966995652870875],
+        "nature": True,
+        "weight": 1,
+    },
+    {
+        "ids": [5280820439717810620],
+        "nature": True,
+        "weight": 1,
+    },
+    {
+        "ids": [5282777725034073168],
+        "nature": True,
+        "weight": 1,
+    },
+    {
+        "ids": [5283149514583085570],
+        "nature": True,
+        "weight": 1,
+    },
+    {
+        "ids": [5285159413248724854],
+        "nature": True,
+        "weight": 1,
+    },
+    {
+        "ids": [5285457428144493469],
+        "nature": True,
+        "weight": 1,
+    },
+    {
+        "ids": [5285404999478712029],
+        "nature": True,
+        "weight": 1,
+    },
+    {
+        "ids": [5285412786254418994],
+        "nature": True,
+        "weight": 1,
+    },
+    {
+        "ids": [5287548866764245396],
+        "nature": True,
+        "weight": 1,
+    },
+    {
+        "ids": [5285085840458947777],
+        "nature": True,
+        "weight": 1,
+    },
+    {
+        "ids": [5285082791032164848],
+        "nature": True,
+        "weight": 1,
+    },
+    {
+        "ids": [5285091239232851439],
+        "nature": True,
+        "weight": 1,
+    },
+    {
+        "ids": [5285527272902661931],
+        "nature": True,
+        "weight": 1,
+    },
+    {
+        "ids": [5287764061805644901],
+        "nature": True,
+        "weight": 1,
+    },
+    {
+        "ids": [5285527637974882043],
+        "nature": True,
+        "weight": 1,
+    },
+    {
+        "ids": [5287426425836572617],
+        "nature": True,
+        "weight": 1,
+    },
+    {
+        "ids": [5287290700575051964],
+        "nature": True,
+        "weight": 1,
+    },
+    {
+        "ids": [5287291392064783173],
+        "nature": True,
+        "weight": 1,
+    },
+    {
+        "ids": [5287403250193038986],
+        "nature": True,
+        "weight": 1,
+    },
+    {
+        "ids": [5285280827679217886],
+        "nature": True,
+        "weight": 1,
+    },
+    {
+        "ids": [5287617221168760737],
+        "nature": True,
+        "weight": 1,
+    },
+    {
+        "nature": True,
+        "layout": "grid",
+        "rows": [
+            [5409385952101556975, 5409186322021642052],
+            [5355249817775794552],
+        ],
+        "block_line": True,
+        "weight": 2,
+    },
+    {
+        "ids": [
+            5355237203456845887,
+            5354811778356244649,
+            5354914866161284755,
+            5357059592440275846,
+            5354886296038828559,
+            5355076412766187371,
+            5355326543071573702,
+            5355321470715194523,
+        ],
+        "nature": True,
+        "block_line": True,
+        "weight": 1,
+    },
+    {
+        "ids": [
+            5409081640783736240,
+            5409345257286429925,
+            5408963211355515495,
+            5409187597626930822,
+            5408983049809453722,
+        ],
+        "nature": True,
+        "block_line": True,
+        "weight": 1,
+    },
+    {"decoration": True, "ids": [5220117798612673005], "weight": 2},
+    {"decoration": True, "ids": [5222458310975838479], "weight": 1},
+    {"decoration": True, "ids": [5222118935545009404], "weight": 1},
+    {"decoration": True, "ids": [5224735060254542380], "weight": 1},
+    {"decoration": True, "ids": [5221938551213543911], "weight": 1},
+    {"decoration": True, "ids": [5222248016492123747], "weight": 1},
+    {"decoration": True, "ids": [5221969900179837255], "weight": 1},
+    {"decoration": True, "ids": [5222101777150661122], "weight": 1},
+    {"decoration": True, "ids": [5222206591532553758], "weight": 1},
+    {"decoration": True, "ids": [5222227465073613816], "weight": 1},
+    {"decoration": True, "ids": [5220062286160356024], "weight": 1},
+    {"decoration": True, "ids": [5219803054819267493], "weight": 1},
+    {"decoration": True, "ids": [5220109762728842292], "weight": 1},
+    {"decoration": True, "ids": [5219698944812012206], "weight": 1},
+    {"decoration": True, "ids": [5222346470027450683], "weight": 1},
+    {"decoration": True, "ids": [5219840365200170052], "weight": 1},
+    {"decoration": True, "ids": [5220125164481565508], "weight": 1},
+    {"decoration": True, "ids": [5226644418030752084], "weight": 1},
+    {"decoration": True, "ids": [5222347865891822352], "weight": 1},
+    {"decoration": True, "ids": [5224243819075098518], "weight": 1},
+    {"decoration": True, "ids": [5224377482752315859], "weight": 1},
+    {"decoration": True, "ids": [5224582979757560325], "weight": 1},
+    {"decoration": True, "ids": [5222090026120141147], "weight": 1},
+    {"decoration": True, "ids": [5219824774468883674], "weight": 1},
+    {"decoration": True, "ids": [5224496182763475518], "weight": 1},
+    {"decoration": True, "ids": [5219912632319890889], "weight": 1},
+    {"decoration": True, "ids": [5219841155474151304], "weight": 1},
+    {"decoration": True, "ids": [5222247612765195788], "weight": 1},
+    {"decoration": True, "ids": [5224234301427569044], "weight": 1},
+    {"decoration": True, "ids": [5224427622200529916], "weight": 1},
+    {"decoration": True, "ids": [5224289646376144962], "weight": 1},
+    {"decoration": True, "ids": [5219897075948346550], "weight": 1},
+    {"decoration": True, "ids": [5222234684913636008], "weight": 1},
+    {"decoration": True, "ids": [5219935210962967311], "weight": 1},
+    {"decoration": True, "ids": [5220216234968109125], "weight": 1},
+    {"decoration": True, "ids": [5222095961764942215], "weight": 1},
+    {"decoration": True, "ids": [5222282977525912391], "weight": 1},
+    {"decoration": True, "ids": [5222159527280925630], "weight": 1},
+    {"decoration": True, "ids": [5224265435645495653], "weight": 1},
+    {"decoration": True, "ids": [5224669145391452503], "weight": 1},
+    {"decoration": True, "ids": [5224319440564278225], "weight": 1},
+    {"decoration": True, "ids": [5222163465765932207], "weight": 1},
+    {"decoration": True, "ids": [5219862694735140152], "weight": 1},
+    {"decoration": True, "ids": [5222380056671703024], "weight": 1},
+    {"decoration": True, "ids": [5221971167195190821], "weight": 1},
+    {"decoration": True, "ids": [5224496320202428439], "weight": 1},
+    {"decoration": True, "ids": [5224461144420276104], "weight": 1},
+    {"decoration": True, "ids": [5219959967154463117], "weight": 1},
+    {"decoration": True, "ids": [5226611883653483444], "weight": 1},
+    {"decoration": True, "ids": [5224433368866771712], "weight": 1},
+    {"decoration": True, "ids": [5222033689034118279], "weight": 1},
+    {"decoration": True, "ids": [5224365074591798973], "weight": 1},
+    {"decoration": True, "ids": [5222047196706265266], "weight": 1},
+    {"decoration": True, "ids": [5228827880619791357], "weight": 1},
+    {"decoration": True, "ids": [5222170372073347805], "weight": 1},
+    {"decoration": True, "ids": [5219873934664554124], "weight": 1},
+    {"decoration": True, "ids": [5224239708791394949], "weight": 1},
+    {"decoration": True, "ids": [5221954013095812843], "weight": 1},
+    {"decoration": True, "ids": [5222110302660743762], "weight": 1},
+    {"decoration": True, "ids": [5219927789259477896], "weight": 1},
+    {"decoration": True, "ids": [5219687687702732732], "weight": 1},
+    {"decoration": True, "ids": [5222318496905452930], "weight": 1},
+    {"decoration": True, "ids": [5224197523622616238], "weight": 1},
+    {"decoration": True, "ids": [5222283763504929084], "weight": 1},
+    {"decoration": True, "ids": [5222361936204680527], "weight": 1},
+    {"decoration": True, "ids": [5222281053380567305], "weight": 1},
+    {"decoration": True, "ids": [5219952566925810677], "weight": 1},
+    {"decoration": True, "ids": [5219814084295286024], "weight": 1},
+    {"decoration": True, "ids": [5222157173638842592], "weight": 1},
+    {"decoration": True, "ids": [5221935403002515642], "weight": 1},
+    {"decoration": True, "ids": [5217499182822088965], "weight": 1},
+    {"decoration": True, "ids": [5222320949331776942], "weight": 1},
+    {"decoration": True, "ids": [5276268581837889274], "weight": 1},
+    {"decoration": True, "ids": [5222118020716978706], "weight": 1},
+    {"decoration": True, "ids": [5222249335047085121], "weight": 1},
+    {"decoration": True, "ids": [5222403648927059393], "weight": 1},
+    {"decoration": True, "ids": [5219715433191464734], "weight": 1},
+    {"decoration": True, "ids": [5224226471702190200], "weight": 1},
+    {"decoration": True, "ids": [5222130772474875417], "weight": 1},
+    {"decoration": True, "ids": [5224332016228520500], "weight": 1},
+    {"decoration": True, "ids": [5219791548601886585], "weight": 1},
+    {"decoration": True, "ids": [5224344871065638155], "weight": 1},
+    {"decoration": True, "ids": [5220146755282163024], "weight": 1},
+    {"decoration": True, "ids": [5221931842474628335], "weight": 1},
+    {"decoration": True, "ids": [5222462296705487857], "weight": 1},
+    {"decoration": True, "ids": [5224521398516470429], "weight": 1},
+    {"decoration": True, "ids": [5226868787122293415], "weight": 1},
+    {"decoration": True, "ids": [5224592767988027316], "weight": 1},
+    {"decoration": True, "ids": [5224604248435609875], "weight": 1},
+    {"decoration": True, "ids": [5224580278223132080], "weight": 1},
+    {"decoration": True, "ids": [5224396672666194875], "weight": 1},
+    {"decoration": True, "ids": [5220200210445132006], "weight": 1},
+    {"decoration": True, "ids": [5224201058380697822], "weight": 1},
+    {"decoration": True, "ids": [5224239743151137174], "weight": 1},
+    {"decoration": True, "ids": [5219905236386209739], "weight": 1},
+    {"decoration": True, "ids": [5219961028011382320], "weight": 1},
+    {"decoration": True, "ids": [5224570043316064235], "weight": 1},
+    {"decoration": True, "ids": [5222333838528631490], "weight": 1},
+    {"decoration": True, "ids": [5222288251745753273], "weight": 1},
+    {"decoration": True, "ids": [5222445859865651066], "weight": 1},
+    {"decoration": True, "ids": [5222230183787912096], "weight": 1},
+    {"decoration": True, "ids": [5220038917243295944], "weight": 1},
+    {"decoration": True, "ids": [5222311118151637266], "weight": 1},
+    {"decoration": True, "ids": [5222166201660100637], "weight": 1},
+    {"decoration": True, "ids": [5258149918702327236], "weight": 1},
+    {"decoration": True, "ids": [5219769992161027386], "weight": 1},
+    {"decoration": True, "ids": [5224491161946705414], "weight": 1},
+    {"decoration": True, "ids": [5224429593590518213], "weight": 1},
+    {"decoration": True, "ids": [5219686901723716358], "weight": 1},
+    {"decoration": True, "ids": [5219983507870209980], "weight": 1},
+    {"decoration": True, "ids": [5224333132920015092], "weight": 1},
+    {"decoration": True, "ids": [5224565005319425397], "weight": 1},
+    {"decoration": True, "ids": [5224258421963904733], "weight": 1},
+    {"decoration": True, "ids": [5224420209086977807], "weight": 1},
+    {"decoration": True, "ids": [5224464653408555324], "weight": 1},
+    {"decoration": True, "ids": [5224199482127699421], "weight": 1},
+    {"decoration": True, "ids": [5224347963442092399], "weight": 1},
+    {"decoration": True, "ids": [5224420724483052419], "weight": 1},
+    {"decoration": True, "ids": [5224521102163726396], "weight": 1},
+    {"decoration": True, "ids": [5224199271674304907], "weight": 1},
+    {"decoration": True, "ids": [5226884631256647860], "weight": 1},
+    {"decoration": True, "ids": [5219731157066732329], "weight": 1},
+    {"decoration": True, "ids": [5222411023385905827], "weight": 1},
+    {"decoration": True, "ids": [5222435560534068804], "weight": 1},
+    {"decoration": True, "ids": [5224285024991337908], "weight": 1},
+    {"decoration": True, "ids": [5224673964344759514], "weight": 1},
+    {"decoration": True, "ids": [5224260118475997614], "weight": 1},
+    {"decoration": True, "ids": [5224317391864879214], "weight": 1},
+    {"decoration": True, "ids": [5224204614613617818], "weight": 1},
+    {"decoration": True, "ids": [5224419655036197939], "weight": 1},
+    {"decoration": True, "ids": [5219821660617593422], "weight": 1},
+    {"decoration": True, "ids": [5222409868039708238], "weight": 1},
+    {"decoration": True, "ids": [5226953569776718984], "weight": 1},
+    {"decoration": True, "ids": [5224217834522955464], "weight": 1},
+    {"decoration": True, "ids": [5224251734699823796], "weight": 1},
+    {"decoration": True, "ids": [5224295435992060399], "weight": 1},
+    {"decoration": True, "ids": [5220107237288074599], "weight": 1},
+    {"decoration": True, "ids": [5224454538760574933], "weight": 1},
+    {"decoration": True, "ids": [5219912481996038433], "weight": 1},
+    {"decoration": True, "ids": [5220233565161151220], "weight": 1},
+    {"decoration": True, "ids": [5219942074320704455], "weight": 1},
+    {"decoration": True, "ids": [5222390742550333516], "weight": 1},
+    {"decoration": True, "ids": [5224693519330856681], "weight": 1},
+    {"decoration": True, "ids": [5220227663876087013], "weight": 1},
+    {"decoration": True, "ids": [5255989923814597723], "weight": 1},
+    {"decoration": True, "ids": [5222314829003381051], "weight": 1},
+    {"decoration": True, "ids": [5258503669388697166], "weight": 1},
+    {"decoration": True, "ids": [5258411477915688766], "weight": 1},
+    {"decoration": True, "ids": [5219999016997117495], "weight": 1},
+    {"decoration": True, "ids": [5224420556979326743], "weight": 1},
+    {"decoration": True, "ids": [5222416512354112722], "weight": 1},
+    {"decoration": True, "ids": [5222007949295114759], "weight": 1},
+    {"decoration": True, "ids": [5343892159013617924], "weight": 1},
+    {"decoration": True, "ids": [5224538720119574717], "weight": 1},
+    {"decoration": True, "ids": [5224441920146657288], "weight": 1},
+    {"decoration": True, "ids": [5224719933379728267], "weight": 1},
+    {"decoration": True, "ids": [5222340147835592211], "weight": 1},
+    {"decoration": True, "ids": [5220106897985657155], "weight": 1},
+    {"decoration": True, "ids": [5222175259746126372], "weight": 1},
+    {"decoration": True, "ids": [5226982715424787120], "weight": 1},
+    {"decoration": True, "ids": [5224218023501518835], "weight": 1},
+    {"decoration": True, "ids": [5224412151728328775], "weight": 1},
+    {"decoration": True, "ids": [5224695190073133611], "weight": 1},
+    {"decoration": True, "ids": [5224448268108323300], "weight": 1},
+    {"decoration": True, "ids": [5224265083458180140], "weight": 1},
+    {"decoration": True, "ids": [5219930967535276884], "weight": 1},
+    {"decoration": True, "ids": [5222059647816456069], "weight": 1},
+    {"decoration": True, "ids": [5222323461887644843], "weight": 1},
+    {"decoration": True, "ids": [5222132159749313770], "weight": 1},
+    {"decoration": True, "ids": [5233373472142415749], "weight": 1},
+    {"decoration": True, "ids": [5224709938990829783], "weight": 1},
+    {"decoration": True, "ids": [5224690396889634818], "weight": 1},
+    {"decoration": True, "ids": [5257980563846879696], "weight": 1},
+    {"decoration": True, "ids": [5222148257286739760], "weight": 1},
+    {"decoration": True, "ids": [5221932589798938508], "weight": 1},
+    {"decoration": True, "ids": [5224195818520597937], "weight": 1},
+    {"decoration": True, "ids": [5222133289325711128], "weight": 1},
+    {"decoration": True, "ids": [5222231025601502338], "weight": 1},
+    {"decoration": True, "ids": [5233361295910130215], "weight": 1},
+    {"decoration": True, "ids": [5224181533459372636], "weight": 1},
+    {"decoration": True, "ids": [5224712030639905785], "weight": 1},
+    {"decoration": True, "ids": [5222415838044249559], "weight": 1},
+    {"decoration": True, "ids": [5222105638326261095], "weight": 1},
+    {"decoration": True, "ids": [5258336569391080357], "weight": 1},
+    {"decoration": True, "ids": [5224605055889462856], "weight": 1},
+    {"decoration": True, "ids": [5265237473734195087], "weight": 1},
+    {"decoration": True, "ids": [5224297407382050575], "weight": 1},
+    {"decoration": True, "ids": [5224481158967875036], "weight": 1},
+    {"decoration": True, "ids": [5224634944566873788], "weight": 1},
+    {"decoration": True, "ids": [5224473939127849465], "weight": 1},
+    {"decoration": True, "ids": [5224451141441442001], "weight": 1},
+    {"decoration": True, "ids": [5222444004439775459], "weight": 1},
+    {"decoration": True, "ids": [5224668406657077437], "weight": 1},
+    {"decoration": True, "ids": [5224262330384143276], "weight": 1},
+    {"decoration": True, "ids": [5226782496934350546], "weight": 1},
+    {"decoration": True, "ids": [5222222663300176913], "weight": 1},
+    {"decoration": True, "ids": [5219782898537748905], "weight": 1},
+    {"decoration": True, "ids": [5222146388975966649], "weight": 1},
+    {"decoration": True, "ids": [5242733335456800412], "weight": 1},
+    {"decoration": True, "ids": [5222271832085780025], "weight": 1},
+    {"decoration": True, "ids": [5341742295953737625], "weight": 1},
+    {
+        "ids": [
+            5442989424038128149,
+            5442713180331583529,
+            5444923830063605725,
+            5442627792086771721,
+            5445253735091545347,
+            5442666996548250794,
+        ],
+        "decoration": True,
+        "block_line": True,
+        "weight": 1,
+        "slots": ["·", "·", "·", "·", "·", "·"],
+    },
+    {
+        "ids": [
+            5442952968355720681,
+            5442852096753804891,
+            5443144382163198629,
+            5445134489619538103,
+        ],
+        "decoration": True,
+        "block_line": True,
+        "weight": 1,
+        "slots": ["·", "·", "·", "·"],
+    },
+    {
+        "ids": [
+            5444971641639543115,
+            5445304321216358048,
+            5445185728579379876,
+            5443142127305370033,
+        ],
+        "decoration": True,
+        "block_line": True,
+        "weight": 1,
+        "slots": ["·", "·", "·", "·"],
+    },
+    {
+        "ids": [
+            5443107398199814794,
+            5442767756481014476,
+            5445331358035484282,
+            5445305218864521954,
+            5442949966173579571,
+        ],
+        "decoration": True,
+        "block_line": True,
+        "weight": 1,
+        "slots": ["·", "·", "·", "·", "·"],
+    },
+    {
+        "ids": [5339364099547477094, 5339195504901239922, 5339031664783799286],
+        "decoration": True,
+        "block_line": True,
+        "weight": 1,
+        "slots": ["·", "·", "·"],
+    },
+    {
+        "ids": [5343541797056434439, 5343844953028048098, 5341405355769347206],
+        "decoration": True,
+        "block_line": True,
+        "weight": 1,
+        "slots": ["·", "·", "·"],
+    },
+    {
+        "ids": [5343772445390157521, 5341629578832001996, 5343817997813299635],
+        "decoration": True,
+        "block_line": True,
+        "weight": 1,
+        "slots": ["·", "·", "·"],
+    },
+    {
+        "ids": [
+            5343596648083764073,
+            5341698749280303391,
+            5343979810706175627,
+            5343857988253792378,
+            5343914943815104010,
+            5341661065237249542,
+        ],
+        "decoration": True,
+        "block_line": True,
+        "weight": 1,
+        "slots": ["·", "·", "·", "·", "·", "·"],
+    },
+    {"decoration": True, "ids": [5461083674579606384], "weight": 2},
+    {"decoration": True, "ids": [5453930127375240835], "weight": 2},
+    {
+        "ids": [
+            5456659033631003431,
+            5456434230747761291,
+            5456266314706356825,
+            5453885141887781846,
+        ],
+        "decoration": True,
+        "weight": 2,
+        "slots": ["·", "·", "·", "·"],
+    },
+    {
+        "ids": [
+            5454046168801646407,
+            5454360319889542989,
+            5454130719527833500,
+            5453984660574997601,
+        ],
+        "decoration": True,
+        "weight": 2,
+        "slots": ["·", "·", "·", "·"],
+    },
+    {
+        "ids": [
+            5453978952563463854,
+            5454193529129570365,
+            5454343535157350302,
+            5456433492013385601,
+        ],
+        "decoration": True,
+        "weight": 2,
+        "slots": ["·", "·", "·", "·"],
+    },
+    {
+        "ids": [5453986365677016415, 5454239798812251737],
+        "decoration": True,
+        "weight": 2,
+        "slots": ["·", "·"],
+    },
+    {
+        "ids": [
+            5453919793683926634,
+            5454097991877041070,
+            5454046946190726809,
+            5454359082938962367,
+        ],
+        "decoration": True,
+        "block_line": True,
+        "weight": 1,
+        "slots": ["·", "·", "·", "·"],
+    },
+    {
+        "ids": [5454198506996666008, 5454408032681236357],
+        "decoration": True,
+        "weight": 2,
+        "slots": ["·", "·"],
+    },
+    {
+        "ids": [5454241649943157241, 5453875190448561361],
+        "decoration": True,
+        "weight": 2,
+        "slots": ["·", "·"],
+    },
+    {
+        "ids": [5454186837570524997, 5454384221382546676, 5454188534082604359],
+        "decoration": True,
+        "weight": 2,
+        "slots": ["·", "·", "·"],
+    },
+    {
+        "ids": [5454153487149470906, 5456289327141126810, 5454312327924979642],
+        "decoration": True,
+        "weight": 2,
+        "slots": ["·", "·", "·"],
+    },
+    {"decoration": True, "ids": [5453893199246429564], "weight": 1},
+    {"decoration": True, "ids": [5453976856619422608], "weight": 1},
+    {"decoration": True, "ids": [5453947930014680695], "weight": 1},
+    {"decoration": True, "ids": [5454159860880940488], "weight": 1},
+    {
+        "ids": [5454305979963314277, 5456633057668794818],
+        "decoration": True,
+        "weight": 2,
+        "slots": ["·", "·"],
+    },
+    {"decoration": True, "ids": [5454018371773307391], "weight": 1},
+    {"decoration": True, "ids": [5454098803625857310], "weight": 1},
+    {
+        "ids": [5454165787935807097, 5454319363081408261, 5454034714123869708],
+        "decoration": True,
+        "weight": 2,
+        "slots": ["·", "·", "·"],
+    },
+    {"decoration": True, "ids": [5451791899381756657], "weight": 1},
+    {"decoration": True, "ids": [5406804406173717886], "weight": 1},
+    {"decoration": True, "ids": [5407104766121628180], "weight": 1},
+    {"decoration": True, "ids": [5305539621478746095], "weight": 1},
+    {"decoration": True, "ids": [5264980132178705243], "weight": 1},
+    {"decoration": True, "ids": [5462954265980975230], "weight": 1},
+    {"decoration": True, "ids": [5463218814491574627], "weight": 1},
+    {"decoration": True, "ids": [5463372385342209522], "weight": 1},
+    {"decoration": True, "ids": [5463253032496020370], "weight": 1},
+    {"decoration": True, "ids": [5463351004995010920], "weight": 1},
+    {"decoration": True, "ids": [5463056151195173413], "weight": 1},
+    {"decoration": True, "ids": [5463059866341882817], "weight": 1},
+    {"decoration": True, "ids": [5462895716986798141], "weight": 1},
+    {"decoration": True, "ids": [5463247053901546916], "weight": 1},
+    {"decoration": True, "ids": [5460627669311832158], "weight": 1},
+    {"decoration": True, "ids": [5463357997201767482], "weight": 1},
+    {"decoration": True, "ids": [5463190557901732765], "weight": 1},
+    {"decoration": True, "ids": [5463265359052159503], "weight": 1},
+    {"decoration": True, "ids": [5462881230062106216], "weight": 1},
+    {"decoration": True, "ids": [5305554404756176392], "weight": 1},
+    {"decoration": True, "ids": [5314647868429058511], "weight": 1},
+    {"decoration": True, "ids": [5334660010846731761], "weight": 1},
+    {"decoration": True, "ids": [5362090631231455405], "weight": 1},
+    {"decoration": True, "ids": [5364117129945694536], "weight": 1},
+    {"decoration": True, "ids": [5197222315800148523], "weight": 1},
+    {"decoration": True, "ids": [5465481557881931339], "weight": 1},
+    {"decoration": True, "ids": [5240385375620317337], "weight": 1},
+    {"decoration": True, "ids": [5258090283081419179], "weight": 1},
+    {"decoration": True, "ids": [5258379265660959879], "weight": 1},
+    {"decoration": True, "ids": [5260594725756352626], "weight": 1},
+    {"decoration": True, "ids": [5253806164872805027], "weight": 1},
+    {"decoration": True, "ids": [5463126567183990848], "weight": 1},
+    {"decoration": True, "ids": [5462965050643857408], "weight": 1},
+    {
+        "ids": [5202043429474827007, 5202097468753344628],
+        "decoration": True,
+        "weight": 1,
+        "slots": ["·", "·"],
+    },
+    {
+        "ids": [5202017663966021488, 5201760829216684586],
+        "decoration": True,
+        "weight": 1,
+        "slots": ["·", "·"],
+    },
+    {
+        "ids": [5199952510546116526, 5199413354711516478],
+        "decoration": True,
+        "weight": 1,
+        "slots": ["·", "·"],
+    },
+    {
+        "ids": [5199957952269683620, 5201933555621461161],
+        "decoration": True,
+        "weight": 1,
+        "slots": ["·", "·"],
+    },
+    {
+        "ids": [5202120966519421892, 5201988823260625458],
+        "decoration": True,
+        "weight": 1,
+        "slots": ["·", "·"],
+    },
+    {
+        "ids": [5201951564419333092, 5201786779409089835],
+        "decoration": True,
+        "weight": 1,
+        "slots": ["·", "·"],
+    },
+    {
+        "ids": [5201708469270380950, 5202121748203471994],
+        "decoration": True,
+        "weight": 1,
+        "slots": ["·", "·"],
+    },
+    {
+        "ids": [5199881179729267180, 5199964905821736847],
+        "decoration": True,
+        "weight": 1,
+        "slots": ["·", "·"],
+    },
+    {
+        "ids": [
+            5202214837324644451,
+            5199621016380290395,
+            5201749374538909228,
+            5202179296470272967,
+            5199457957946884437,
+            5202209966831731759,
+            5201877699571775456,
+            5199484041283272847,
+            5199910930967725828,
+            5199591016033720704,
+            5201962246002996928,
+        ],
+        "decoration": True,
+        "weight": 1,
+        "slots": ["·", "·", "·", "·", "·", "·", "·", "·", "·", "·", "·"],
+    },
+    {
+        "ids": [5202202768466540442, 5201916392932162664],
+        "decoration": True,
+        "weight": 1,
+        "slots": ["·", "·"],
+    },
+    {
+        "ids": [5199705653005814371, 5201934796867009364],
+        "decoration": True,
+        "weight": 1,
+        "slots": ["·", "·"],
+    },
+    {
+        "ids": [5202075276657326844, 5199699317929052095],
+        "decoration": True,
+        "weight": 1,
+        "slots": ["·", "·"],
+    },
+    {
+        "ids": [5201885241534351242, 5199870820268151822],
+        "decoration": True,
+        "weight": 1,
+        "slots": ["·", "·"],
+    },
+    {
+        "ids": [5199905343215274664, 5199442049388022968],
+        "decoration": True,
+        "weight": 1,
+        "slots": ["·", "·"],
+    },
+    {
+        "ids": [5201749374538909228, 5202179296470272967],
+        "decoration": True,
+        "weight": 1,
+        "slots": ["·", "·"],
+    },
+    {
+        "ids": [5199830280071839827, 5199857699143060423],
+        "decoration": True,
+        "weight": 1,
+        "slots": ["·", "·"],
+    },
+    {
+        "ids": [5199501569044809143, 5202049463903878876],
+        "decoration": True,
+        "weight": 1,
+        "slots": ["·", "·"],
+    },
+    {
+        "ids": [5199910930967725828, 5199591016033720704],
+        "decoration": True,
+        "weight": 1,
+        "slots": ["·", "·"],
+    },
+    {"decoration": True, "ids": [5418111886832978331], "weight": 1},
+    {"decoration": True, "ids": [5417860085785315878], "weight": 1},
+    {"decoration": True, "ids": [5418359620546608679], "weight": 1},
+    {"decoration": True, "ids": [5418251533399639567], "weight": 1},
+    {"decoration": True, "ids": [5417910951083003210], "weight": 1},
+    {"decoration": True, "ids": [5418147264478594559], "weight": 1},
+    {"decoration": True, "ids": [5418013119765038361], "weight": 1},
+    {"decoration": True, "ids": [5418361458792612793], "weight": 1},
+    {"decoration": True, "ids": [5418008004458988642], "weight": 1},
+    {"decoration": True, "ids": [5418071904982419928], "weight": 1},
+    {"decoration": True, "ids": [5418279016895370157], "weight": 1},
+    {"decoration": True, "ids": [5418085150661560972], "weight": 1},
+    {"decoration": True, "ids": [5417861494534589816], "weight": 1},
+    {"decoration": True, "ids": [5418329761933970194], "weight": 1},
+    {"decoration": True, "ids": [5418290905364842090], "weight": 1},
+    {"decoration": True, "ids": [5417937416671477760], "weight": 1},
+    {"decoration": True, "ids": [5417866468106721012], "weight": 1},
+    {"decoration": True, "ids": [5417928354290484235], "weight": 1},
+    {"decoration": True, "ids": [5418206620926622999], "weight": 1},
+    {"decoration": True, "ids": [5417864028565293832], "weight": 1},
+    {"decoration": True, "ids": [5418265741151453862], "weight": 1},
+    {"decoration": True, "ids": [5418265152740935418], "weight": 1},
+    {"decoration": True, "ids": [5418058079482694093], "weight": 1},
+    {"decoration": True, "ids": [5417982376389133122], "weight": 1},
+    {"decoration": True, "ids": [5420312061139762335], "weight": 1},
+    {"decoration": True, "ids": [5418071252147392078], "weight": 1},
+    {"decoration": True, "ids": [5418160115020744932], "weight": 1},
+    {"decoration": True, "ids": [5417837240854268043], "weight": 1},
+    {"decoration": True, "ids": [5417840715482811533], "weight": 1},
+    {"decoration": True, "ids": [5417843743434753142], "weight": 1},
+    {"decoration": True, "ids": [5418083342480329887], "weight": 1},
+    {"decoration": True, "ids": [5420489129756474481], "weight": 1},
+    {"decoration": True, "ids": [5418335349686420216], "weight": 1},
+    {"decoration": True, "ids": [5420350440967519462], "weight": 1},
+    {"decoration": True, "ids": [5420481592088871272], "weight": 1},
+    {"decoration": True, "ids": [5417918231052571143], "weight": 1},
+    {"decoration": True, "ids": [5418126691585244998], "weight": 1},
+    {"decoration": True, "ids": [5418106303375491344], "weight": 1},
+    {"decoration": True, "ids": [5418256919288631584], "weight": 1},
+    {"decoration": True, "ids": [5417850684101905792], "weight": 1},
+    {"decoration": True, "ids": [5417859909691656243], "weight": 1},
+    {"decoration": True, "ids": [5417880151872520723], "weight": 1},
+    {"decoration": True, "ids": [5417988316328952960], "weight": 1},
+    {"decoration": True, "ids": [5418323714620015400], "weight": 1},
+    {"decoration": True, "ids": [5418128018730142468], "weight": 1},
+    {"decoration": True, "ids": [5417936866915665980], "weight": 1},
+    {"decoration": True, "ids": [5418251868407088044], "weight": 1},
+    {"decoration": True, "ids": [5418046191013218193], "weight": 1},
+    {"decoration": True, "ids": [5418146169261933647], "weight": 1},
+    {"decoration": True, "ids": [5418296987038531102], "weight": 1},
+    {"decoration": True, "ids": [5418201316642015398], "weight": 1},
+    {"decoration": True, "ids": [5418120253429271669], "weight": 1},
+    {"decoration": True, "ids": [5418100088557816063], "weight": 1},
+    {"decoration": True, "ids": [5417979807998692351], "weight": 1},
+    {"decoration": True, "ids": [5418138283701980904], "weight": 1},
+    {"decoration": True, "ids": [5418230604024007201], "weight": 1},
+    {"decoration": True, "ids": [5418080391837798120], "weight": 1},
+    {"decoration": True, "ids": [5418272965286445155], "weight": 1},
+    {"decoration": True, "ids": [5418186842602227835], "weight": 1},
+    {"decoration": True, "ids": [5418154175080970842], "weight": 1},
+    {"decoration": True, "ids": [5418304133864116825], "weight": 1},
+    {"decoration": True, "ids": [5417962452035847101], "weight": 1},
+    {"decoration": True, "ids": [5417913592487888096], "weight": 1},
+    {"decoration": True, "ids": [5418285901727941402], "weight": 1},
+    {"decoration": True, "ids": [5418296102275271118], "weight": 1},
+    {"decoration": True, "ids": [5420163880473082710], "weight": 1},
+    {"decoration": True, "ids": [5418192992995395922], "weight": 1},
+    {"decoration": True, "ids": [5418220596750206197], "weight": 1},
+    {"decoration": True, "ids": [5417879593526773263], "weight": 1},
+    {"decoration": True, "ids": [5418340426337765173], "weight": 1},
+    {"decoration": True, "ids": [5417954347432561887], "weight": 1},
+    {"decoration": True, "ids": [5417948686665664111], "weight": 1},
+    {"decoration": True, "ids": [5418333193612837600], "weight": 1},
+    {"decoration": True, "ids": [5413883422810591740], "weight": 1},
+    {"decoration": True, "ids": [5416011815328960892], "weight": 1},
+    {"decoration": True, "ids": [5413523581860599364], "weight": 1},
+    {"decoration": True, "ids": [5415837435361775291], "weight": 1},
+    {"decoration": True, "ids": [5415885581945163675], "weight": 1},
+    {"decoration": True, "ids": [5415758429438365417], "weight": 1},
+    {"decoration": True, "ids": [5413665058083328471], "weight": 1},
+    {"decoration": True, "ids": [5413369864981073801], "weight": 1},
+    {"decoration": True, "ids": [5413373477048570181], "weight": 1},
+    {"decoration": True, "ids": [5415654886366790664], "weight": 1},
+    {"decoration": True, "ids": [5415920242331241550], "weight": 1},
+    {"decoration": True, "ids": [5416095567191233749], "weight": 1},
+    {"decoration": True, "ids": [5413494457687362651], "weight": 1},
+    {"decoration": True, "ids": [5416024296503923678], "weight": 1},
+    {"decoration": True, "ids": [5416008031462771692], "weight": 1},
+    {"decoration": True, "ids": [5413615953722234042], "weight": 1},
+    {"decoration": True, "ids": [5416012270595493043], "weight": 1},
+    {"decoration": True, "ids": [5415741163669836688], "weight": 1},
+    {"decoration": True, "ids": [5415759730813457574], "weight": 1},
+    {"decoration": True, "ids": [5416092148397265052], "weight": 1},
+    {"decoration": True, "ids": [5415780831987780699], "weight": 1},
+    {"decoration": True, "ids": [5415834325805452663], "weight": 1},
+    {"decoration": True, "ids": [5415831551256578493], "weight": 1},
+    {"decoration": True, "ids": [5235723420548744533], "weight": 1},
+    {"decoration": True, "ids": [5233716034438976769], "weight": 1},
+    {"decoration": True, "ids": [5235521020214923661], "weight": 1},
+    {"decoration": True, "ids": [5235677219585544319], "weight": 1},
+    {"decoration": True, "ids": [5235460113283697394], "weight": 1},
+    {"decoration": True, "ids": [5233592502589609035], "weight": 1},
+    {"decoration": True, "ids": [5233661831951701465], "weight": 1},
+    {"decoration": True, "ids": [5233608982379125540], "weight": 1},
+    {"decoration": True, "ids": [5233370495730081224], "weight": 1},
+    {"decoration": True, "ids": [5233374322545939662], "weight": 1},
+    {"decoration": True, "ids": [5233497180085440723], "weight": 1},
+    {"decoration": True, "ids": [5233627691256665907], "weight": 1},
+    {"decoration": True, "ids": [5235745286227248146], "weight": 1},
+    {"decoration": True, "ids": [5233347204122434377], "weight": 1},
+    {"decoration": True, "ids": [5233270225423587411], "weight": 1},
+    {"decoration": True, "ids": [5235482502948210843], "weight": 1},
+    {"decoration": True, "ids": [5233201153759533688], "weight": 1},
+    {"decoration": True, "ids": [5233668059654280587], "weight": 1},
+    {"decoration": True, "ids": [5235459344484550544], "weight": 1},
+    {"decoration": True, "ids": [5233294951550307747], "weight": 1},
+    {"decoration": True, "ids": [5235579848381973530], "weight": 1},
+    {"decoration": True, "ids": [5235971785622573354], "weight": 1},
+    {"decoration": True, "ids": [5233362511385872905], "weight": 1},
+    {"decoration": True, "ids": [5235956113286907561], "weight": 1},
+    {"decoration": True, "ids": [5233554440589433180], "weight": 1},
+    {"decoration": True, "ids": [5235950332260927922], "weight": 1},
+    {"decoration": True, "ids": [5233711971399913792], "weight": 1},
+    {"decoration": True, "ids": [5233567875247135251], "weight": 1},
+    {"decoration": True, "ids": [5235599240159315760], "weight": 1},
+    {"decoration": True, "ids": [5235777571496413137], "weight": 1},
+    {"decoration": True, "ids": [5233219613528972010], "weight": 1},
+    {"decoration": True, "ids": [5235586020249980943], "weight": 1},
+    {"decoration": True, "ids": [5233499774245689723], "weight": 1},
+    {"decoration": True, "ids": [5233591248459158465], "weight": 1},
+    {"decoration": True, "ids": [5235700631452273664], "weight": 1},
+    {"decoration": True, "ids": [5233716605669625989], "weight": 1},
+    {"decoration": True, "ids": [5247097559100444460], "weight": 1},
+    {"decoration": True, "ids": [5249459825472985080], "weight": 1},
+    {"decoration": True, "ids": [5246764849458860647], "weight": 1},
+    {"decoration": True, "ids": [5247046367385243584], "weight": 1},
+    {"decoration": True, "ids": [5247066893033952327], "weight": 1},
+    {"decoration": True, "ids": [5249419134952821770], "weight": 1},
+    {"decoration": True, "ids": [5247249832870957854], "weight": 1},
+    {"decoration": True, "ids": [5246809001722662573], "weight": 1},
+    {"decoration": True, "ids": [5247186812815821747], "weight": 1},
+    {"decoration": True, "ids": [5255853498473400591], "weight": 1},
+    {"decoration": True, "ids": [5256207292109443199], "weight": 1},
+    {"decoration": True, "ids": [5255911575021176301], "weight": 1},
+    {"decoration": True, "ids": [5256262366475081041], "weight": 1},
+    {"decoration": True, "ids": [5255769536157731639], "weight": 1},
+    {"decoration": True, "ids": [5256036481260079940], "weight": 1},
+    {"decoration": True, "ids": [5255957780279347698], "weight": 1},
+    {"decoration": True, "ids": [5255702538962881386], "weight": 1},
+    {"decoration": True, "ids": [5255790018856767421], "weight": 1},
+    {"decoration": True, "ids": [5256241205171210542], "weight": 1},
+    {"decoration": True, "ids": [5256180147916133814], "weight": 1},
+    {"decoration": True, "ids": [5260226642764126531], "weight": 1},
+    {"decoration": True, "ids": [5260335743523376171], "weight": 1},
+    {"decoration": True, "ids": [5260497277243379364], "weight": 1},
+    {"decoration": True, "ids": [5260573959589484799], "weight": 1},
+    {"decoration": True, "ids": [5260210601061274961], "weight": 1},
+    {"decoration": True, "ids": [5260303617168003726], "weight": 1},
+    {"decoration": True, "ids": [5260434214238574520], "weight": 1},
+    {"decoration": True, "ids": [5260262449906471668], "weight": 1},
+    {"decoration": True, "ids": [5260606223383810665], "weight": 1},
+    {"decoration": True, "ids": [5276293496943171583], "weight": 1},
+    {"decoration": True, "ids": [5273788787980261015], "weight": 1},
+    {"decoration": True, "ids": [5276140162315734489], "weight": 1},
+    {"decoration": True, "ids": [5273923920536294243], "weight": 1},
+    {"decoration": True, "ids": [5274242727368742060], "weight": 1},
+    {"decoration": True, "ids": [5276411037313159324], "weight": 1},
+    {"decoration": True, "ids": [5274110210447790771], "weight": 1},
+    {"decoration": True, "ids": [5276508193768361649], "weight": 1},
+    {"decoration": True, "ids": [5273951678909930089], "weight": 1},
+    {"decoration": True, "ids": [5274082563743307525], "weight": 1},
+    {"decoration": True, "ids": [5273751846966549016], "weight": 1},
+    {"decoration": True, "ids": [5274059688747489140], "weight": 1},
+    {"decoration": True, "ids": [5274068252912276209], "weight": 1},
+    {"decoration": True, "ids": [5273931213390763600], "weight": 1},
+    {"decoration": True, "ids": [5276299694580978172], "weight": 1},
+    {"decoration": True, "ids": [5294500099534114701], "weight": 1},
+    {"decoration": True, "ids": [5296558969416865098], "weight": 1},
+    {"decoration": True, "ids": [5296509091961656481], "weight": 1},
+    {"decoration": True, "ids": [5294295878134156579], "weight": 1},
+    {"decoration": True, "ids": [5294542941832893660], "weight": 1},
+    {"decoration": True, "ids": [5296480414465020309], "weight": 1},
+    {"decoration": True, "ids": [5336861301845018905], "weight": 1},
+    {"decoration": True, "ids": [5334919560015402706], "weight": 1},
+    {"decoration": True, "ids": [5370803298808912745], "weight": 1},
+    {"decoration": True, "ids": [5368829142861107443], "weight": 1},
+    {"decoration": True, "ids": [5371007601813245633], "weight": 1},
+    {"decoration": True, "ids": [5371103482663163546], "weight": 1},
+    {"decoration": True, "ids": [5370887523117585138], "weight": 1},
+    {"decoration": True, "ids": [5370634588198558354], "weight": 1},
+    {"decoration": True, "ids": [5368424913424109535], "weight": 1},
+    {"decoration": True, "ids": [5368314352375976902], "weight": 1},
+    {"decoration": True, "ids": [5368321451956916996], "weight": 1},
+    {"decoration": True, "ids": [5381819318692499459], "weight": 1},
+    {"decoration": True, "ids": [5381929265560311279], "weight": 1},
+    {"decoration": True, "ids": [5381964312493446540], "weight": 1},
+    {"decoration": True, "ids": [5382229634098159275], "weight": 1},
+    {"decoration": True, "ids": [5381941123965015395], "weight": 1},
+    {"decoration": True, "ids": [5381924768729552402], "weight": 1},
+    {"decoration": True, "ids": [5382182750235155636], "weight": 1},
+    {
+        "mur": True,
+        "ids": [
+            5217853341530366508,
+            5215632078934153510,
+            5217602326461715326,
+            5217605861219799574,
+            5217591962705631987,
+        ],
+        "slots": ["·", "·", "·", "·", "·"],
+        "block_line": True,
+        "weight": 2,
+    },
+    {
+        "mur": True,
+        "ids": [
+            5217611019475520214,
+            5217958843107022005,
+            5215529725568520826,
+            5215373646456988524,
+        ],
+        "slots": ["·", "·", "·", "·"],
+        "block_line": True,
+        "weight": 3,
+    },
+    {
+        "mur": True,
+        "ids": [5215367019322447338, 5217518351261139832, 5217698245966334370],
+        "slots": ["·", "·", "·"],
+        "block_line": True,
+        "weight": 2,
+    },
+    {
+        "mur": True,
+        "ids": [
+            5217834001292631455,
+            5215593037681430812,
+            5217940821424248912,
+            5217537901952272484,
+        ],
+        "slots": ["·", "·", "·", "·"],
+        "block_line": True,
+        "weight": 2,
+    },
+    {
+        "mur": True,
+        "ids": [
+            5217511659702094588,
+            5217953684851299901,
+            5217913574151720256,
+            5217526249706001093,
+        ],
+        "slots": ["·", "·", "·", "·"],
+        "block_line": True,
+        "weight": 1,
+    },
+    {
+        "decoration": True,
+        "block_line": True,
+        "layout": "grid",
+        "rows": [
+            [5409181172355853700, 5411264506372318504, 5409229271694602178],
+            [5409008046519117453, 5411511080444780941],
+            [5411436111790633437, 5409276512039892209, 5409010279902110886],
+        ],
+        "weight": 4,
+    },
+    {
+        "decoration": True,
+        "block_line": True,
+        "layout": "grid",
+        "rows": [
+            [5413448364098354731, 5413458470156398752, 5416093887859027211],
+            [5416116337653082497, 5413886699870646573, 5415625921107353312, 5413455132966811197],
+        ],
+        "weight": 4,
+    },
+    {
+        "decoration": True,
+        "block_line": True,
+        "layout": "grid",
+        "rows": [
+            [5416121199556058061, 5416052153661811263],
+            [5415822617724611526, 5413759981155545630],
+            [5415929107143750384, 5413805512103849239],
+        ],
+        "weight": 4,
+    },
+    {
+        "decoration": True,
+        "block_line": True,
+        "layout": "grid",
+        "rows": [
+            [5424714157805038467, 5422602794831999801, 5422656464743328682],
+            [5422395944912056203, 5424887232102164924, 5422653475446104527],
+        ],
+        "weight": 4,
+    },
+    {
+        "decoration": True,
+        "block_line": True,
+        "layout": "grid",
+        "rows": [
+            [5415996834483042002, 5413407871146685195],
+            [5413566132101607517, 5415797883007950690],
+            [5415909492028105841, 5413388947520780372],
+            [5415582696556489435, 5413695238818525421],
+        ],
+        "weight": 4,
+    },
+    {"decoration": True, "ids": [5415907769746218881], "weight": 2},
+    {"decoration": True, "ids": [5402220860025106572, 5402629994314756439], "weight": 2},
+    {
+        "decoration": True,
+        "block_line": True,
+        "layout": "grid",
+        "rows": [
+            [5402219485635571723, 5402629513278417035],
+            [5402573154717560268, 5404465062041643795],
+        ],
+        "weight": 3,
+    },
+    {
+        "decoration": True,
+        "block_line": True,
+        "layout": "grid",
+        "rows": [
+            [5402125928362963295, 5402176836610323827],
+            [5404514359676267017, 5404650175132101341],
+        ],
+        "weight": 3,
+    },
+]
+
+_EMOJI_GRAPHEME = (
+    r"[\U0001F1E0-\U0001F1FF]{2}"
+    r"|[\U0001F300-\U0001FAFF\U00002600-\U000027BF\U0000FE00-\U0000FE0F"
+    r"\U0001F3FB-\U0001F3FF\U0000200D\U000E0020-\U000E007F]+"
+)
+_EMOJI_CLUSTER_RE = re.compile(r"^(?:\s|" + _EMOJI_GRAPHEME + r")+$")
+_EMOJI_ONLY_MSG_RE = re.compile(rf"^(?:{_EMOJI_GRAPHEME})(?:\s+(?:{_EMOJI_GRAPHEME})){{0,2}}$")
+
+
+def _utf16_len(text):
+    if not text:
+        return 0
+    return len(text.encode("utf-16-le", "surrogatepass")) // 2
+
+
+def _py_to_utf16_offset(text, py_index):
+    if py_index <= 0:
+        return 0
+    return _utf16_len(text[:py_index])
+
+
+def _utf16_to_py_range(text, utf16_offset, utf16_length):
+    if not text or utf16_length <= 0:
+        return 0, 0
+    u = 0
+    py_start = None
+    py_end = len(text)
+    target_end = int(utf16_offset) + int(utf16_length)
+    for i, ch in enumerate(text):
+        next_u = u + _utf16_len(ch)
+        if py_start is None and next_u > int(utf16_offset):
+            py_start = i
+        if next_u >= target_end:
+            py_end = i + 1
+            break
+        u = next_u
+    if py_start is None:
+        py_start = len(text)
+    return py_start, py_end
+
 
 class LocalizationManager:
     def __init__(self):
-        self.language = Locale.getDefault().getLanguage()
-        self.language = self.language if self.language in self._get_supported_languages() else "en"
+        self._override = None
+        self._apply_system_language()
+
+    def _apply_system_language(self):
+        lang = Locale.getDefault().getLanguage()
+        self.language = lang if lang in self._get_supported_languages() else "en"
+
+    def apply_override(self, index):
+        if index == 1:
+            self._override = "ru"
+        elif index == 2:
+            self._override = "en"
+        else:
+            self._override = None
+        if self._override:
+            self.language = self._override
+        else:
+            self._apply_system_language()
 
     def get_string(self, string_key):
         return self.strings[self.language].get(string_key, self.strings["en"].get(string_key, string_key))
@@ -62,7 +1512,7 @@ class LocalizationManager:
             "ENABLE_LOWERCASE_SWITCH": "Преобразовать в строчные буквы",
             "LOWERCASE_INFO": "всё будет написано маленькими буквами для мягкости.",
             "ENABLE_UWU_SPEAK_SWITCH": "Включить UwU-стиль (р/л → в/w)",
-            "UWU_SPEAK_INFO": "Заменяет 'р' и 'л' на 'в' (рус) или 'w' (англ).",
+            "UWU_SPEAK_INFO": "Заменяет 'р' и 'л' на 'в' (рус) или 'w' (англ). С premium — иногда добавляет мур-полосу из adapemoji.",
             "ENABLE_UWU_SUFFIXES_SWITCH": "Добавлять UwU-суффиксы (nya, owo)",
             "UWU_SUFFIXES_FREQUENCY": "Частота UwU-суффиксов",
             "ENABLE_STUTTERING_SWITCH": "Включить заикание (п-привет)",
@@ -128,6 +1578,81 @@ class LocalizationManager:
             "CUTIFY_SUB": "✧ сделать милым",
             "CUTIFY_DONE": "Омилено ✨",
             "CUTIFY_NOT_OWN": "Только свои ◕‿◕",
+            "PAGE_MAIN_EFFECTS": "Основные эффекты",
+            "PAGE_MAIN_EFFECTS_SUB": "Классика, рамки, темы",
+            "PAGE_ADVANCED_EFFECTS": "Дополнительные эффекты",
+            "PAGE_ADVANCED_EFFECTS_SUB": "UwU, заикание, пунктуация",
+            "PAGE_CHATS": "Чаты и фильтры",
+            "PAGE_CHATS_SUB": "Списки, топики, стоп-слово",
+            "PAGE_STYLES": "Стили сообщений",
+            "PAGE_STYLES_SUB": "Темы и будущие стили",
+            "PAGE_AUTOMATION": "Автоматизация",
+            "PAGE_AUTOMATION_SUB": "Эффекты, реакции, premium",
+            "PAGE_PRESETS": "Пресеты",
+            "PAGE_PRESETS_SUB": "Экспорт и импорт настроек",
+            "MESSAGE_LANGUAGE": "Язык милых сообщений",
+            "LANG_AUTO": "Авто (системный)",
+            "LANG_RU": "Русский",
+            "LANG_EN": "English",
+            "USE_PREMIUM_EMOJI": "Использовать premium-эмодзи",
+            "USE_PREMIUM_EMOJI_DESC": "Подмена на custom emoji по document_id. Анимация — в exteraGram/AyuGram; в официальном Telegram Desktop нужны установленные паки, иначе виден unicode-fallback.",
+            "PREMIUM_EMOJI_FREQUENCY": "Частота premium-эмодзи",
+            "PREMIUM_EMOJI_FREQUENCY_INFO": "Вероятность подмены unicode. Крупные блоки (сетки, полосы) — отдельный приоритетный проход (~65% от этой настройки).",
+            "EXPORT_PRESET": "Скопировать ссылку пресета",
+            "IMPORT_PRESET": "Применить пресет из буфера",
+            "PRESET_COPIED": "Ссылка пресета скопирована",
+            "PRESET_APPLIED": "Пресет применён",
+            "PRESET_ERROR": "Не удалось применить пресет",
+            "INCLUDE_LISTS_EXPORT": "Включать списки чатов в пресет",
+            "STOP_WORD_ENABLED": "Стоп-слово",
+            "STOP_WORD_INPUT": "Стоп-слово",
+            "STOP_WORD_DESC": "При получении слова предложит добавить чат в чёрный список",
+            "STOP_WORD_CONFIRM_TITLE": "Добавить в чёрный список?",
+            "STOP_WORD_CONFIRM_MSG": "Собеседник отправил стоп-слово. Добавить этот чат в чёрный список?",
+            "STOP_WORD_ADDED": "Чат добавлен в чёрный список",
+            "AUTO_EFFECT_ENABLED": "Авто-эффект сообщения",
+            "AUTO_EFFECT_SELECTOR": "Эффект отправки",
+            "AUTO_EFFECT_HINT": "Только личные чаты 1-на-1. Бесплатные эффекты Telegram; Premium открывает больше вручную.",
+            "EFFECT_NONE": "Без эффекта",
+            "EFFECT_LOVE": "❤️ Любовь",
+            "EFFECT_PARTY": "🎉 Праздник",
+            "EFFECT_FIRE": "🔥 Огонь",
+            "EFFECT_THUMBS": "👍 Лайк",
+            "AUTO_REACTION_ENABLED": "Авто-реакция на своё сообщение",
+            "AUTO_REACTION_EMOJI": "Эмодзи реакции",
+            "CHAT_FILTER_BTN_NEUTRAL": "Cute: фильтр чатов",
+            "TOPIC_WHITELIST_HEADER": "Белый список топиков",
+            "TOPIC_WHITELIST_ADD_BTN": "Cute: добавить топик в белый список",
+            "TOPIC_WHITELIST_REMOVE_BTN": "Cute: удалить топик из белого списка",
+            "TOPIC_WHITELIST_ADDED": "Топик добавлен в белый список",
+            "TOPIC_WHITELIST_REMOVED": "Топик удалён из белого списка",
+            "TOPIC_LIST_EMPTY": "Топики не добавлены",
+            "STYLE_HUB_HEADER": "Стили сообщений",
+            "STYLE_CUTE_ACTIVE": "Cute (активный)",
+            "STYLE_CUTE_SUB": "Текущий стиль плагина",
+            "STYLE_MUR_SOON": "Муринский",
+            "STYLE_MUR_SUB": "Скоро",
+            "STYLE_PATRIOT_SOON": "Патриотичный",
+            "STYLE_PATRIOT_SUB": "Скоро",
+            "STYLE_PASTEL_SUB": "Пастельная тема",
+            "STYLE_MAGICAL_SUB": "Волшебная тема",
+            "STYLE_NATURE_SUB": "Природная тема",
+            "PRESETS_INFO": "Поделитесь ссылкой — другие смогут применить ваши настройки",
+            "CREDITS_HEADER": "Авторы и поддержка",
+            "CREDITS_ORIGINAL_HEADER": "Оригинал (до v1.6.1)",
+            "CREDITS_MAIN_AUTHOR": "@mihailkotovski",
+            "CREDITS_MAIN_AUTHOR_SUB": "Основной автор",
+            "CREDITS_COAUTHOR": "@mishabotov",
+            "CREDITS_COAUTHOR_SUB": "Соавтор и поддержка",
+            "CREDITS_IDEA": "@bleizix",
+            "CREDITS_IDEA_SUB": "Идея плагина",
+            "CREDITS_MAINTAINER_HEADER": "Обновления v1.6.1+",
+            "CREDITS_MAINTAINER": "@abuztrade",
+            "CREDITS_MAINTAINER_SUB": "Разработка и выпуск обновлений",
+            "CREDITS_CHANNEL": "@AwesomeTelegramPlugins",
+            "CREDITS_CHANNEL_SUB": "Канал Awesome Telegram Plugins",
+            "ADD": "Добавить",
+            "CANCEL": "Отмена",
         },
         "en": {
             "ENABLED": "✅ Cute messages enabled",
@@ -152,7 +1677,7 @@ class LocalizationManager:
             "ENABLE_LOWERCASE_SWITCH": "Convert to lowercase",
             "LOWERCASE_INFO": "everything will be in small letters for softness.",
             "ENABLE_UWU_SPEAK_SWITCH": "Enable UwU-speak (r/l → w)",
-            "UWU_SPEAK_INFO": "Replaces 'r' and 'l' with 'w'.",
+            "UWU_SPEAK_INFO": "Replaces 'r' and 'l' with 'w'. With premium emoji — may add a mur-style adapemoji band.",
             "ENABLE_UWU_SUFFIXES_SWITCH": "Add UwU Suffixes (nya, owo)",
             "UWU_SUFFIXES_FREQUENCY": "UwU Suffix Frequency",
             "ENABLE_STUTTERING_SWITCH": "Enable Stuttering (h-hello)",
@@ -218,6 +1743,81 @@ class LocalizationManager:
             "CUTIFY_SUB": "Make it cute ⭐",
             "CUTIFY_DONE": "Cutified ✧",
             "CUTIFY_NOT_OWN": "Own messages only 💬",
+            "PAGE_MAIN_EFFECTS": "Main effects",
+            "PAGE_MAIN_EFFECTS_SUB": "Classic, borders, themes",
+            "PAGE_ADVANCED_EFFECTS": "Additional effects",
+            "PAGE_ADVANCED_EFFECTS_SUB": "UwU, stutter, punctuation",
+            "PAGE_CHATS": "Chats & filters",
+            "PAGE_CHATS_SUB": "Lists, topics, stop word",
+            "PAGE_STYLES": "Message styles",
+            "PAGE_STYLES_SUB": "Themes and upcoming styles",
+            "PAGE_AUTOMATION": "Automation",
+            "PAGE_AUTOMATION_SUB": "Effects, reactions, premium",
+            "PAGE_PRESETS": "Presets",
+            "PAGE_PRESETS_SUB": "Export and import settings",
+            "MESSAGE_LANGUAGE": "Cute message language",
+            "LANG_AUTO": "Auto (system)",
+            "LANG_RU": "Russian",
+            "LANG_EN": "English",
+            "USE_PREMIUM_EMOJI": "Use premium emojis",
+            "USE_PREMIUM_EMOJI_DESC": "Replace with custom emoji by document_id. Animation in exteraGram/AyuGram; official Telegram Desktop needs installed packs or shows unicode fallback.",
+            "PREMIUM_EMOJI_FREQUENCY": "Premium emoji frequency",
+            "PREMIUM_EMOJI_FREQUENCY_INFO": "Unicode replace chance. Large blocks (grids, bands) get a priority pass first (~65% of this setting).",
+            "EXPORT_PRESET": "Copy preset link",
+            "IMPORT_PRESET": "Apply preset from clipboard",
+            "PRESET_COPIED": "Preset link copied",
+            "PRESET_APPLIED": "Preset applied",
+            "PRESET_ERROR": "Failed to apply preset",
+            "INCLUDE_LISTS_EXPORT": "Include chat lists in preset",
+            "STOP_WORD_ENABLED": "Stop word",
+            "STOP_WORD_INPUT": "Stop word",
+            "STOP_WORD_DESC": "Shows a prompt to blacklist chat when word is received",
+            "STOP_WORD_CONFIRM_TITLE": "Add to blacklist?",
+            "STOP_WORD_CONFIRM_MSG": "Contact sent the stop word. Add this chat to blacklist?",
+            "STOP_WORD_ADDED": "Chat added to blacklist",
+            "AUTO_EFFECT_ENABLED": "Auto message effect",
+            "AUTO_EFFECT_SELECTOR": "Send effect",
+            "AUTO_EFFECT_HINT": "Private 1-on-1 chats only. Free Telegram effects; Premium unlocks more when picking manually.",
+            "EFFECT_NONE": "No effect",
+            "EFFECT_LOVE": "❤️ Love",
+            "EFFECT_PARTY": "🎉 Party",
+            "EFFECT_FIRE": "🔥 Fire",
+            "EFFECT_THUMBS": "👍 Like",
+            "AUTO_REACTION_ENABLED": "Auto-react to own message",
+            "AUTO_REACTION_EMOJI": "Reaction emoji",
+            "CHAT_FILTER_BTN_NEUTRAL": "Cute: chat filter",
+            "TOPIC_WHITELIST_HEADER": "Topic whitelist",
+            "TOPIC_WHITELIST_ADD_BTN": "Cute: add topic to whitelist",
+            "TOPIC_WHITELIST_REMOVE_BTN": "Cute: remove topic from whitelist",
+            "TOPIC_WHITELIST_ADDED": "Topic added to whitelist",
+            "TOPIC_WHITELIST_REMOVED": "Topic removed from whitelist",
+            "TOPIC_LIST_EMPTY": "No topics added",
+            "STYLE_HUB_HEADER": "Message styles",
+            "STYLE_CUTE_ACTIVE": "Cute (active)",
+            "STYLE_CUTE_SUB": "Current plugin style",
+            "STYLE_MUR_SOON": "Mur-style",
+            "STYLE_MUR_SUB": "Coming soon",
+            "STYLE_PATRIOT_SOON": "Patriotic",
+            "STYLE_PATRIOT_SUB": "Coming soon",
+            "STYLE_PASTEL_SUB": "Pastel theme",
+            "STYLE_MAGICAL_SUB": "Magical theme",
+            "STYLE_NATURE_SUB": "Nature theme",
+            "PRESETS_INFO": "Share the link so others can apply your settings",
+            "CREDITS_HEADER": "Authors & support",
+            "CREDITS_ORIGINAL_HEADER": "Original (up to v1.6.1)",
+            "CREDITS_MAIN_AUTHOR": "@mihailkotovski",
+            "CREDITS_MAIN_AUTHOR_SUB": "Original author",
+            "CREDITS_COAUTHOR": "@mishabotov",
+            "CREDITS_COAUTHOR_SUB": "Co-author & support",
+            "CREDITS_IDEA": "@bleizix",
+            "CREDITS_IDEA_SUB": "Plugin idea",
+            "CREDITS_MAINTAINER_HEADER": "Updates v1.6.1+",
+            "CREDITS_MAINTAINER": "@abuztrade",
+            "CREDITS_MAINTAINER_SUB": "Development & releases",
+            "CREDITS_CHANNEL": "@AwesomeTelegramPlugins",
+            "CREDITS_CHANNEL_SUB": "Awesome Telegram Plugins channel",
+            "ADD": "Add",
+            "CANCEL": "Cancel",
         },
     }
 
@@ -241,7 +1841,14 @@ class PicMePlugin(BasePlugin):
         self._chat_list_menu_text = None
         self._chat_list_menu_icon = None
         self._chat_list_menu_dialog_id = None
+        self._topic_menu_item = None
+        self._topic_menu_text = None
+        self._topic_menu_dialog_id = None
+        self._topic_menu_topic_id = None
         self._chat_dialog_hooks = []
+        self._deeplink_hook_ref = None
+        self._pending_reactions = []
+        self._stop_word_prompted = set()
         self._undo_menu_item = None
         self._cutify_menu_item = None
         self._pending_undo = []
@@ -573,7 +2180,7 @@ class PicMePlugin(BasePlugin):
                 "suffix": ["✨", "⋆", "✧", "☆"],
             },
             "nature": {
-                "emojis": ["🌷", "🌱", "🍄", "🦋", "🐝", "🌻", "🪴", "🌿", "🍃", "🌺", "🌼"],
+                "emojis": ["🌷", "🌱", "🍄", "🦋", "🐝", "🌻", "🪴", "🌿", "🍃", "🌺", "🌼", "🧚", "🍎", "✨"],
                 "words": ["bloom", "flower", "garden", "blossom", "meadow", "butterfly"],
                 "prefix": ["❀", "🌱", "🌿", "🍃"],
                 "suffix": ["❀", "🌱", "🌿", "🍄"],
@@ -583,6 +2190,36 @@ class PicMePlugin(BasePlugin):
     def _copy_to_clipboard(self, label, text):
         if AndroidUtilities.addToClipboard(text):
             BulletinHelper.show_info(f"Copied {label} to clipboard")
+
+    def _open_telegram_username(self, username):
+        name = str(username or "").lstrip("@")
+        if not name:
+            return
+        try:
+            get_messages_controller().openByUserName(name, get_last_fragment(), 1)
+        except Exception:
+            log(f"[{__id__}] openByUserName failed: {name}\n{traceback.format_exc()}")
+
+    def _credit_link(self, username, text_key, subtext_key):
+        return Text(
+            text=locali.get_string(text_key),
+            subtext=locali.get_string(subtext_key),
+            icon="msg_link",
+            accent=True,
+            on_click=lambda view, u=username: run_on_ui_thread(lambda: self._open_telegram_username(u)),
+        )
+
+    def _settings_credits(self):
+        return [
+            Header(text=locali.get_string("CREDITS_HEADER")),
+            Divider(text=locali.get_string("CREDITS_ORIGINAL_HEADER")),
+            self._credit_link("mihailkotovski", "CREDITS_MAIN_AUTHOR", "CREDITS_MAIN_AUTHOR_SUB"),
+            self._credit_link("mishabotov", "CREDITS_COAUTHOR", "CREDITS_COAUTHOR_SUB"),
+            self._credit_link("bleizix", "CREDITS_IDEA", "CREDITS_IDEA_SUB"),
+            Divider(text=locali.get_string("CREDITS_MAINTAINER_HEADER")),
+            self._credit_link("abuztrade", "CREDITS_MAINTAINER", "CREDITS_MAINTAINER_SUB"),
+            self._credit_link("AwesomeTelegramPlugins", "CREDITS_CHANNEL", "CREDITS_CHANNEL_SUB"),
+        ]
 
     def _get_frequency_prob_for_new_effects(self, setting_key, default_index=2):
         frequency_idx = self.get_setting(setting_key, default_index)
@@ -595,6 +2232,10 @@ class PicMePlugin(BasePlugin):
         if frequency_idx == 4:
             return 1.00
         return 0.5
+
+    def _get_premium_emoji_chance(self, scale=1.0):
+        prob = self._get_frequency_prob_for_new_effects("premium_emoji_frequency", 3)
+        return min(1.0, prob * scale)
 
     def _open_plugin_settings(self, java_plugin):
         try:
@@ -809,16 +2450,14 @@ class PicMePlugin(BasePlugin):
                 if self._undo_record_matches_text(record, text):
                     return cache_key, record
 
-        log(
-            f"[{__id__}] undo miss: dialog_id={did}, msg_ids={sorted(msg_ids)}, "
-            f"cache={list(self._undo_cache.keys())}"
-        )
+        log(f"[{__id__}] undo miss: dialog_id={did}, msg_ids={sorted(msg_ids)}, cache={list(self._undo_cache.keys())}")
         return None, None
 
     def _make_version(self, text, entities_list):
         return {
             "text": text,
             "html": self._entities_to_html(text, entities_list),
+            "entities": list(entities_list or []),
         }
 
     def _undo_record_size(self, record):
@@ -904,7 +2543,56 @@ class PicMePlugin(BasePlugin):
         record["index"] = 1
         return versions[1], locali.get_string("UNDO_TO_CUTE")
 
-    def _edit_message_content(self, message, text, html=None):
+    def _build_java_entities_array(self, entities_list):
+        java_list = ArrayList()
+        if not entities_list:
+            return java_list
+        for rec in entities_list:
+            java_ent = rec.get("java")
+            if java_ent is None:
+                continue
+            off = int(rec.get("new_offset", rec.get("offset", 0)))
+            ln = int(rec.get("new_length", rec.get("length", 0)))
+            try:
+                java_ent.offset = off
+                java_ent.length = ln
+            except Exception:
+                pass
+            java_list.add(java_ent)
+        return java_list
+
+    def _edit_message_schedule_params(self, message):
+        schedule_date = 0
+        schedule_repeat = 0
+        try:
+            if getattr(message, "scheduled", False):
+                owner = getattr(message, "messageOwner", None)
+                if owner is not None:
+                    schedule_date = int(getattr(owner, "date", 0) or 0)
+                    schedule_repeat = int(getattr(owner, "schedule_repeat_period", 0) or 0)
+        except Exception:
+            pass
+        return schedule_date, schedule_repeat
+
+    def _edit_message_content(self, message, text, html=None, entities_list=None):
+        if entities_list:
+            try:
+                fragment = get_last_fragment()
+                if fragment is not None:
+                    schedule_date, schedule_repeat = self._edit_message_schedule_params(message)
+                    java_entities = self._build_java_entities_array(entities_list)
+                    get_send_messages_helper().editMessage(
+                        message,
+                        text,
+                        True,
+                        fragment,
+                        java_entities,
+                        schedule_date,
+                        schedule_repeat,
+                    )
+                    return
+            except Exception:
+                log(f"[{__id__}] editMessage with entities failed:\n{traceback.format_exc()}")
         if html:
             try:
                 edit_message(message, text=html, parse_mode="html")
@@ -975,7 +2663,7 @@ class PicMePlugin(BasePlugin):
     def _get_chat_list_menu_text(self, dialog_id=None):
         mode = self._get_chat_filter_mode()
         if mode == 0:
-            return locali.get_string("CHAT_WHITELIST_ADD_BTN")
+            return locali.get_string("CHAT_FILTER_BTN_NEUTRAL")
         if mode == 1:
             in_list = dialog_id is not None and int(dialog_id) in self._get_chat_list("chat_whitelist")
             key = "CHAT_WHITELIST_REMOVE_BTN" if in_list else "CHAT_WHITELIST_ADD_BTN"
@@ -1036,7 +2724,9 @@ class PicMePlugin(BasePlugin):
                     try:
                         chat = param.thisObject
                         if chat is not None and hasattr(chat, "getDialogId"):
-                            plugin._update_chat_list_menu_text(int(chat.getDialogId()))
+                            did = int(chat.getDialogId())
+                            plugin._update_chat_list_menu_text(did)
+                            plugin._update_topic_menu_text(did)
                     except Exception:
                         pass
 
@@ -1055,10 +2745,8 @@ class PicMePlugin(BasePlugin):
         self._chat_dialog_hooks = []
 
     def _add_chat_action_items(self):
-        if self._chat_list_menu_item:
-            self._update_chat_list_menu_text()
-            return
         self._update_chat_list_menu_text()
+        self._update_topic_menu_text()
 
     def _remove_chat_action_items(self):
         try:
@@ -1203,7 +2891,12 @@ class PicMePlugin(BasePlugin):
                         f"[{__id__}] undo step: key={key}, msg_id={msg_id}, "
                         f"index={record.get('index')}/{len(record.get('versions', [])) - 1}"
                     )
-                    self._edit_message_content(message, version.get("text", ""), version.get("html"))
+                    self._edit_message_content(
+                        message,
+                        version.get("text", ""),
+                        version.get("html"),
+                        version.get("entities"),
+                    )
                     BulletinHelper.show_info(bulletin)
                 except Exception:
                     log(f"[{__id__}] edit_message failed:\n{traceback.format_exc()}")
@@ -1249,7 +2942,12 @@ class PicMePlugin(BasePlugin):
 
             def _do_edit():
                 try:
-                    self._edit_message_content(message, version.get("text", modified_text), version.get("html"))
+                    self._edit_message_content(
+                        message,
+                        version.get("text", modified_text),
+                        version.get("html"),
+                        version.get("entities"),
+                    )
                     BulletinHelper.show_info(locali.get_string("CUTIFY_DONE"))
                 except Exception:
                     log(f"[{__id__}] cutify edit_message failed:\n{traceback.format_exc()}")
@@ -1325,6 +3023,7 @@ class PicMePlugin(BasePlugin):
             mode = 0
         self.set_setting("chat_filter_mode", mode, reload_settings=True)
         self._update_chat_list_menu_text()
+        self._update_topic_menu_text()
 
     def _build_chat_filter_settings(self):
         mode = self._get_chat_filter_mode()
@@ -1370,26 +3069,375 @@ class PicMePlugin(BasePlugin):
         self._set_chat_list(key, ids)
         return True
 
-    def _should_apply_in_chat(self, peer):
+    def _should_apply_in_chat(self, peer, topic_id=None):
         if peer is None:
             return True
         peer = int(peer)
         mode = self._get_chat_filter_mode()
         if mode == 1:
-            return peer in self._get_chat_list("chat_whitelist")
+            if peer in self._get_chat_list("chat_whitelist"):
+                return True
+            if topic_id is not None:
+                topics = self._get_topic_whitelist(peer)
+                return int(topic_id) in topics
+            return False
         if mode == 2:
             return peer not in self._get_chat_list("chat_blacklist")
         return True
 
-    def create_settings(self):
-        classic_frequency_items = [
+    def _apply_language_from_settings(self):
+        locali.apply_override(int(self.get_setting("message_language", 0) or 0))
+
+    def _on_message_language_change(self, new_index):
+        try:
+            idx = int(new_index)
+        except (TypeError, ValueError):
+            idx = 0
+        self.set_setting("message_language", idx, reload_settings=False)
+        locali.apply_override(idx)
+        self.set_setting("message_language", idx, reload_settings=True)
+
+    def _is_emoji_only_message(self, text):
+        if not text:
+            return False
+        stripped = text.strip()
+        if not stripped:
+            return False
+        if not _EMOJI_ONLY_MSG_RE.fullmatch(stripped):
+            return False
+        parts = [p for p in re.split(r"\s+", stripped) if p]
+        return len(parts) in (1, 3)
+
+    def _is_private_chat_peer(self, peer):
+        try:
+            dialog_id = self._normalize_dialog_id(peer)
+            if not dialog_id:
+                return False
+            return DialogObject.isUserDialog(int(dialog_id))
+        except Exception:
+            return False
+
+    def _apply_send_message_effect(self, params, peer, effect_id):
+        if not effect_id or not self._is_private_chat_peer(peer):
+            return
+        if not hasattr(params, "effect_id"):
+            return
+        try:
+            params.effect_id = int(effect_id)
+        except Exception:
+            pass
+
+    def _slot_for_doc_id(self, doc_id):
+        doc_id = int(doc_id)
+        for item in CUSTOM_EMOJI:
+            rep = item.get("replace")
+            ids = item.get("ids") or []
+            if rep and len(ids) == 1 and int(ids[0]) == doc_id:
+                return rep
+        return _PREMIUM_SLOT_BY_ID.get(doc_id, _PREMIUM_SLOT_DEFAULT)
+
+    def _premium_slot_rows(self, item):
+        if item.get("slot_rows"):
+            return [list(row) for row in item["slot_rows"]]
+        rows = item.get("rows")
+        if rows:
+            slots = item.get("slots")
+            if slots and len(slots) == sum(len(row) for row in rows):
+                it = iter(slots)
+                return [[next(it) for _ in row] for row in rows]
+            return [[self._slot_for_doc_id(doc_id) for doc_id in row] for row in rows]
+        ids = item.get("ids") or []
+        slots = item.get("slots")
+        if slots and len(slots) == len(ids):
+            return [list(slots)]
+        return [[self._slot_for_doc_id(doc_id) for doc_id in ids]]
+
+    def _premium_doc_ids_in_item(self, item):
+        ids = set()
+        for row in item.get("rows") or []:
+            for doc_id in row:
+                ids.add(int(doc_id))
+        for doc_id in item.get("ids") or []:
+            ids.add(int(doc_id))
+        return ids
+
+    def _premium_doc_ids_in_entities(self, entities_list):
+        used = set()
+        for rec in entities_list or []:
+            if rec.get("type") != "MessageEntityCustomEmoji":
+                continue
+            doc_id = rec.get("document_id")
+            if doc_id is not None:
+                used.add(int(doc_id))
+        return used
+
+    def _premium_block_conflicts(self, item, used_ids):
+        if not used_ids:
+            return False
+        return bool(self._premium_doc_ids_in_item(item) & used_ids)
+
+    def _premium_replace_map(self):
+        out = {}
+        for item in CUSTOM_EMOJI:
+            rep = item.get("replace")
+            ids = item.get("ids") or []
+            if rep and len(ids) == 1:
+                out[rep] = ids[0]
+        return out
+
+    def _premium_nature_blocks(self):
+        return [item for item in CUSTOM_EMOJI if item.get("nature")]
+
+    def _premium_decoration_blocks(self):
+        return [item for item in CUSTOM_EMOJI if item.get("decoration")]
+
+    def _premium_mur_bands(self):
+        return [item for item in CUSTOM_EMOJI if item.get("mur")]
+
+    def _inject_premium_emoji_entities(self, text, entities_list):
+        if not self.get_setting("use_premium_emoji", False):
+            return text, entities_list
+        if entities_list is None:
+            entities_list = []
+        replace_map = self._premium_replace_map()
+        if not replace_map:
+            return text, entities_list
+        replace_prob = self._get_premium_emoji_chance()
+        used_doc_ids = self._premium_doc_ids_in_entities(entities_list)
+        protected = self._collect_protected_ranges(text, entities_list)
+        offset = 0
+        while offset < len(text):
+            matched = False
+            for emoji_char, doc_id in sorted(replace_map.items(), key=lambda x: -len(x[0])):
+                if text[offset : offset + len(emoji_char)] != emoji_char:
+                    continue
+                start, end = offset, offset + len(emoji_char)
+                if any(p_start <= start and end <= p_end for p_start, p_end in protected):
+                    offset = end
+                    matched = True
+                    break
+                overlaps = False
+                for rec in entities_list:
+                    e_start, e_end = _utf16_to_py_range(
+                        text,
+                        rec.get("new_offset", rec.get("offset", 0)),
+                        rec.get("new_length", rec.get("length", 0)),
+                    )
+                    if start < e_end and end > e_start:
+                        overlaps = True
+                        break
+                if not overlaps and int(doc_id) not in used_doc_ids and random.random() < replace_prob:
+                    self._append_premium_emoji_entity(entities_list, text, start, end, doc_id)
+                    used_doc_ids.add(int(doc_id))
+                offset = end
+                matched = True
+                break
+            if not matched:
+                offset += 1
+        return text, entities_list
+
+    def _get_topic_id_from_params(self, params):
+        for attr in ("replyToTopMsg", "reply_to_top_msg", "replyToTopMessage"):
+            obj = getattr(params, attr, None)
+            if obj is None:
+                continue
+            for getter in ("getId", "getRealId"):
+                if hasattr(obj, getter):
+                    try:
+                        tid = int(getattr(obj, getter)())
+                        if tid:
+                            return tid
+                    except Exception:
+                        pass
+            try:
+                owner = getattr(obj, "messageOwner", None)
+                if owner is not None:
+                    tid = int(getattr(owner, "id", 0))
+                    if tid:
+                        return tid
+            except Exception:
+                pass
+        for attr in ("reply_to_top_id", "topMsgId", "topicId"):
+            val = getattr(params, attr, None)
+            if val is not None:
+                try:
+                    tid = int(val)
+                    if tid:
+                        return tid
+                except Exception:
+                    pass
+        return None
+
+    def _get_topic_id_from_fragment(self):
+        try:
+            fragment = get_last_fragment()
+            if fragment is None:
+                return None
+            for getter in ("getThreadMessageId", "getTopicId"):
+                if hasattr(fragment, getter):
+                    try:
+                        tid = int(getattr(fragment, getter)())
+                        if tid:
+                            return tid
+                    except Exception:
+                        pass
+        except Exception:
+            pass
+        return None
+
+    def _get_topic_whitelist_map(self):
+        raw = self.get_setting("topic_whitelist", "{}")
+        try:
+            data = json.loads(raw) if isinstance(raw, str) else raw
+            if isinstance(data, dict):
+                return {str(k): [int(x) for x in v if x is not None] for k, v in data.items() if isinstance(v, list)}
+        except Exception:
+            log(f"[{__id__}] topic_whitelist parse error: {traceback.format_exc()}")
+        return {}
+
+    def _get_topic_whitelist(self, dialog_id):
+        return self._get_topic_whitelist_map().get(str(int(dialog_id)), [])
+
+    def _set_topic_whitelist_map(self, data, reload_settings=True):
+        self.set_setting("topic_whitelist", json.dumps(data), reload_settings=reload_settings)
+
+    def _toggle_topic_in_whitelist(self, dialog_id, topic_id):
+        dialog_id = int(dialog_id)
+        topic_id = int(topic_id)
+        data = self._get_topic_whitelist_map()
+        key = str(dialog_id)
+        topics = data.get(key, [])
+        if topic_id in topics:
+            topics.remove(topic_id)
+            if topics:
+                data[key] = topics
+            else:
+                data.pop(key, None)
+            self._set_topic_whitelist_map(data)
+            return False
+        topics.append(topic_id)
+        data[key] = topics
+        self._set_topic_whitelist_map(data)
+        return True
+
+    def _get_topic_title(self, dialog_id, topic_id):
+        try:
+            mc = get_messages_controller()
+            chat_id = -int(dialog_id)
+            if chat_id > 1000000000000:
+                chat_id -= 1000000000000
+            topic = mc.getTopicsController().findTopic(int(chat_id), int(topic_id))
+            if topic is not None:
+                title = getattr(topic, "title", None) or getattr(topic, "name", None)
+                if title:
+                    return str(title)
+        except Exception:
+            pass
+        return f"#{topic_id}"
+
+    def _build_topic_whitelist_settings(self):
+        data = self._get_topic_whitelist_map()
+        if not data:
+            return [Text(text=locali.get_string("TOPIC_LIST_EMPTY"))]
+        items = []
+        for dialog_key, topic_ids in data.items():
+            chat_title = self._get_dialog_title(int(dialog_key))
+            for topic_id in topic_ids:
+                title = self._get_topic_title(int(dialog_key), topic_id)
+
+                def _make_remove(did, tid):
+                    def _on_remove(view):
+                        self._toggle_topic_in_whitelist(did, tid)
+                        self.set_setting(
+                            "topic_whitelist", self.get_setting("topic_whitelist", "{}"), reload_settings=True
+                        )
+
+                    return _on_remove
+
+                items.append(
+                    Text(
+                        text=f"{chat_title} / {title}",
+                        subtext=locali.get_string("CHAT_LIST_REMOVE"),
+                        on_click=_make_remove(int(dialog_key), int(topic_id)),
+                    )
+                )
+        return items
+
+    def _get_topic_menu_text(self, dialog_id=None, topic_id=None):
+        if self._get_chat_filter_mode() != 1 or topic_id is None:
+            return None
+        in_list = dialog_id is not None and int(topic_id) in self._get_topic_whitelist(int(dialog_id))
+        key = "TOPIC_WHITELIST_REMOVE_BTN" if in_list else "TOPIC_WHITELIST_ADD_BTN"
+        return locali.get_string(key)
+
+    def _update_topic_menu_text(self, dialog_id=None, topic_id=None):
+        def _do_update():
+            try:
+                resolved_id = dialog_id if dialog_id is not None else self._dialog_id_from_fragment()
+                resolved_topic = topic_id if topic_id is not None else self._get_topic_id_from_fragment()
+                text = self._get_topic_menu_text(resolved_id, resolved_topic)
+                if text is None:
+                    if self._topic_menu_item:
+                        self.remove_menu_item(self._topic_menu_item)
+                        self._topic_menu_item = None
+                    return
+                if (
+                    text == self._topic_menu_text
+                    and resolved_id == self._topic_menu_dialog_id
+                    and resolved_topic == self._topic_menu_topic_id
+                    and self._topic_menu_item
+                ):
+                    return
+                if self._topic_menu_item:
+                    self.remove_menu_item(self._topic_menu_item)
+                    self._topic_menu_item = None
+                self._topic_menu_item = self.add_menu_item(
+                    MenuItemData(
+                        menu_type=MenuItemType.CHAT_ACTION_MENU,
+                        text=text,
+                        icon="msg_topics",
+                        item_id=f"{__id__}_topic_list",
+                        priority=3,
+                        on_click=self._on_topic_list_toggle_click,
+                    )
+                )
+                self._topic_menu_text = text
+                self._topic_menu_dialog_id = resolved_id
+                self._topic_menu_topic_id = resolved_topic
+            except Exception as e:
+                log(f"[{__id__}] Failed updating topic menu: {e}\n{traceback.format_exc()}")
+
+        run_on_ui_thread(_do_update)
+
+    def _on_topic_list_toggle_click(self, context):
+        try:
+            if self._get_chat_filter_mode() != 1:
+                self._show_bulletin(locali.get_string("CHAT_LIST_TOGGLE_NO_MODE"))
+                return
+            dialog_id = self._dialog_id_from_ctx(context)
+            if dialog_id is None:
+                dialog_id = self._dialog_id_from_fragment()
+            topic_id = self._get_topic_id_from_fragment()
+            if dialog_id is None or topic_id is None:
+                self._show_bulletin(locali.get_string("CHAT_DIALOG_ID_ERROR"))
+                return
+            added = self._toggle_topic_in_whitelist(int(dialog_id), int(topic_id))
+            msg = locali.get_string("TOPIC_WHITELIST_ADDED" if added else "TOPIC_WHITELIST_REMOVED")
+            self._show_bulletin(msg)
+            self._update_topic_menu_text(int(dialog_id), int(topic_id))
+        except Exception as e:
+            log(f"[{__id__}] toggle topic list failed: {e}\n{traceback.format_exc()}")
+
+    def _classic_frequency_items(self):
+        return [
             locali.get_string("FREQUENCY_LOW"),
             locali.get_string("FREQUENCY_MEDIUM"),
             locali.get_string("FREQUENCY_HIGH"),
             locali.get_string("FREQUENCY_MAX"),
         ]
 
-        extended_frequency_items = [
+    def _extended_frequency_items(self):
+        return [
             locali.get_string("FREQUENCY_VERY_LOW"),
             locali.get_string("FREQUENCY_LOW"),
             locali.get_string("FREQUENCY_MEDIUM"),
@@ -1397,57 +3445,30 @@ class PicMePlugin(BasePlugin):
             locali.get_string("FREQUENCY_MAX"),
         ]
 
-        theme_items = [
+    def _theme_items(self):
+        return [
             locali.get_string("THEME_RANDOM"),
             locali.get_string("THEME_PASTEL"),
             locali.get_string("THEME_MAGICAL"),
             locali.get_string("THEME_NATURE"),
         ]
 
-        settings = [
-            Header(text=locali.get_string("SETTINGS_HEADER")),
-            Switch(key="enabled", text=locali.get_string("ENABLE_SWITCH"), icon="menu_premium_effects", default=True),
-            Switch(
-                key="show_settings_buttons",
-                text=locali.get_string("SHOW_SETTINGS_BUTTONS"),
-                icon="msg_reorder",
-                default=True,
-                subtext=locali.get_string("SHOW_SETTINGS_BUTTONS_DESC"),
-                on_change=self._on_show_settings_buttons_change,
-            ),
-            Divider(),
-            Header(text=locali.get_string("CHAT_FILTER_HEADER")),
-            Selector(
-                key="chat_filter_mode",
-                text=locali.get_string("CHAT_FILTER_MODE"),
-                items=[
-                    locali.get_string("CHAT_FILTER_MODE_ALL"),
-                    locali.get_string("CHAT_FILTER_MODE_WHITELIST"),
-                    locali.get_string("CHAT_FILTER_MODE_BLACKLIST"),
-                ],
-                default=0,
-                icon="msg_groups",
-                on_change=self._on_chat_filter_mode_change,
-            ),
-            *self._build_chat_filter_settings(),
-            Switch(
-                key="ignore_slash_commands",
-                text=locali.get_string("IGNORE_SLASH_COMMANDS_SWITCH"),
-                icon="msg_stories_stealth",
-                default=True,
-            ),
-            Divider(text=locali.get_string("IGNORE_SLASH_COMMANDS_INFO")),
-            Switch(
-                key="ignore_dot_commands",
-                text=locali.get_string("IGNORE_DOT_COMMANDS_SWITCH"),
-                icon="msg_stories_stealth",
-                default=True,
-            ),
-            Divider(text=locali.get_string("IGNORE_DOT_COMMANDS_INFO")),
+    def _effect_items(self):
+        return [
+            locali.get_string("EFFECT_NONE"),
+            locali.get_string("EFFECT_LOVE"),
+            locali.get_string("EFFECT_PARTY"),
+            locali.get_string("EFFECT_FIRE"),
+            locali.get_string("EFFECT_THUMBS"),
+        ]
+
+    def _settings_main_effects(self):
+        return [
+            Header(text=locali.get_string("PAGE_MAIN_EFFECTS")),
             Selector(
                 key="emoji_frequency",
                 text=locali.get_string("EMOJI_FREQUENCY"),
-                items=classic_frequency_items,
+                items=self._classic_frequency_items(),
                 default=1,
                 icon="msg_forward_replace",
             ),
@@ -1472,18 +3493,22 @@ class PicMePlugin(BasePlugin):
             Selector(
                 key="text_borders_frequency",
                 text=locali.get_string("TEXT_BORDERS_FREQUENCY"),
-                items=extended_frequency_items,
+                items=self._extended_frequency_items(),
                 default=2,
                 icon="msg_forward_replace",
             ),
             Selector(
                 key="theme_selector",
                 text=locali.get_string("THEME_SELECTOR"),
-                items=theme_items,
+                items=self._theme_items(),
                 default=0,
                 icon="msg_theme",
             ),
-            Divider(),
+            Divider(text=locali.get_string("INFO_TEXT")),
+        ]
+
+    def _settings_advanced_effects(self):
+        return [
             Header(text=locali.get_string("ADVANCED_SETTINGS_HEADER")),
             Switch(
                 key="enable_lowercase",
@@ -1508,7 +3533,7 @@ class PicMePlugin(BasePlugin):
             Selector(
                 key="uwu_suffix_frequency",
                 text=locali.get_string("UWU_SUFFIXES_FREQUENCY"),
-                items=extended_frequency_items,
+                items=self._extended_frequency_items(),
                 default=2,
                 icon="msg_forward_replace",
             ),
@@ -1522,7 +3547,7 @@ class PicMePlugin(BasePlugin):
             Selector(
                 key="stuttering_frequency",
                 text=locali.get_string("STUTTERING_FREQUENCY"),
-                items=extended_frequency_items,
+                items=self._extended_frequency_items(),
                 default=2,
                 icon="msg_forward_replace",
             ),
@@ -1536,7 +3561,7 @@ class PicMePlugin(BasePlugin):
             Selector(
                 key="vowel_stretching_frequency",
                 text=locali.get_string("VOWEL_STRETCHING_FREQUENCY"),
-                items=extended_frequency_items,
+                items=self._extended_frequency_items(),
                 default=2,
                 icon="msg_forward_replace",
             ),
@@ -1557,7 +3582,7 @@ class PicMePlugin(BasePlugin):
             Selector(
                 key="soft_sign_frequency",
                 text=locali.get_string("SOFT_SIGN_FREQUENCY"),
-                items=extended_frequency_items,
+                items=self._extended_frequency_items(),
                 default=2,
                 icon="msg_forward_replace",
             ),
@@ -1571,7 +3596,7 @@ class PicMePlugin(BasePlugin):
             Selector(
                 key="cute_punctuation_frequency",
                 text=locali.get_string("CUTE_PUNCTUATION_FREQUENCY"),
-                items=extended_frequency_items,
+                items=self._extended_frequency_items(),
                 default=2,
                 icon="msg_forward_replace",
             ),
@@ -1585,7 +3610,7 @@ class PicMePlugin(BasePlugin):
             Selector(
                 key="cute_actions_frequency",
                 text=locali.get_string("CUTE_ACTIONS_FREQUENCY"),
-                items=extended_frequency_items,
+                items=self._extended_frequency_items(),
                 default=2,
                 icon="msg_forward_replace",
             ),
@@ -1597,7 +3622,620 @@ class PicMePlugin(BasePlugin):
                 icon="msg_reorder",
             ),
             Divider(text=locali.get_string("CUTE_ACTIONS_INFO")),
-            Divider(text=locali.get_string("INFO_TEXT")),
+        ]
+
+    def _settings_chats(self):
+        return [
+            Header(text=locali.get_string("CHAT_FILTER_HEADER")),
+            Selector(
+                key="chat_filter_mode",
+                text=locali.get_string("CHAT_FILTER_MODE"),
+                items=[
+                    locali.get_string("CHAT_FILTER_MODE_ALL"),
+                    locali.get_string("CHAT_FILTER_MODE_WHITELIST"),
+                    locali.get_string("CHAT_FILTER_MODE_BLACKLIST"),
+                ],
+                default=0,
+                icon="msg_groups",
+                on_change=self._on_chat_filter_mode_change,
+            ),
+            *self._build_chat_filter_settings(),
+            Header(text=locali.get_string("TOPIC_WHITELIST_HEADER")),
+            *self._build_topic_whitelist_settings(),
+            Divider(text=locali.get_string("CHAT_FILTER_HINT")),
+            Switch(
+                key="stop_word_enabled",
+                text=locali.get_string("STOP_WORD_ENABLED"),
+                default=False,
+                icon="msg_block",
+                subtext=locali.get_string("STOP_WORD_DESC"),
+            ),
+            Input(key="stop_word", text=locali.get_string("STOP_WORD_INPUT"), default="", icon="msg_text"),
+            Switch(
+                key="ignore_slash_commands",
+                text=locali.get_string("IGNORE_SLASH_COMMANDS_SWITCH"),
+                icon="msg_stories_stealth",
+                default=True,
+            ),
+            Divider(text=locali.get_string("IGNORE_SLASH_COMMANDS_INFO")),
+            Switch(
+                key="ignore_dot_commands",
+                text=locali.get_string("IGNORE_DOT_COMMANDS_SWITCH"),
+                icon="msg_stories_stealth",
+                default=True,
+            ),
+            Divider(text=locali.get_string("IGNORE_DOT_COMMANDS_INFO")),
+        ]
+
+    def _settings_styles_hub(self):
+        theme_idx = int(self.get_setting("theme_selector", 0) or 0)
+        return [
+            Header(text=locali.get_string("STYLE_HUB_HEADER")),
+            Text(
+                text=locali.get_string("STYLE_CUTE_ACTIVE"),
+                subtext=locali.get_string("STYLE_CUTE_SUB"),
+                icon="menu_premium_effects",
+            ),
+            Text(
+                text=locali.get_string("THEME_PASTEL"),
+                subtext=locali.get_string("STYLE_PASTEL_SUB") + (" ✓" if theme_idx == 1 else ""),
+                icon="msg_theme",
+                on_click=lambda v: self._set_theme_selector(1),
+            ),
+            Text(
+                text=locali.get_string("THEME_MAGICAL"),
+                subtext=locali.get_string("STYLE_MAGICAL_SUB") + (" ✓" if theme_idx == 2 else ""),
+                icon="msg_theme",
+                on_click=lambda v: self._set_theme_selector(2),
+            ),
+            Text(
+                text=locali.get_string("THEME_NATURE"),
+                subtext=locali.get_string("STYLE_NATURE_SUB") + (" ✓" if theme_idx == 3 else ""),
+                icon="msg_theme",
+                on_click=lambda v: self._set_theme_selector(3),
+            ),
+            Divider(),
+            Text(
+                text=locali.get_string("STYLE_MUR_SOON"), subtext=locali.get_string("STYLE_MUR_SUB"), icon="msg_smile"
+            ),
+            Text(
+                text=locali.get_string("STYLE_PATRIOT_SOON"),
+                subtext=locali.get_string("STYLE_PATRIOT_SUB"),
+                icon="msg_smile",
+            ),
+        ]
+
+    def _set_theme_selector(self, index):
+        self.set_setting("theme_selector", int(index), reload_settings=True)
+
+    def _settings_automation(self):
+        return [
+            Header(text=locali.get_string("PAGE_AUTOMATION")),
+            Switch(
+                key="auto_effect_enabled",
+                text=locali.get_string("AUTO_EFFECT_ENABLED"),
+                default=False,
+                icon="menu_premium_effects",
+            ),
+            Selector(
+                key="auto_effect",
+                text=locali.get_string("AUTO_EFFECT_SELECTOR"),
+                items=self._effect_items(),
+                default=0,
+                icon="msg_effects",
+            ),
+            Divider(text=locali.get_string("AUTO_EFFECT_HINT")),
+            Switch(
+                key="auto_reaction_enabled",
+                text=locali.get_string("AUTO_REACTION_ENABLED"),
+                default=False,
+                icon="msg_reactions",
+            ),
+            Input(
+                key="auto_reaction_emoji",
+                text=locali.get_string("AUTO_REACTION_EMOJI"),
+                default="😍",
+                icon="msg_reactions",
+            ),
+            Switch(
+                key="use_premium_emoji",
+                text=locali.get_string("USE_PREMIUM_EMOJI"),
+                default=False,
+                icon="msg_premium",
+                subtext=locali.get_string("USE_PREMIUM_EMOJI_DESC"),
+            ),
+            Selector(
+                key="premium_emoji_frequency",
+                text=locali.get_string("PREMIUM_EMOJI_FREQUENCY"),
+                items=self._extended_frequency_items(),
+                default=3,
+                icon="msg_premium",
+            ),
+            Divider(text=locali.get_string("PREMIUM_EMOJI_FREQUENCY_INFO")),
+        ]
+
+    def _settings_presets(self):
+        return [
+            Header(text=locali.get_string("PAGE_PRESETS")),
+            Switch(
+                key="include_lists_export",
+                text=locali.get_string("INCLUDE_LISTS_EXPORT"),
+                default=False,
+                icon="msg_groups",
+            ),
+            Text(
+                text=locali.get_string("EXPORT_PRESET"),
+                icon="msg_link",
+                accent=True,
+                on_click=lambda v: run_on_ui_thread(self._export_preset_link),
+            ),
+            Text(
+                text=locali.get_string("IMPORT_PRESET"),
+                icon="msg_inputbox",
+                accent=True,
+                on_click=lambda v: run_on_ui_thread(self._import_preset_from_clipboard),
+            ),
+            Divider(text=locali.get_string("PRESETS_INFO")),
+        ]
+
+    def _export_preset_link(self):
+        try:
+            settings = self.export_settings() or {}
+            if not self.get_setting("include_lists_export", False):
+                for key in ("chat_whitelist", "chat_blacklist", "topic_whitelist"):
+                    settings.pop(key, None)
+            payload = {"v": PRESET_SCHEMA_VERSION, "plugin": __id__, "settings": settings}
+            encoded = (
+                base64.urlsafe_b64encode(json.dumps(payload, separators=(",", ":")).encode("utf-8"))
+                .decode("ascii")
+                .rstrip("=")
+            )
+            link = f"{DEEPLINK_SCHEME}?data={encoded}"
+            if AndroidUtilities.addToClipboard(link):
+                BulletinHelper.show_info(locali.get_string("PRESET_COPIED"))
+        except Exception as e:
+            log(f"[{__id__}] export preset failed: {e}\n{traceback.format_exc()}")
+            BulletinHelper.show_info(locali.get_string("PRESET_ERROR"))
+
+    def _import_preset_from_clipboard(self):
+        try:
+            fragment = get_last_fragment()
+            activity = fragment.getParentActivity() if fragment else None
+            if activity is None:
+                BulletinHelper.show_info(locali.get_string("PRESET_ERROR"))
+                return
+            Context = find_class("android.content.Context")
+            clipboard = activity.getSystemService(Context.CLIPBOARD_SERVICE)
+            if clipboard is None:
+                BulletinHelper.show_info(locali.get_string("PRESET_ERROR"))
+                return
+            clip = clipboard.getPrimaryClip()
+            if clip is None or clip.getItemCount() == 0:
+                BulletinHelper.show_info(locali.get_string("PRESET_ERROR"))
+                return
+            text = str(clip.getItemAt(0).getText() or "").strip()
+            self._apply_preset_link(text)
+        except Exception as e:
+            log(f"[{__id__}] import preset clipboard failed: {e}\n{traceback.format_exc()}")
+            BulletinHelper.show_info(locali.get_string("PRESET_ERROR"))
+
+    def _apply_preset_link(self, url):
+        try:
+            if not url or DEEPLINK_SCHEME not in url:
+                BulletinHelper.show_info(locali.get_string("PRESET_ERROR"))
+                return
+            data_part = url.split("data=", 1)[-1]
+            padding = "=" * (-len(data_part) % 4)
+            raw = base64.urlsafe_b64decode((data_part + padding).encode("ascii"))
+            payload = json.loads(raw.decode("utf-8"))
+            if payload.get("plugin") != __id__:
+                BulletinHelper.show_info(locali.get_string("PRESET_ERROR"))
+                return
+            settings = payload.get("settings")
+            if not isinstance(settings, dict):
+                BulletinHelper.show_info(locali.get_string("PRESET_ERROR"))
+                return
+            self.import_settings(settings, reload_settings=True)
+            self._apply_language_from_settings()
+            self._update_chat_list_menu_text()
+            self._update_topic_menu_text()
+            BulletinHelper.show_info(locali.get_string("PRESET_APPLIED"))
+        except Exception as e:
+            log(f"[{__id__}] apply preset failed: {e}\n{traceback.format_exc()}")
+            BulletinHelper.show_info(locali.get_string("PRESET_ERROR"))
+
+    def _install_deeplink_hook(self):
+        try:
+            Uri = find_class("android.net.Uri")
+            LaunchActivity = find_class("org.telegram.ui.LaunchActivity")
+            if not LaunchActivity or not Uri:
+                return
+            plugin = self
+
+            class _DeeplinkHook(MethodHook):
+                def before_hooked_method(self, param):
+                    try:
+                        if len(param.args) < 1:
+                            return
+                        intent = param.args[0]
+                        if not intent or intent.getAction() != "android.intent.action.VIEW":
+                            return
+                        data = intent.getData()
+                        if not data:
+                            return
+                        url = str(data)
+                        if url.startswith(DEEPLINK_SCHEME):
+                            encoded = Uri.parse(url).getQueryParameter("data")
+                            if encoded:
+                                run_on_queue(lambda: plugin._apply_preset_link(f"{DEEPLINK_SCHEME}?data={encoded}"))
+                            param.setResult(None)
+                    except Exception as e:
+                        log(f"[{__id__}] deeplink hook error: {e}")
+
+            method = LaunchActivity.getClass().getDeclaredMethod(
+                "handleIntent",
+                find_class("android.content.Intent").getClass(),
+                find_class("java.lang.Boolean").TYPE,
+                find_class("java.lang.Boolean").TYPE,
+                find_class("java.lang.Boolean").TYPE,
+                find_class("org.telegram.messenger.browser.Browser$Progress").getClass(),
+                find_class("java.lang.Boolean").TYPE,
+                find_class("java.lang.Boolean").TYPE,
+            )
+            method.setAccessible(True)
+            self._deeplink_hook_ref = self.hook_method(method, _DeeplinkHook())
+        except Exception as e:
+            log(f"[{__id__}] deeplink hook install failed: {e}\n{traceback.format_exc()}")
+
+    def _uninstall_deeplink_hook(self):
+        if self._deeplink_hook_ref:
+            try:
+                self.unhook_method(self._deeplink_hook_ref)
+            except Exception:
+                pass
+            self._deeplink_hook_ref = None
+
+    def _queue_auto_reaction(self, dialog_id, emoji):
+        if not emoji:
+            return
+        self._pending_reactions.append({"dialog_id": int(dialog_id), "emoji": str(emoji)})
+
+    def _send_auto_reaction(self, dialog_id, msg_id, emoji):
+        try:
+            req = TLRPC.TL_messages_sendReaction()
+            req.peer = get_messages_controller().getInputPeer(int(dialog_id))
+            req.msg_id = int(msg_id)
+            req.big = False
+            req.add_to_recent = False
+            reaction = TLRPC.TL_reactionEmoji()
+            reaction.emoticon = str(emoji)
+            req.reaction = ArrayList()
+            req.reaction.add(reaction)
+            send_request(req, lambda resp, err: None)
+        except Exception as e:
+            log(f"[{__id__}] send reaction failed: {e}\n{traceback.format_exc()}")
+
+    def _process_pending_reactions(self, msg_ids, dialog_id):
+        if not self._pending_reactions or not msg_ids:
+            return
+        remaining = []
+        sent = False
+        for item in self._pending_reactions:
+            if sent:
+                remaining.append(item)
+                continue
+            if int(item["dialog_id"]) == int(dialog_id):
+                mid = sorted(int(x) for x in msg_ids)[0]
+                self._send_auto_reaction(item["dialog_id"], mid, item["emoji"])
+                sent = True
+            else:
+                remaining.append(item)
+        self._pending_reactions = remaining
+
+    def _show_stop_word_dialog(self, dialog_id, sender_name):
+        if dialog_id in self._stop_word_prompted:
+            return
+        self._stop_word_prompted.add(dialog_id)
+
+        def _show():
+            try:
+                fragment = get_last_fragment()
+                activity = fragment.getParentActivity() if fragment else None
+                if activity is None:
+                    return
+                builder = AlertDialogBuilder(activity)
+                builder.set_title(locali.get_string("STOP_WORD_CONFIRM_TITLE"))
+                builder.set_message(
+                    locali.get_string("STOP_WORD_CONFIRM_MSG").replace("{name}", sender_name or str(dialog_id))
+                )
+                builder.set_positive_button(
+                    locali.get_string("ADD"), lambda b, w: self._confirm_stop_word_blacklist(dialog_id)
+                )
+                builder.set_negative_button(locali.get_string("CANCEL"), lambda b, w: None)
+                builder.show()
+            except Exception as e:
+                log(f"[{__id__}] stop word dialog failed: {e}\n{traceback.format_exc()}")
+
+        run_on_ui_thread(_show)
+
+    def _confirm_stop_word_blacklist(self, dialog_id):
+        try:
+            dialog_id = int(dialog_id)
+            ids = self._get_chat_list("chat_blacklist")
+            if dialog_id not in ids:
+                ids.append(dialog_id)
+                self._set_chat_list("chat_blacklist", ids, reload_settings=True)
+            if self._get_chat_filter_mode() == 0:
+                self.set_setting("chat_filter_mode", 2, reload_settings=True)
+            self._show_bulletin(locali.get_string("STOP_WORD_ADDED"))
+            self._update_chat_list_menu_text(dialog_id)
+        except Exception as e:
+            log(f"[{__id__}] confirm stop word failed: {e}\n{traceback.format_exc()}")
+
+    def _check_incoming_stop_word(self, message):
+        if not self.get_setting("stop_word_enabled", False):
+            return
+        stop_word = str(self.get_setting("stop_word", "") or "").strip()
+        if not stop_word:
+            return
+        if message is None:
+            return
+        try:
+            if bool(getattr(message, "out", False)):
+                return
+        except Exception:
+            pass
+        text = str(getattr(message, "message", "") or "")
+        if stop_word.lower() not in text.lower():
+            return
+        dialog_id = self._normalize_dialog_id(getattr(message, "peer_id", None))
+        if not dialog_id:
+            return
+        if dialog_id in self._get_chat_list("chat_blacklist"):
+            return
+        sender = ""
+        try:
+            peer = getattr(message, "from_id", None)
+            if peer is not None and hasattr(peer, "user_id"):
+                user = get_messages_controller().getUser(int(peer.user_id))
+                if user is not None:
+                    sender = str(UserObject.getUserName(user))
+        except Exception:
+            pass
+        self._show_stop_word_dialog(dialog_id, sender)
+
+    def _pick_premium_emoji(self, emoji_char):
+        if not self.get_setting("use_premium_emoji", False):
+            return emoji_char, None
+        doc_id = self._premium_replace_map().get(emoji_char)
+        if not doc_id:
+            return emoji_char, None
+        return emoji_char, doc_id
+
+    def _append_premium_emoji_entity(self, entities_list, text, py_start, py_end, document_id):
+        try:
+            utf16_start = _py_to_utf16_offset(text, py_start)
+            utf16_length = _py_to_utf16_offset(text, py_end) - utf16_start
+            ent = TLRPC.TL_messageEntityCustomEmoji()
+            ent.offset = int(utf16_start)
+            ent.length = int(utf16_length)
+            ent.document_id = int(document_id)
+            entities_list.append(
+                {
+                    "offset": int(utf16_start),
+                    "length": int(utf16_length),
+                    "type": "MessageEntityCustomEmoji",
+                    "url": None,
+                    "language": None,
+                    "document_id": int(document_id),
+                    "java": ent,
+                    "new_offset": int(utf16_start),
+                    "new_length": int(utf16_length),
+                }
+            )
+        except Exception as e:
+            log(f"[{__id__}] premium emoji entity failed: {e}")
+
+    def _is_nature_theme(self):
+        return int(self.get_setting("theme_selector", 0) or 0) == 3
+
+    def _shift_entity_offsets(self, entities_list, delta, start_index=0, end_index=None):
+        if not delta or not entities_list:
+            return
+        end = len(entities_list) if end_index is None else end_index
+        for rec in entities_list[start_index:end]:
+            for key in ("offset", "new_offset"):
+                if key in rec:
+                    rec[key] = int(rec[key]) + int(delta)
+            java_ent = rec.get("java")
+            if java_ent is not None:
+                try:
+                    java_ent.offset = int(rec.get("new_offset", rec.get("offset", 0)))
+                except Exception:
+                    pass
+
+    def _build_premium_block_text(self, item):
+        slot_rows = self._premium_slot_rows(item)
+        layout = item.get("layout", "horizontal")
+        if layout == "grid" or len(slot_rows) > 1:
+            return "\n".join("".join(row) for row in slot_rows)
+        return "".join(slot_rows[0])
+
+    def _append_premium_block_entities(self, entities_list, text, py_base_offset, item, used_doc_ids=None):
+        if used_doc_ids is None:
+            used_doc_ids = set()
+        slot_rows = self._premium_slot_rows(item)
+        pos = int(py_base_offset)
+        layout = item.get("layout", "horizontal")
+        rows = item.get("rows")
+        if layout == "grid" and rows:
+            for row_index, row in enumerate(rows):
+                slot_row = slot_rows[row_index]
+                for col_index, doc_id in enumerate(row):
+                    if int(doc_id) in used_doc_ids:
+                        slot = slot_row[col_index]
+                        pos += len(slot)
+                        continue
+                    slot = slot_row[col_index]
+                    slot_len = len(slot)
+                    self._append_premium_emoji_entity(entities_list, text, pos, pos + slot_len, doc_id)
+                    used_doc_ids.add(int(doc_id))
+                    pos += slot_len
+                if row_index < len(rows) - 1:
+                    pos += 1
+            return
+        doc_ids = item.get("ids") or []
+        slots = slot_rows[0]
+        for idx, doc_id in enumerate(doc_ids):
+            slot = slots[idx] if idx < len(slots) else _PREMIUM_SLOT_DEFAULT
+            slot_len = len(slot)
+            if int(doc_id) in used_doc_ids:
+                pos += slot_len
+                continue
+            self._append_premium_emoji_entity(entities_list, text, pos, pos + slot_len, doc_id)
+            used_doc_ids.add(int(doc_id))
+            pos += slot_len
+
+    def _is_large_premium_block(self, item):
+        if item.get("block_line"):
+            return True
+        if item.get("layout") == "grid" or item.get("rows"):
+            return True
+        ids = item.get("ids") or []
+        return len(ids) >= 4
+
+    def _premium_block_pick_weight(self, item):
+        weight = max(1, int(item.get("weight", 1)))
+        if self._is_large_premium_block(item):
+            return weight * 4
+        return weight
+
+    def _inject_premium_block_pool(self, text, entities_list, blocks, chance):
+        if not blocks or random.random() > chance:
+            return text, entities_list, False
+
+        used_doc_ids = self._premium_doc_ids_in_entities(entities_list)
+        candidates = [b for b in blocks if not self._premium_block_conflicts(b, used_doc_ids)]
+        if not candidates:
+            return text, entities_list, False
+
+        weights = [self._premium_block_pick_weight(b) for b in candidates]
+        block = random.choices(candidates, weights=weights, k=1)[0]
+        block_text = self._build_premium_block_text(block)
+        if not block_text:
+            return text, entities_list, False
+
+        force_new_line = bool(block.get("block_line"))
+        position = random.choice(["top", "bottom"])
+
+        if position == "top":
+            sep = "\n" if text else ""
+            prefix = block_text + sep
+            self._shift_entity_offsets(entities_list, _utf16_len(prefix))
+            text = prefix + text
+            self._append_premium_block_entities(entities_list, text, 0, block, used_doc_ids)
+        else:
+            sep = "\n" if force_new_line and text and not text.endswith("\n") else ""
+            if force_new_line and text and not text.endswith("\n"):
+                sep = "\n"
+            elif not force_new_line and text and not text.endswith((" ", "\n", "\t")):
+                sep = " "
+            else:
+                sep = sep or ""
+            py_offset = len(text) + len(sep)
+            text = text + sep + block_text
+            self._append_premium_block_entities(entities_list, text, py_offset, block, used_doc_ids)
+        return text, entities_list, True
+
+    def _inject_theme_premium_blocks(self, text, entities_list):
+        if not self.get_setting("use_premium_emoji", False):
+            return text, entities_list
+        is_nature = self._is_nature_theme()
+        if is_nature:
+            blocks = self._premium_nature_blocks() + self._premium_decoration_blocks()
+            chance = self._get_premium_emoji_chance(1.15)
+        else:
+            blocks = self._premium_decoration_blocks()
+            chance = self._get_premium_emoji_chance()
+        large_blocks = [b for b in blocks if self._is_large_premium_block(b)]
+        small_blocks = [b for b in blocks if not self._is_large_premium_block(b)]
+        large_chance = min(1.0, chance * 0.65)
+        text, entities_list, injected = self._inject_premium_block_pool(text, entities_list, large_blocks, large_chance)
+        if injected:
+            return text, entities_list
+        text, entities_list, _ = self._inject_premium_block_pool(text, entities_list, small_blocks, chance)
+        return text, entities_list
+
+    def _inject_mur_premium_bands(self, text, entities_list):
+        if not self.get_setting("use_premium_emoji", False):
+            return text, entities_list
+        if not self.get_setting("enable_uwu_speak", False):
+            return text, entities_list
+        text, entities_list, _ = self._inject_premium_block_pool(
+            text, entities_list, self._premium_mur_bands(), self._get_premium_emoji_chance(0.85)
+        )
+        return text, entities_list
+
+    def create_settings(self):
+        self._apply_language_from_settings()
+        return [
+            Header(text=locali.get_string("SETTINGS_HEADER")),
+            Switch(key="enabled", text=locali.get_string("ENABLE_SWITCH"), icon="menu_premium_effects", default=True),
+            Switch(
+                key="show_settings_buttons",
+                text=locali.get_string("SHOW_SETTINGS_BUTTONS"),
+                icon="msg_reorder",
+                default=True,
+                subtext=locali.get_string("SHOW_SETTINGS_BUTTONS_DESC"),
+                on_change=self._on_show_settings_buttons_change,
+            ),
+            Selector(
+                key="message_language",
+                text=locali.get_string("MESSAGE_LANGUAGE"),
+                items=[locali.get_string("LANG_AUTO"), locali.get_string("LANG_RU"), locali.get_string("LANG_EN")],
+                default=0,
+                icon="msg_language",
+                on_change=self._on_message_language_change,
+            ),
+            Divider(),
+            Text(
+                text=locali.get_string("PAGE_MAIN_EFFECTS"),
+                subtext=locali.get_string("PAGE_MAIN_EFFECTS_SUB"),
+                icon="msg_palette",
+                create_sub_fragment=self._settings_main_effects,
+            ),
+            Text(
+                text=locali.get_string("PAGE_ADVANCED_EFFECTS"),
+                subtext=locali.get_string("PAGE_ADVANCED_EFFECTS_SUB"),
+                icon="msg_filled_plus",
+                create_sub_fragment=self._settings_advanced_effects,
+            ),
+            Text(
+                text=locali.get_string("PAGE_CHATS"),
+                subtext=locali.get_string("PAGE_CHATS_SUB"),
+                icon="msg_groups",
+                create_sub_fragment=self._settings_chats,
+            ),
+            Text(
+                text=locali.get_string("PAGE_STYLES"),
+                subtext=locali.get_string("PAGE_STYLES_SUB"),
+                icon="msg_theme",
+                create_sub_fragment=self._settings_styles_hub,
+            ),
+            Text(
+                text=locali.get_string("PAGE_AUTOMATION"),
+                subtext=locali.get_string("PAGE_AUTOMATION_SUB"),
+                icon="menu_premium_effects",
+                create_sub_fragment=self._settings_automation,
+            ),
+            Text(
+                text=locali.get_string("PAGE_PRESETS"),
+                subtext=locali.get_string("PAGE_PRESETS_SUB"),
+                icon="msg_link",
+                create_sub_fragment=self._settings_presets,
+            ),
+            Divider(),
+            *self._settings_credits(),
             Divider(),
             Header(text=locali.get_string("DONATE_HEADER")),
             Text(
@@ -1612,15 +4250,12 @@ class PicMePlugin(BasePlugin):
                 text=locali.get_string("DONATE_INFO"),
                 icon="msg_info",
                 accent=True,
-                on_click=lambda view: run_on_ui_thread(
-                    lambda: get_messages_controller().openByUserName("mishabotov", get_last_fragment(), 1)
-                ),
+                on_click=lambda view: run_on_ui_thread(lambda: self._open_telegram_username("mishabotov")),
             ),
         ]
 
-        return settings
-
     def on_plugin_load(self):
+        self._apply_language_from_settings()
         ignore_commands = self.get_setting("ignore_dot_commands", True)
         priority = -100 if ignore_commands else 200
         self.add_on_send_message_hook(priority)
@@ -1629,27 +4264,43 @@ class PicMePlugin(BasePlugin):
                 self.add_hook(req_name)
             except Exception as e:
                 log(f"[{__id__}] failed to register {req_name} hook: {e}")
+        try:
+            self.add_hook("TL_updateNewMessage")
+        except Exception as e:
+            log(f"[{__id__}] failed to register update hook: {e}")
         if self.get_setting("show_settings_buttons", True):
             self._add_settings_menu_items()
         self._add_chat_action_items()
         self._add_undo_menu_item()
         self._add_cutify_menu_item()
         self._install_chat_dialog_hook()
+        self._install_deeplink_hook()
 
     def on_app_event(self, event_type):
         if event_type in (AppEvent.START, AppEvent.RESUME):
+            self._apply_language_from_settings()
             self._update_chat_list_menu_text()
+            self._update_topic_menu_text()
 
     def on_plugin_unload(self):
         self._uninstall_chat_dialog_hook()
+        self._uninstall_deeplink_hook()
         self._remove_settings_menu_items()
         self._remove_chat_action_items()
+        if self._topic_menu_item:
+            try:
+                self.remove_menu_item(self._topic_menu_item)
+            except Exception:
+                pass
+            self._topic_menu_item = None
         self._remove_undo_menu_item()
         self._remove_cutify_menu_item()
         try:
             self._pending_undo.clear()
             self._undo_cache.clear()
             self._undo_cache_order.clear()
+            self._pending_reactions.clear()
+            self._stop_word_prompted.clear()
         except Exception:
             pass
 
@@ -1667,11 +4318,22 @@ class PicMePlugin(BasePlugin):
         if not text or not text.strip():
             return True
         stripped = text.strip()
+        if self._is_emoji_only_message(stripped):
+            return True
         if self.get_setting("ignore_dot_commands", True) and stripped.startswith("."):
             return True
         if self.get_setting("ignore_slash_commands", True) and stripped.startswith("/"):
             return True
         return False
+
+    def on_update_hook(self, update_name, account, update):
+        try:
+            if update_name == "TL_updateNewMessage":
+                message = getattr(update, "message", None)
+                self._check_incoming_stop_word(message)
+        except Exception as e:
+            log(f"[{__id__}] on_update_hook error: {e}\n{traceback.format_exc()}")
+        return HookResult()
 
     def _extract_sent_message_info(self, response):
         msg_ids = set()
@@ -1756,6 +4418,9 @@ class PicMePlugin(BasePlugin):
             if (not dialog_id or dialog_id == 0) and dialog_ids:
                 dialog_id = next(iter(dialog_ids))
 
+            if self.get_setting("auto_reaction_enabled", False) and self.get_setting("enabled", True):
+                self._process_pending_reactions(msg_ids, dialog_id)
+
             log(
                 f"[{__id__}] post_request_hook: msg_ids={sorted(msg_ids)}, dialog_id={dialog_id}, "
                 f"pending_left={len(self._pending_undo)}"
@@ -1794,7 +4459,8 @@ class PicMePlugin(BasePlugin):
                 return HookResult()
 
             peer = getattr(params, "peer", None)
-            if not self._should_apply_in_chat(peer):
+            topic_id = self._get_topic_id_from_params(params)
+            if not self._should_apply_in_chat(peer, topic_id):
                 return HookResult()
 
             classic_effects_prob = self.get_classic_effects_probability()
@@ -1820,6 +4486,13 @@ class PicMePlugin(BasePlugin):
                 setattr(params, target_attr, modified_text)
             self._apply_entities_to_params(params, new_entities, is_caption)
 
+            if self.get_setting("auto_effect_enabled", False):
+                effect_idx = int(self.get_setting("auto_effect", 0) or 0)
+                if 0 <= effect_idx < len(EFFECT_IDS):
+                    effect_id = EFFECT_IDS[effect_idx]
+                    if effect_id:
+                        self._apply_send_message_effect(params, peer, effect_id)
+
             undo_key = self._normalize_dialog_id(peer)
             self._pending_undo.append(
                 (
@@ -1827,6 +4500,11 @@ class PicMePlugin(BasePlugin):
                     self._build_undo_record(original_text, entities_list, modified_text, new_entities),
                 )
             )
+
+            if self.get_setting("auto_reaction_enabled", False):
+                emoji = str(self.get_setting("auto_reaction_emoji", "😍") or "😍")
+                self._queue_auto_reaction(undo_key, emoji)
+
             return HookResult(strategy=HookStrategy.MODIFY, params=params)
         except Exception:
             exc_type, exc_val, exc_tb = sys.exc_info()
@@ -1875,7 +4553,7 @@ class PicMePlugin(BasePlugin):
         "MessageEntityMention": (None, None),
         "MessageEntityHashtag": (None, None),
         "MessageEntityBotCommand": (None, None),
-        "MessageEntityCustomEmoji": (None, None),
+        "MessageEntityCustomEmoji": ("tg-emoji", "tg-emoji"),
     }
 
     _ENTITY_NO_TRANSFORM = (
@@ -1888,14 +4566,16 @@ class PicMePlugin(BasePlugin):
         "MessageEntityPhone",
         "MessageEntityEmail",
         "MessageEntityBotCommand",
+        "MessageEntityCustomEmoji",
     )
 
     _PLAIN_PROTECTED_PATTERNS = (
         r"tg://user\?id=\d+",
         r"tg://\S+",
         r"t\.me/\S+",
-        r"https?://\S+",
-        r"www\.\S+",
+        r"https?://[^\s<>\"']+",
+        r"ftp://[^\s<>\"']+",
+        r"www\.[^\s<>\"']+",
         r"@[a-zA-Z][a-zA-Z0-9_]{3,}",
         r"\+[\d][\d\s\-\(\)]{6,}[\d]",
     )
@@ -1923,8 +4603,11 @@ class PicMePlugin(BasePlugin):
         for rec in entities_list:
             if rec["type"] not in self._ENTITY_NO_TRANSFORM:
                 continue
-            start = max(0, min(rec["offset"], len(text)))
-            end = max(0, min(rec["offset"] + rec["length"], len(text)))
+            start, end = _utf16_to_py_range(
+                text, rec.get("new_offset", rec["offset"]), rec.get("new_length", rec["length"])
+            )
+            start = max(0, min(start, len(text)))
+            end = max(start, min(end, len(text)))
             if end > start:
                 protected.append((start, end))
         protected.extend(self._find_plain_protected_spans(text))
@@ -2034,7 +4717,10 @@ class PicMePlugin(BasePlugin):
             entities_list = []
         protected = self._collect_protected_ranges(text, entities_list)
         if not entities_list and not protected:
-            return self.apply_cute_transformations(text, classic_prob, style_setting), []
+            new_text = self.apply_cute_transformations(text, classic_prob, style_setting)
+            return self._inject_mur_premium_bands(
+                *self._inject_theme_premium_blocks(*self._inject_premium_emoji_entities(new_text, []))
+            )
 
         for rec in entities_list:
             rec["new_offset"] = rec["offset"]
@@ -2042,8 +4728,9 @@ class PicMePlugin(BasePlugin):
 
         boundaries = {0, len(text)}
         for rec in entities_list:
-            start = max(0, min(rec["offset"], len(text)))
-            end = max(0, min(rec["offset"] + rec["length"], len(text)))
+            start, end = _utf16_to_py_range(text, rec["offset"], rec["length"])
+            start = max(0, min(start, len(text)))
+            end = max(start, min(end, len(text)))
             if end <= start:
                 continue
             boundaries.add(start)
@@ -2074,8 +4761,9 @@ class PicMePlugin(BasePlugin):
         new_text = "".join(new_text_parts)
 
         for rec in entities_list:
-            old_start = max(0, min(rec["offset"], len(text)))
-            old_end = max(0, min(rec["offset"] + rec["length"], len(text)))
+            old_start, old_end = _utf16_to_py_range(text, rec["offset"], rec["length"])
+            old_start = max(0, min(old_start, len(text)))
+            old_end = max(old_start, min(old_end, len(text)))
             new_start = old_start
             new_end = old_end
             for p in points:
@@ -2085,10 +4773,21 @@ class PicMePlugin(BasePlugin):
                     new_end += delta_by_pos.get(p, 0)
             new_start = max(0, min(new_start, len(new_text)))
             new_end = max(new_start, min(new_end, len(new_text)))
-            rec["new_offset"] = new_start
-            rec["new_length"] = max(0, new_end - new_start)
+            utf16_start = _py_to_utf16_offset(new_text, new_start)
+            utf16_end = _py_to_utf16_offset(new_text, new_end)
+            rec["new_offset"] = int(utf16_start)
+            rec["new_length"] = int(max(0, utf16_end - utf16_start))
+            java_ent = rec.get("java")
+            if java_ent is not None:
+                try:
+                    java_ent.offset = rec["new_offset"]
+                    java_ent.length = rec["new_length"]
+                except Exception:
+                    pass
 
-        return new_text, entities_list
+        return self._inject_mur_premium_bands(
+            *self._inject_theme_premium_blocks(*self._inject_premium_emoji_entities(new_text, entities_list))
+        )
 
     def _html_escape(self, value):
         return value.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
@@ -2102,8 +4801,13 @@ class PicMePlugin(BasePlugin):
             tag_info = self._ENTITY_HTML_TAG.get(typ)
             if not tag_info or tag_info[0] is None:
                 continue
-            start = max(0, min(rec["offset"], len(text)))
-            end = max(0, min(rec["offset"] + rec["length"], len(text)))
+            start, end = _utf16_to_py_range(
+                text,
+                rec.get("new_offset", rec.get("offset", 0)),
+                rec.get("new_length", rec.get("length", 0)),
+            )
+            start = max(0, min(start, len(text)))
+            end = max(start, min(end, len(text)))
             if end <= start:
                 continue
             spans.append((start, end, tag_info, rec))
@@ -2134,6 +4838,8 @@ class PicMePlugin(BasePlugin):
                     out.append(f'<pre language="{self._html_escape(s[3]["language"])}">')
                 elif tag == "a" and s[3].get("url"):
                     out.append(f'<a href="{self._html_escape(s[3]["url"])}">')
+                elif tag == "tg-emoji" and s[3].get("document_id") is not None:
+                    out.append(f'<tg-emoji emoji-id="{int(s[3]["document_id"])}">')
                 else:
                     out.append(f"<{tag}>")
                 open_stack.append(s)

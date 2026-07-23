@@ -1,0 +1,10 @@
+{
+  "pack_type": "single",
+  "theme": "tuwoqqqw",
+  "fallback_tags": ["мем", "аниме", "ирония", "18+"],
+  "combos": [
+    {"id": "spacer_191", "layout": "spacer", "order": [191], "name": "spacer", "description": "Пустой отступ.", "description_emoji": "⬜", "tags": ["spacer"], "mood": "neutral", "use_when": ["отступ"], "render": "inline", "complete": true, "glue": false},
+    {"id": "spacer_192", "layout": "spacer", "order": [192], "name": "spacer", "description": "Пустой отступ.", "description_emoji": "⬜", "tags": ["spacer"], "mood": "neutral", "use_when": ["отступ"], "render": "inline", "complete": true, "glue": false},
+    {"id": "legs_pair", "layout": "horizontal", "order": [179, 180], "name": "legs_pair", "description": "Горизонтальная пара — нижняя часть тела.", "description_emoji": "🦵✨", "tags": ["аниме", "комбо"], "mood": "flirty", "use_when": ["мем", "комбо"], "render": "inline", "complete": true, "glue": true}
+  ]
+}

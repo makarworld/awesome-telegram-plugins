@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://awesome-plugins.local/emoji-pack-semantic/semantic_map.schema.json",
+  "title": "EmojiPackSemanticMap",
+  "type": "object",
+  "required": ["pack", "count", "emojis"],
+  "properties": {
+    "pack": { "type": "string" },
+    "title": { "type": "string" },
+    "pack_type": { "enum": ["single", "composite"] },
+    "count": { "type": "integer", "minimum": 1 },
+    "agent_rules": { "type": "array", "items": { "type": "string" } },
+    "emojis": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/emoji_item" }
+    },
+    "combos": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/combo" }
+    },
+    "scenes": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/scene" }
+    },
+    "by_tag": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": { "type": "string" }
+      }
+    },
+    "spacers": { "type": "array" },
+    "spacer_guide": { "type": "object" }
+  },
+  "$defs": {
+    "emoji_item": {
+      "type": "object",
+      "required": ["document_id", "index"],
+      "properties": {
+        "document_id": { "type": "integer" },
+        "index": { "type": "integer", "minimum": 1 },
+        "fallback_unicode": { "type": "string" },
+        "hint_emoji": { "type": "string" },
+        "description": { "type": "string" },
+        "description_emoji": { "type": "string" },
+        "mood": { "type": "string" },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "use_when": { "type": "array", "items": { "type": "string" } },
+        "usage_mode": { "enum": ["solo", "combo_required", "combo_optional", "spacer"] },
+        "combo_group": { "type": ["string", "null"] },
+        "combo_role": { "type": "string" },
+        "partial_combo": { "type": "string" }
+      }
+    },
+    "combo": {
+      "type": "object",
+      "required": ["id", "layout"],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "layout": {
+          "enum": ["solo", "horizontal", "sandwich", "grid", "stack", "spacer"]
+        },
+        "complete": { "type": "boolean" },
+        "visual_short": { "type": "string" },
+        "width_risk": { "enum": ["low", "medium", "high"] },
+        "placement": { "enum": ["block"] },
+        "alone_on_line": { "type": "boolean" },
+        "allows_text_between": { "type": "boolean" },
+        "do_not_insert_text": { "type": "boolean" },
+        "left_wing": { "type": "integer" },
+        "right_wing": { "type": "integer" },
+        "order": { "type": "array", "items": { "type": "integer" } },
+        "rows": {
+          "type": "array",
+          "items": { "type": "array", "items": { "type": "integer" } }
+        },
+        "parent": { "type": "string" },
+        "accent_only": { "type": "boolean" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "layout": { "const": "sandwich" } } },
+          "then": {
+            "required": ["left_wing", "right_wing", "allows_text_between"]
+          }
+        },
+        {
+          "if": { "properties": { "layout": { "const": "grid" } } },
+          "then": { "required": ["rows"] }
+        }
+      ]
+    },
+    "scene": {
+      "type": "object",
+      "required": ["id", "blocks"],
+      "properties": {
+        "id": { "type": "string" },
+        "blocks": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "between_blocks": { "enum": ["blank_line"] },
+        "description": { "type": "string" }
+      }
+    }
+  }
+}

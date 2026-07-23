@@ -1,0 +1,14 @@
+{
+  "pack_type": "composite",
+  "theme": "media_player_fon",
+  "fallback_tags": ["медиа", "плеер", "фон", "декор"],
+  "combos": [
+    {"id": "media_player", "layout": "horizontal", "order": [9, 10, 11, 12, 13], "name": "media_player", "description": "Панель медиаплеера.", "description_emoji": "🎧▶️", "tags": ["плеер", "медиа"], "mood": "neutral", "use_when": ["музыкальный декор"], "render": "inline", "complete": true, "glue": true},
+    {"id": "blur_text", "layout": "horizontal", "order": [61, 62, 63, 64], "name": "blur_text", "description": "Размытый текстовый блок.", "description_emoji": "✍️💫", "tags": ["текст", "размытие"], "mood": "dreamy", "use_when": ["фоновый текст"], "render": "inline", "complete": true, "glue": true},
+    {"id": "bubbles", "layout": "horizontal", "order": [73, 74, 75, 76], "name": "bubbles", "description": "Пузырьковая полоса.", "description_emoji": "🫧💧", "tags": ["пузыри", "вода"], "mood": "playful", "use_when": ["легкий фон"], "render": "inline", "complete": true, "glue": true},
+    {"id": "spacer_105", "layout": "spacer", "order": [105], "name": "spacer", "description": "Пустой отступ.", "description_emoji": "⬜", "tags": ["spacer"], "mood": "neutral", "use_when": ["отступ"], "render": "inline", "complete": true, "glue": false},
+    {"id": "spacer_106", "layout": "spacer", "order": [106], "name": "spacer", "description": "Пустой отступ.", "description_emoji": "⬜", "tags": ["spacer"], "mood": "neutral", "use_when": ["отступ"], "render": "inline", "complete": true, "glue": false},
+    {"id": "spacer_107", "layout": "spacer", "order": [107], "name": "spacer", "description": "Пустой отступ.", "description_emoji": "⬜", "tags": ["spacer"], "mood": "neutral", "use_when": ["отступ"], "render": "inline", "complete": true, "glue": false},
+    {"id": "spacer_108", "layout": "spacer", "order": [108], "name": "spacer", "description": "Пустой отступ.", "description_emoji": "⬜", "tags": ["spacer"], "mood": "neutral", "use_when": ["отступ"], "render": "inline", "complete": true, "glue": false}
+  ]
+}

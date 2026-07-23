@@ -1,6 +1,6 @@
 # CuteMessages — техническая документация
 
-> ID: `cutemessagesenhanced` · v1.7.1 · файл в репозитории: `cutemessagesenhanced.plugin`
+> ID: `cutemessagesenhanced` · v1.8.0 · файл в репозитории: `cutemessagesenhanced.plugin`
 
 Пользовательская документация: [README.md](README.md)
 
@@ -10,7 +10,7 @@
 |------|----------|
 | `__id__` | `cutemessagesenhanced` |
 | `__name__` | CuteMessages |
-| `__version__` | 1.7.1 |
+| `__version__` | 1.8.0 |
 | `__author__` | @mihailkotovski & @mishabotov & idea - @bleizix (updated by @abuztrade & @AwesomeTelegramPlugins) |
 | `__min_version__` | 11.9.0 |
 | `__icon__` | ColorfulMessages/28 |
@@ -20,7 +20,7 @@
 | Компонент | Роль |
 |-----------|------|
 | `PicMePlugin` | Главный класс плагина |
-| `LocalizationManager` | Локализация ru/en |
+| `LocalizationManager` | Локализация ru/en + override из настроек |
 
 **Точка входа:** `on_send_message_hook` — трансформация текста/caption перед отправкой.
 
@@ -28,10 +28,12 @@
 
 | Хук | Описание |
 |-----|----------|
-| `on_send_message_hook` | Трансформация исходящих сообщений |
-| `post_request_hook` | `TL_messages_sendMessage` / sendMedia / sendMultiMedia — привязка undo к msg_id |
-| `MESSAGE_CONTEXT_MENU` | «Омилить (◕‿◕)», «Отменить омиление 😿» |
-| `CHAT_ACTION_MENU` | Настройки, whitelist/blacklist |
+| `on_send_message_hook` | Трансформация исходящих сообщений, `effect_id`, premium emoji |
+| `post_request_hook` | undo, авто-реакция после отправки |
+| `on_update_hook` | `TL_updateNewMessage` — стоп-слово |
+| `LaunchActivity.handleIntent` | deeplink импорт пресетов |
+| `MESSAGE_CONTEXT_MENU` | «Омилить», «Отменить омиление» |
+| `CHAT_ACTION_MENU` | Настройки, whitelist/blacklist, whitelist топиков |
 | `DRAWER_MENU` | Настройки |
 
 Приоритет хука: `-100` если `ignore_dot_commands=True` (раньше других плагинов).
@@ -42,14 +44,16 @@
 on_send_message_hook
   ├─ .cute / .picme → toggle enabled → CANCEL
   ├─ enabled == False → skip
-  ├─ _should_skip_text → skip
-  ├─ _should_apply_in_chat(peer) → skip
-  ├─ _snapshot_entities → _transform_with_entities → _apply_entities_to_params
-  ├─ _pending_undo[(dialog_id,)] = {versions[], index, ts}
+  ├─ _should_skip_text (emoji-only 1/3, /, .) → skip
+  ├─ _should_apply_in_chat(peer, topic_id) → skip
+  ├─ transform + premium emoji entities
+  ├─ effect_id (auto_effect)
+  ├─ queue auto reaction
   └─ HookStrategy.MODIFY
         ↓
 post_request_hook
-  └─ _undo_cache[(dialog_id, msg_id)] = record (лимит 16 КБ текста)
+  ├─ _undo_cache[(dialog_id, msg_id)]
+  └─ TL_messages_sendReaction (auto_reaction)
 ```
 
 ## Настройки
@@ -57,53 +61,61 @@ post_request_hook
 | Ключ | Описание |
 |------|----------|
 | `enabled` | Вкл/выкл эффекты |
+| `message_language` | 0=авто, 1=ru, 2=en |
 | `chat_filter_mode` | 0=все, 1=whitelist, 2=blacklist |
 | `chat_whitelist` / `chat_blacklist` | JSON-массив peer ID |
-| `ignore_slash_commands` | Пропуск `/start`, `/help` |
-| `ignore_dot_commands` | Пропуск `.cmd` |
-| `show_settings_buttons` | Кнопки в меню |
+| `topic_whitelist` | JSON `{"dialog_id": [topic_id, ...]}` |
+| `stop_word_enabled` / `stop_word` | Стоп-слово входящих |
+| `use_premium_emoji` | Custom emoji по `document_id`; на Desktop — unicode-fallback без установленных паков |
+| `premium_emoji_frequency` | 10% / 25% / 50% / 75% / 100% — подмена unicode и составные блоки |
+| `auto_effect_enabled` / `auto_effect` | Эффект отправки (личка 1-на-1; ID из `messages.availableEffects`) |
+| `auto_reaction_enabled` / `auto_reaction_emoji` | Реакция после отправки |
+| `include_lists_export` | Включать списки чатов в пресет |
 | Эффекты | emoji, lowercase, uwu, stutter, vowel stretch, cute actions, punctuation, soft sign, text borders, themes |
+
+## Пресеты
+
+Экспорт: `export_settings()` → JSON → base64url → `tg://cutemessages_import?data=...`
+
+Импорт: deeplink hook или «Применить из буфера» → `import_settings()`.
+
+Схема: `{"v": 1, "plugin": "cutemessagesenhanced", "settings": {...}}`
 
 ## Entities
 
 При изменении длины текста offset/length entities пересчитываются сегментной трансформацией:
 
 1. `_snapshot_entities` → копия в Python-dict
-2. `_collect_protected_ranges` — Code/Pre, ссылки, @mention, телефоны + regex для plain-текста
+2. `_collect_protected_ranges` — Code/Pre, ссылки, custom emoji, @mention, телефоны + regex
 3. Разбить текст по границам entities и protected spans
 4. Трансформировать только незащищённые сегменты
-5. Пересчитать `new_offset` / `new_length`
-6. `_apply_entities_to_params` → Java ArrayList
+5. `_inject_premium_emoji_entities` при включённом premium (`replace`, шанс из `premium_emoji_frequency`)
+6. `_inject_theme_premium_blocks` / `_inject_mur_premium_bands` — составные блоки (тот же шанс; природа +15%, мур ×0.85). Сначала крупные (`block_line`, `grid`, 4+ emoji), иначе мелкий декор.
+7. Пересчитать `new_offset` / `new_length` (UTF-16)
+8. Отправка: `_apply_entities_to_params` → Java ArrayList; cutify/undo: `_build_java_entities_array` → `editMessage`
 
-Нормализация: `TL_messageEntityBold` → `MessageEntityBold`.
+### CUSTOM_EMOJI
+
+| Ключ | Когда |
+|------|--------|
+| `replace` | Подмена unicode → `MessageEntityCustomEmoji` |
+| `decoration` | Случайный составной блок при любой теме |
+| `mur` | Горизонтальная полоса adapemoji при UwU/мур-стиле |
+| `nature` | Только `theme_selector=3`; широкие бордюры и сцены |
+| `block_line` | Блок на отдельной строке |
+| `layout` + `rows` | Сетка 2×2, 3×3 и т.д. |
+
+Каталог подбора: `.tools/emoji-pack-semantic/plugin_premium_picks.json`, semantic — `output/<pack>/agent_catalog.md`.
 
 ## Undo и Cutify
 
-1. Перед отправкой: стек версий `[оригинал, милое, …]` в `_pending_undo`
-2. После отправки: `_undo_cache[(dialog_id, msg_id)]`, лимит **4096×4 символов** суммарно по всем версиям всех сообщений
-3. Сообщения не режутся — при переполнении удаляется целиком самое старое по времени
-4. **Отменить омиление** — шаг назад по стеку; на оригинале цикл **оригинал ↔ первое милое**
-5. **Cutify** — новая версия в стек (повторные нажатия накапливают историю)
-6. Контекст меню — Java `Map`: `_ctx_get()`, `_message_id_from_obj()`
-7. При ошибке HTML: повтор `parse_mode="html"`, затем plain
-
-Структура записи undo:
-
-```python
-{
-    "versions": [{"text": "...", "html": "..."}, ...],
-    "index": 1,  # текущая позиция в стеке
-    "ts": float,
-}
-```
+Версии undo хранят `text`, `html` и `entities` (Java `MessageEntity` в dict). Редактирование — `SendMessagesHelper.editMessage(..., entities)` с UTF-16 offset/length; HTML — запасной путь.
 
 ## Защищённые фрагменты
 
-Не трансформируются (entity + regex в plain-тексте):
-
-- `MessageEntityUrl`, `MessageEntityTextUrl`, `MessageEntityMention`, `MessageEntityMentionName`, `MessageEntityPhone`, `MessageEntityEmail`, `MessageEntityBotCommand`, `Code`, `Pre`
-- URL: `http(s)://`, `www.`, `t.me/`, `tg://`
-- `@username`, `tg://user?id=…`, телефоны `+…`
+- `MessageEntityUrl`, `MessageEntityTextUrl`, `MessageEntityCustomEmoji`, `Code`, `Pre`, mentions, phones, emails, bot commands
+- URL: `http(s)://`, `ftp://`, `www.`, `t.me/`, `tg://`
+- Сообщения из 1 или 3 эмодзи не трансформируются
 
 ## Команды
 
@@ -111,36 +123,20 @@ post_request_hook
 |---------|----------|
 | `.picme` / `.cute` | Toggle enabled (CANCEL) |
 
-## Подводные камни
-
-| Проблема | Решение |
-|----------|---------|
-| `ArrayList$Itr` not iterable | `_iter_java()` |
-| Entities съезжают | Сегментная трансформация |
-| `peer` может быть `None` | Fallback `0` |
-
-## Отказавшиеся подходы
-
-- Long-press на Send через `MethodHook` — хрупко, удалено
-- `send_mode` selector — удалён
-- Undo с ключом `(account, dialog_id, msg_id)` — упрощено до `(peer, msg_id)`
-
 ## История
 
 | Версия | Примечание |
 |--------|------------|
-| 1.7.1 | Cutify, стек undo, защита ссылок/@/телефонов, фикс оригинала — [CHANGELOG](releases/v1.7.1/CHANGELOG.md) |
-| 1.7.0 | Whitelist/blacklist, undo, `.cute`/`.picme` — [CHANGELOG](releases/v1.7.0/CHANGELOG.md) |
+| 1.8.0 | Подстраницы настроек, пресеты, premium emoji, топики, стоп-слово, авто fx/reaction (в разработке) |
+| 1.7.1 | Cutify, стек undo, защита ссылок — [CHANGELOG](releases/v1.7.1/CHANGELOG.md) |
+| 1.7.0 | Whitelist/blacklist, undo — [CHANGELOG](releases/v1.7.0/CHANGELOG.md) |
 
 ## Файлы
 
 ```
 CuteMessages/
-  cutemessagesenhanced.plugin   # код плагина (Python), в репозиторий заливается только .plugin
+  cutemessagesenhanced.plugin
   README.md
   docs.md
   releases/v1.7.1/
-  releases/v1.7.0/
 ```
-
-Локально для правок можно держать `.py` и собирать через `build_plugin.bat` — в git не коммитится.

@@ -1,0 +1,111 @@
+{
+  "plugin": "CuteMessages",
+  "source": "CUSTOM_EMOJI in cutemessagesenhanced.plugin",
+  "format": {
+    "replace": "подмена unicode при use_premium_emoji (все темы)",
+    "decoration": "составной блок при любой теме (~25%)",
+    "nature": "составной блок только при theme_selector=3 (~40% вместе с decoration)",
+    "block_line": "крупный блок на отдельной строке"
+  },
+  "packs": {
+    "juliet_diary_lesnaya_tropa_2_by_TgEmojiBot": {
+      "title": "@juliet_diary лесная тропа 2",
+      "sheet_cols": 8,
+      "replace": [
+        {"combo": "sparkle_pink_35", "indices": [35], "unicode": ["✨", "🌟", "💫"]},
+        {"combo": "fairy_flying", "indices": [9], "unicode": ["🧚"]},
+        {"combo": "daisy_bouquet", "indices": [16], "unicode": ["🌼"]},
+        {"combo": "mushroom_house", "indices": [10], "unicode": ["🍄"]}
+      ],
+      "decoration": [
+        {"combo": "pink_flower_1", "indices": [12, 13], "weight": 4},
+        {"combo": "fairy_flying", "indices": [9], "weight": 3, "note": "без #17"},
+        {"combo": "mushroom_house_cottage", "indices": [10, 11], "weight": 3, "note": "без #18-19"},
+        {"combo": "cottage_shell", "indices": [11], "weight": 0, "note": "merged into 10-11"},
+        {"combo": "mushroom_house", "indices": [10], "weight": 0, "note": "merged into 10-11"},
+        {"combo": "daisy_bouquet", "indices": [16], "weight": 3},
+        {"combo": "fairy_statue", "indices": [14, 15], "weight": 2},
+        {"combo": "peach_poppy", "indices": [20, 21], "weight": 2, "note": "без #12-13"},
+        {"combo": "yellow_flower", "indices": [61, 62], "weight": 2},
+        {"combo": "butterfly_wings_1", "indices": [55, 56], "weight": 2},
+        {"combo": "butterfly_wings_2", "indices": [73, 74], "weight": 2},
+        {"combo": "butterfly_wings_3", "indices": [189, 190], "weight": 2},
+        {"combo": "pink_blossom_1", "indices": [101, 102], "weight": 2},
+        {"combo": "fairy_flower_hat", "indices": [155, 156], "weight": 2},
+        {"combo": "heart_apple_row", "indices": [181, 182, 183], "weight": 3},
+        {"combo": "mushroom_pair_2", "indices": [43, 44], "weight": 2},
+        {"combo": "mushroom_pair_3", "indices": [63, 64], "weight": 2},
+        {"combo": "pair_57_58", "indices": [57, 58], "weight": 2},
+        {"combo": "pair_65_66", "indices": [65, 66], "weight": 2},
+        {"combo": "pair_71_72", "indices": [71, 72], "weight": 2},
+        {"combo": "row_91_93", "indices": [91, 92, 93], "weight": 2},
+        {"combo": "pair_99_100", "indices": [99, 100], "weight": 2},
+        {"combo": "row_107_109", "indices": [107, 108, 109], "weight": 2},
+        {"combo": "pair_129_130", "indices": [129, 130], "weight": 2},
+        {"combo": "pair_133_134", "indices": [133, 134], "weight": 2},
+        {"combo": "row_137_136_139", "indices": [137, 136, 139], "weight": 2},
+        {"combo": "solo_140", "indices": [140], "weight": 2},
+        {"combo": "pair_141_142", "indices": [141, 142], "weight": 2},
+        {"combo": "row_145_148", "indices": [145, 146, 147, 148], "weight": 2},
+        {"combo": "pair_149_150", "indices": [149, 150], "weight": 2},
+        {"combo": "pair_153_154", "indices": [153, 154], "weight": 2},
+        {"combo": "pair_161_162", "indices": [161, 162], "weight": 2},
+        {"combo": "pair_169_170", "indices": [169, 170], "weight": 2},
+        {"combo": "pair_177_178", "indices": [177, 178], "weight": 2},
+        {"combo": "row_173_175", "indices": [173, 174, 175], "weight": 2},
+        {"combo": "clover_full", "indices": [179, 180, 187, 188], "layout": "grid", "block_line": true, "weight": 2},
+        {"combo": "bonsai", "indices": [157, 158, 165], "layout": "grid", "block_line": true, "weight": 2},
+        {"combo": "child_in_flowers", "indices": [163, 164], "layout": "grid", "block_line": true, "weight": 2}
+      ],
+      "nature_only": [
+        {"combo": "vine_border_top", "indices": [1, 2, 3, 4, 5, 6, 7, 8], "block_line": true, "note": "8 в ряд — совпадает с cols=8 на sheet"},
+        {"combo": "forest_table_scene", "indices": [105, 106, 107, 108, 109, 110], "layout": "grid", "block_line": true},
+        {"combo": "deep_forest_panorama", "indices": [166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178], "layout": "grid", "block_line": true},
+        {"combo": "thorn_border", "indices": [194, 195, 196, 197, 198], "block_line": true}
+      ],
+      "not_in_plugin": [
+        {"combo": "moth_wings", "indices": [49, 50], "reason": "sandwich — нужна вставка текста между крыльями"},
+        {"combo": "vine_border_top", "reason": "слишком широко для pastel/magical без природной темы"},
+        {"combo": "deep_forest_panorama", "reason": "9+4 grid, только атмосферные сцены"},
+        {"combo": "sparkle_*", "reason": "accent_only — уже через replace ✨"},
+        {"combo": "spacer_191/192", "reason": "технические отступы, не декор"}
+      ]
+    },
+    "Savobodattealovers_by_TgEmodziBot_by_TgEmodziBot": {
+      "nature_only": "сетки 2×2, 3×3, solo #142–160"
+    },
+    "tuwoqqqw_by_fStikBot": {
+      "decoration": "все #001–#200 solo (weight 1) — убери лишнее в CUSTOM_EMOJI"
+    },
+    "epicdepartmenthopeful_by_fStikBot": {
+      "decoration": "только #073 solo"
+    },
+    "EsteticThngs": {
+      "decoration": "все #001–#200 solo — подходят ко всем темам"
+    },
+    "genadecoratemoji": {
+      "decoration": "полосы block_line: 12–17, 23–26, 27–30, 40–44, 97–99, 100–102, 103–105, 112–117"
+    },
+    "lostindiaries_by_fStikBot": {
+      "decoration": "1,2, 3–6, 17–19, 29–32, 68–69, 76–77, 85–88, 91–94, 113–115, 157–160, 161–163, 164, 165–166, 194–195, 196"
+    },
+    "loveeemamaboss_by_TgEmodziBot": {
+      "decoration": "solo: 4,5,8,10,12,15,17–23,25,26,35,43,44,47,51,55,56,59,72,74,76–78,81,82,108,113,114"
+    },
+    "sstamps_by_TgEmodziBot": {
+      "decoration": "пары 5–6,7–8,… и полоса 59–69"
+    },
+    "adapemojipremiussFon_by_TgEmodziBot": {
+      "status": "saved_in_output_not_in_decor",
+      "note": "Пак скачан и размечен; в decoration/nature не входит",
+      "mur_bands_only": [
+        {"combo": "media_player", "indices": [9, 10, 11, 12, 13]},
+        {"combo": "blur_text", "indices": [61, 62, 63, 64]},
+        {"combo": "bubbles_tail", "indices": [74, 75, 76]},
+        {"combo": "media_player_fon", "indices": [93, 94, 95, 96]},
+        {"combo": "spacer_band", "indices": [105, 106, 107, 108]}
+      ],
+      "trigger": "use_premium_emoji + enable_uwu_speak, ~30%"
+    }
+  }
+}

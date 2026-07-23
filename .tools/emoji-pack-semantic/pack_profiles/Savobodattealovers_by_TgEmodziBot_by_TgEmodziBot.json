@@ -1,0 +1,13 @@
+{
+  "pack_type": "composite",
+  "theme": "savobodattealovers",
+  "fallback_tags": ["эстетика", "чай", "фрукты", "уют"],
+  "combos": [
+    {"id": "vase_001", "layout": "horizontal", "order": [1, 2], "name": "vase_pair", "description": "Ваза с цветами — горизонтальная пара.", "description_emoji": "🌸🏺", "tags": ["ваза", "цветы"], "mood": "wholesome", "use_when": ["декор"], "render": "inline", "complete": true, "glue": true},
+    {"id": "fruit_007", "layout": "horizontal", "order": [7, 8], "name": "fruit_pair", "description": "Фруктовая композиция.", "description_emoji": "🍒🍑", "tags": ["фрукты"], "mood": "sweet", "use_when": ["декор"], "render": "inline", "complete": true, "glue": true},
+    {"id": "fruit_009", "layout": "horizontal", "order": [9, 10], "name": "fruit_pair", "description": "Фруктовая композиция.", "description_emoji": "🍒🍑", "tags": ["фрукты"], "mood": "sweet", "use_when": ["декор"], "render": "inline", "complete": true, "glue": true},
+    {"id": "butterfly_111", "layout": "horizontal", "order": [111, 112], "name": "butterfly_pair", "description": "Бабочка — горизонтальная пара.", "description_emoji": "🦋✨", "tags": ["бабочка"], "mood": "whimsical", "use_when": ["легкий акцент"], "render": "inline", "complete": true, "glue": true},
+    {"id": "vase_090", "layout": "horizontal", "order": [90, 91], "name": "vase_pair", "description": "Ваза — горизонтальная пара.", "description_emoji": "🏺🌸", "tags": ["ваза"], "mood": "elegant", "use_when": ["декор"], "render": "inline", "complete": true, "glue": true},
+    {"id": "vase_119", "layout": "horizontal", "order": [119, 120], "name": "vase_pair", "description": "Ваза — горизонтальная пара.", "description_emoji": "🏺🌸", "tags": ["ваза"], "mood": "elegant", "use_when": ["декор"], "render": "inline", "complete": true, "glue": true}
+  ]
+}
