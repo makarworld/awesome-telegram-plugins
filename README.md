@@ -13,14 +13,14 @@
 
 | Плагин | Версия | Зачем ставить | Риск | Файл |
 |--------|--------|---------------|------|------|
-| [CuteMessages](#cutemessages) | 1.7.1 | Милые исходящие сообщения, Cutify/undo | 🟢 | [скачать](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/CuteMessages/cutemessagesenhanced.plugin) · [код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/CuteMessages/cutemessagesenhanced.plugin) |
+| [CuteMessages](#cutemessages) | 1.8.0 | Милые исходящие сообщения, пресеты, авто-реакции | 🟢 | [скачать](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/CuteMessages/cutemessagesenhanced.plugin) · [код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/CuteMessages/cutemessagesenhanced.plugin) |
 | [Tomato bom](#tomato-bom) | 1.2.8 | Кидать помидоры по UI | 🟡 | [скачать](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/TomatoBom/tomato_bom.plugin) · [код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/TomatoBom/tomato_bom.plugin) |
 | [LiveWallpaper](#livewallpaper) | 1.2 | Видео-обои в чатах | 🟠 | [скачать](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/LiveWallpaper/live_wallpaper.plugin) · [код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/LiveWallpaper/live_wallpaper.plugin) |
 | [Unlimited Pins](#unlimited-pins) | 2.0 | Без лимита закрепов | 🟢 | [скачать](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/UnlimitedPins/misha_unlimited_pins.plugin) · [код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/UnlimitedPins/misha_unlimited_pins.plugin) |
 | [List of Commands](#list-of-commands) | 1.0.8 | Подсказки dot-команд | 🟢 | [скачать](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/ListOfCommands/list_of_commands.plugin) · [код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/ListOfCommands/list_of_commands.plugin) |
 | [Kangel Plugins Manager](#kangel-plugins-manager) | 1.4.3 | Магазин плагинов | 🟠 | [скачать](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/KangelPluginsManager/kangel_plugins_manager.plugin) · [код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/KangelPluginsManager/kangel_plugins_manager.plugin) |
 | [Plugin Verifier](#plugin-verifier) | 2.4.8 | Проверка плагинов на вирусы | 🔴* | [скачать](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/PluginVerifier/plugin_verifier.plugin) · [код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/PluginVerifier/plugin_verifier.plugin) |
-| [WS-Bypass](#ws-bypass) | 3.0.5 | Обход блокировок Telegram | 🟡 | [скачать](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/WSBypass/wsbypass.plugin) · [код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/WSBypass/wsbypass.plugin) |
+| [WS-Bypass](#ws-bypass) | 3.1.4 | Обход блокировок Telegram | 🟠 | [скачать](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/WSBypass/wsbypass.plugin) · [код](https://github.com/makarworld/awesome-telegram-plugins/blob/main/WSBypass/wsbypass.plugin) |
 
 📲 **Установка:** скачай `.plugin` по ссылке **скачать** → открой файл в exteraGram / AyuGram (или импортируй через менеджер плагинов). Ссылка **код** — тот же Python-код на GitHub (`.plugin` = исходник, другое расширение).
 
@@ -30,9 +30,9 @@
 
 ### 💬 CuteMessages
 
-**ID:** `cutemessagesenhanced` · **v1.7.1** · @mihailkotovski, @mishabotov · обновление 1.7.x: @abuztrade, @AwesomeTelegramPlugins  
-**Документация:** [README](CuteMessages/README.md) · **Changelog 1.7.0→1.7.1:** [CHANGELOG.md](CuteMessages/releases/v1.7.1/CHANGELOG.md)  
-**📥 Скачать:** [cutemessagesenhanced.plugin](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/CuteMessages/cutemessagesenhanced.plugin) · **👁️ Код:** [cutemessagesenhanced.plugin](https://github.com/makarworld/awesome-telegram-plugins/blob/main/CuteMessages/cutemessagesenhanced.plugin) · **архив:** [v1.7.1](CuteMessages/releases/v1.7.1/cutemessagesenhanced_v1.7.1.plugin)
+**ID:** `cutemessagesenhanced` · **v1.8.0** · @mihailkotovski, @mishabotov · обновление 1.7.x–1.8.x: @abuztrade, @AwesomeTelegramPlugins  
+**Документация:** [README](CuteMessages/README.md) · **Changelog:** [v1.8.0](CuteMessages/releases/v1.8.0/CHANGELOG.md)  
+**📥 Скачать:** [cutemessagesenhanced.plugin](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/CuteMessages/cutemessagesenhanced.plugin) · **👁️ Код:** [cutemessagesenhanced.plugin](https://github.com/makarworld/awesome-telegram-plugins/blob/main/CuteMessages/cutemessagesenhanced.plugin) · **архив:** [v1.8.0](CuteMessages/releases/v1.8.0/cutemessagesenhanced_v1.8.0.plugin)
 
 Превращает исходящие сообщения в «милые»: UwU, рамки, эмодзи, растягивание гласных, каомодзи. Cutify и undo из меню сообщения (стек версий). Ссылки, @username и телефоны не ломаются. Whitelist/blacklist чатов. Команды `.cute` / `.picme`. Локализация ru/en.
 
@@ -135,16 +135,16 @@
 
 ### 🛡️ WS-Bypass
 
-**ID:** `wsbypass` · **v3.0.5** · @Th3Nek1t_projects  
+**ID:** `wsbypass` · **v3.1.4** · @Th3Nek1t_projects  
 **Документация:** [WSBypass/README.md](WSBypass/README.md)  
 **📥 Скачать:** [wsbypass.plugin](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/WSBypass/wsbypass.plugin) (клиент **12.5.1+**) · **старые клиенты 11.9+:** [wsbypass_old_version_fix.plugin](https://cdn.jsdelivr.net/gh/makarworld/awesome-telegram-plugins@main/WSBypass/releases/v3.0.5/wsbypass_old_version_fix.plugin) · **👁️ Код:** [wsbypass.plugin](https://github.com/makarworld/awesome-telegram-plugins/blob/main/WSBypass/wsbypass.plugin)
 
-Поднимает локальный SOCKS-прокси и гонит трафик Telegram через WebSocket-туннель к KWS-серверам (Nimarko / Th3Nekit). Включает прокси в клиенте автоматически. Провайдеры на выбор или авто-режим. Для полной скорости на Th3Nekit нужна подписка на канал автора.
+Поднимает локальный SOCKS-прокси и гонит трафик Telegram через WebSocket-туннель к KWS-серверам (Nimarko / Th3Nekit / **LeanVPN Premium** 🇨🇭). Включает прокси в клиенте автоматически. Провайдеры — переключатели или авто-режим. LeanVPN Premium — для подписчиков LTE/Ultimate в [@VPN_Lean_bot](https://t.me/VPN_Lean_bot). Для полной скорости на Th3Nekit нужна подписка на канал автора.
 
 Есть встроенное обновление с `th3web.com` (SHA256 + Ed25519).
 
-**Безопасность: 🟡 низкий–средний** — туннель через KWS-серверы, смена прокси, автообновление с проверкой подписи.  
-📊 Отчёт: [secure.md](WSBypass/secure.md) — ❔ Низкий риск · архив: [v3.0.5](WSBypass/releases/v3.0.5/secure_3.0.5.md)
+**Безопасность: 🟠 осторожно** — туннель через KWS-серверы, multi-account LTE-проверка, SSL fallback `CERT_NONE`.  
+📊 Отчёт: [secure.md](WSBypass/secure.md) — ⚠️ Осторожно · архив: [v3.1.4](WSBypass/releases/v3.1.4/secure_3.1.4.md) · [v3.1.2](WSBypass/releases/v3.1.2/secure_3.1.2.md) · [v3.0.5](WSBypass/releases/v3.0.5/secure_3.0.5.md)
 
 ---
 
@@ -161,7 +161,7 @@
 | Kangel Plugins Manager | 🟠 | [secure.md](KangelPluginsManager/secure.md) | ⚠️ Осторожно |
 | LiveWallpaper | 🟠 | [secure_1.2.md](LiveWallpaper/releases/v1.2/secure_1.2.md) | ⚠️ Осторожно |
 | Plugin Verifier | 🔴* | [secure.md](PluginVerifier/secure.md) | 📛 Высокий риск |
-| WS-Bypass | 🟡 | [secure.md](WSBypass/secure.md) | ❔ Низкий риск |
+| WS-Bypass | 🟠 | [secure.md](WSBypass/secure.md) | ⚠️ Осторожно |
 
 **📁 Где лежат отчёты**
 

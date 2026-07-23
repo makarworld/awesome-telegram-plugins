@@ -1,6 +1,6 @@
 Проверенно с помощью Pluggy Bot (pluggy_robot.t.me)
 
-> Актуальная версия **3.1.4** · архив: [v3.1.2](releases/v3.1.2/secure_3.1.2.md) · [v3.0.5](releases/v3.0.5/secure_3.0.5.md) · канал автора: [@th3nek1t_projects](https://t.me/th3nek1t_projects)
+> Актуальная версия **3.1.4** · архив: [releases/v3.1.4/secure_3.1.4.md](releases/v3.1.4/secure_3.1.4.md) · канал автора: [@th3nek1t_projects](https://t.me/th3nek1t_projects)
 
 ⚠️ Осторожно · Отчёт • Pluggy API
 

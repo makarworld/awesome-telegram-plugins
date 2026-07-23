@@ -3,7 +3,7 @@ __name__ = "WS-Bypass"
 __description__ = "Обход блокировок Telegram"
 __icon__ = "ResistanceDog/24"
 __author__ = "@Th3Nek1t_projects"
-__version__ = "3.1.4"
+__version__ = "3.1.2"
 __app_version__ = ">=12.5.1"
 __sdk_version__ = ">=1.4.0"
 import base64
@@ -33,7 +33,7 @@ from android_utils import log, run_on_ui_thread
 from ui.settings import Header, Switch, Text, Divider, Input
 from ui.bulletin import BulletinHelper
 from hook_utils import find_class, get_private_field
-from client_utils import get_last_fragment, run_on_queue, RequestCallback
+from client_utils import get_last_fragment, run_on_queue, send_request, RequestCallback
 from java.util import Locale
 from org.telegram.messenger import (
     SharedConfig, MessagesController, NotificationCenter, UserConfig, LocaleController,
@@ -2286,12 +2286,6 @@ class TgWsCore:
                     _kws_on_trickle["v"] = True
                     _kws_last_provider["name"] = pname
                     _kws_last_provider["trickle"] = True
-                try:
-                    plugin = getattr(self, "_plugin", None)
-                    if plugin is not None:
-                        plugin._on_provider_connected(pname)
-                except Exception:
-                    pass
                 return ws
         if last_exc:
             raise last_exc
@@ -2977,9 +2971,6 @@ def _kws_note_ws_failure(provider, exc):
 def _kws_send_inline_verification(account, bot_username, code):
     def do_send():
         try:
-            manager = ConnectionsManager.getInstance(int(account))
-            if manager is None:
-                return False
             rq = TLRPC.TL_contacts_resolveUsername()
             rq.username = str(bot_username or "").lstrip("@")
             def on_resolve(r, e):
@@ -2995,14 +2986,16 @@ def _kws_send_inline_verification(account, bot_username, code):
                     req.query = str(code or "")
                     req.offset = ""
                     req.peer = TLRPC.TL_inputPeerEmpty()
-                    manager.sendRequest(req, RequestCallback(lambda r2, e2: None))
+                    send_request(req, RequestCallback(lambda r2, e2: None))
                 except Exception:
                     pass
-            manager.sendRequest(rq, RequestCallback(on_resolve))
-            return True
+            send_request(rq, RequestCallback(on_resolve))
         except Exception:
-            return False
-    return bool(do_send())
+            pass
+    try:
+        run_on_queue(do_send)
+    except Exception:
+        pass
 
 def _kws_http_register(provider, uid):
     p = _kws_provider(provider)
@@ -3073,69 +3066,6 @@ def _kws_schedule_prefetch(provider, delay_sec=4.0):
     except Exception:
         pass
 
-def _tt(ru, en):
-    try:
-        return ru if _is_ru_language() else en
-    except Exception:
-        return en
-
-def _kws_mint_for_account(provider, account):
-    uid = _kws_uid(account)
-    if not uid:
-        return None
-    reg = _kws_http_register(provider, uid)
-    if not reg or not reg[0]:
-        return None
-    code, bot_username = reg
-    if not _kws_send_inline_verification(account, bot_username, code):
-        return None
-    token = None
-    for delay in _KWS_POLL_SCHEDULE:
-        token = _kws_http_poll(provider, uid, code)
-        if token == "__give_up__":
-            return "__give_up__"
-        if token:
-            break
-        time.sleep(float(delay))
-    if not token or token == "__give_up__":
-        return None
-    cred = _kws_http_credential(provider, token)
-    if cred:
-        _kws_slot(provider)["token"]["v"] = token
-    return cred
-
-def _kws_lte_account():
-    try:
-        p = _kws_plugin["p"]
-        if p is not None:
-            ac = int(p.get_setting("tgws_lte_account", -1))
-            if 0 <= ac < int(UserConfig.MAX_ACCOUNT_COUNT) and _kws_uid(ac):
-                return ac
-    except Exception:
-        pass
-    return _kws_current_account()
-
-def _kws_mark_lte_entitled(account):
-    try:
-        p = _kws_plugin["p"]
-        if p is not None:
-            p.set_setting("tgws_lte_entitled", "1", reload_settings=False)
-            p.set_setting("tgws_lte_account", int(account), reload_settings=False)
-    except Exception:
-        pass
-
-def _kws_lte_entitled():
-    try:
-        p = _kws_plugin["p"]
-        if p is not None and str(p.get_setting("tgws_lte_entitled", "") or "") == "1":
-            return True
-    except Exception:
-        pass
-    try:
-        return _kws_cred_valid(_kws_slot("lte")["cred"]["v"])
-    except Exception:
-        return False
-
 def _kws_ensure(provider):
     slot = _kws_slot(provider)
     if _kws_cred_valid(slot["cred"]["v"]):
@@ -3147,20 +3077,32 @@ def _kws_ensure(provider):
     try:
         if _kws_cred_valid(slot["cred"]["v"]):
             return
-        is_lte = _kws_pname(provider) == "lte"
-        account = _kws_lte_account() if is_lte else _kws_current_account()
-        if not _kws_uid(account):
+        account = _kws_current_account()
+        uid = _kws_uid(account)
+        if not uid:
             _kws_schedule_prefetch(provider, 4.0)
             return
-        cred = _kws_mint_for_account(provider, account)
-        if cred == "__give_up__":
+        reg = _kws_http_register(provider, uid)
+        if not reg or not reg[0]:
+            _kws_schedule_prefetch(provider, 4.0)
             return
+        code, bot_username = reg
+        _kws_send_inline_verification(account, bot_username, code)
+        token = None
+        for delay in _KWS_POLL_SCHEDULE:
+            token = _kws_http_poll(provider, uid, code)
+            if token == "__give_up__":
+                return
+            if token:
+                break
+            time.sleep(float(delay))
+        if not token:
+            _kws_schedule_prefetch(provider, 4.0)
+            return
+        slot["token"]["v"] = token
+        cred = _kws_http_credential(provider, token)
         if cred:
             _kws_store_cred(provider, cred)
-            if is_lte:
-                _kws_mark_lte_entitled(account)
-        else:
-            _kws_schedule_prefetch(provider, 4.0)
     finally:
         with _kws_guard_lock:
             slot["prefetch_inflight"][0] = False
@@ -3688,8 +3630,6 @@ class TgWsProxyPlugin(BasePlugin):
         self._runtime_random_local_port = 0
         self._reload_ui_pending = False
         self._last_rendered_state = None
-        self._provider_switch_target = None
-        self._provider_switch_ready = False
         self._pending_update = None
         self._autocheck_stop = None
         self._autocheck_thread = None
@@ -3917,23 +3857,10 @@ class TgWsProxyPlugin(BasePlugin):
         items.append(_prow("auto", _t("Авто (рекомендуется)", "Auto (recommended)")))
         items.append(_prow("nimarko", _t("Nimarko (Быстрый)", "Nimarko (Fast)")))
         items.append(_prow("th3", _t("Th3Nekit (Резервный)", "Th3Nekit (Backup)")))
-        if _kws_lte_entitled():
-            items.append(_prow("lte", _t("LeanVPN (Premium - С обходом)", "LeanVPN (Premium - Bypass)")))
-            items.append(Divider(text=_t(
-                "Работает только с активной подпиской LTE или Ultimate в @VPN_Lean_bot.",
-                "Works only with an active LTE or Ultimate subscription in @VPN_Lean_bot.")))
-        else:
-            _lte_rem = int(60 - (time.time() - float(getattr(self, "_lte_check_ts", 0.0) or 0.0)))
-            if bool(getattr(self, "_lte_checking", False)):
-                items.append(Text(text=_t("🇨🇭 Проверяю доступ LTE…", "🇨🇭 Checking LTE access…")))
-            elif _lte_rem > 0:
-                items.append(Text(text=_t("🇨🇭 LeanVPN Premium — подождите %dс" % _lte_rem, "🇨🇭 LeanVPN Premium — wait %ds" % _lte_rem)))
-            else:
-                items.append(Text(text=_t("Проверить доступ", "Check access"), icon="msg_retry",
-                                  on_click=self._on_lte_check_clicked))
-            items.append(Divider(text=_t(
-                "LeanVPN Premium — обход белых списков для подписчиков LTE или Ultimate (@VPN_Lean_bot). Кнопка появится после проверки доступа.",
-                "LeanVPN Premium — white-list bypass for LTE or Ultimate subscribers (@VPN_Lean_bot). The toggle appears after an access check.")))
+        items.append(_prow("lte", _t("LeanVPN (Premium - С обходом)", "LeanVPN (Premium - Bypass)")))
+        items.append(Divider(text=_t(
+            "Работает только с активной подпиской LTE или Ultimate в @VPN_Lean_bot.",
+            "LeanLTE works only with an active LTE or Ultimate subscription in @VPN_Lean_bot.")))
 
         if (_kws_needs_sub["v"] or _kws_on_trickle["v"]) and not _kws_grace_active():
             items.append(Header(text=_t("Требуется подписка", "Subscription required")))
@@ -3993,18 +3920,15 @@ class TgWsProxyPlugin(BasePlugin):
             status = "\U0001F512 " + _t("Нужна подписка", "Subscription required")
         items.append(Text(text=status, icon="msg_info"))
         try:
-            if getattr(self, "_provider_switch_target", None) is not None:
-                items.append(Text(text=_t("Провайдер: Переключение...", "Provider: Switching..."), icon="msg_info"))
-            else:
-                _pv = _kws_last_provider["name"]
-                if _pv:
-                    _pd = _kws_provider_display(_pv)
-                    if _kws_last_provider["trickle"] and not _kws_grace_active():
-                        _pl = _t("Провайдер: " + _pd + " (ознакомительный)",
-                                 "Provider: " + _pd + " (limited)")
-                    else:
-                        _pl = _t("Провайдер: " + _pd, "Provider: " + _pd)
-                    items.append(Text(text=_pl, icon="msg_info"))
+            _pv = _kws_last_provider["name"]
+            if _pv:
+                _pd = _kws_provider_display(_pv)
+                if _kws_last_provider["trickle"] and not _kws_grace_active():
+                    _pl = _t("Провайдер: " + _pd + " (ознакомительный)",
+                             "Provider: " + _pd + " (limited)")
+                else:
+                    _pl = _t("Провайдер: " + _pd, "Provider: " + _pd)
+                items.append(Text(text=_pl, icon="msg_info"))
         except Exception:
             pass
         items.append(Text(
@@ -4582,16 +4506,6 @@ class TgWsProxyPlugin(BasePlugin):
             pass
     def _on_provider_mode_clicked(self, mode):
         try:
-            if bool(self.get_setting("tgws_enabled", False)) and bool(getattr(self, "_tgws_running", False)):
-                self._provider_switch_target = str(mode)
-                self._provider_switch_ready = False
-            else:
-                self._provider_switch_target = None
-                self._provider_switch_ready = False
-        except Exception:
-            self._provider_switch_target = None
-            self._provider_switch_ready = False
-        try:
             self.set_setting("tgws_provider_mode", str(mode), reload_settings=False)
             for _m in ("auto", "nimarko", "th3", "lte"):
                 self.set_setting("tgws_prov_" + _m, (_m == str(mode)), reload_settings=False)
@@ -4606,19 +4520,10 @@ class TgWsProxyPlugin(BasePlugin):
         except Exception:
             pass
         try:
-            gen = int(getattr(self, "_provider_switch_gen", 0)) + 1
-            self._provider_switch_gen = gen
             if bool(self.get_setting("tgws_enabled", False)) and bool(getattr(self, "_tgws_running", False)):
-                def _reswitch(g=gen):
-                    if int(getattr(self, "_provider_switch_gen", 0)) != g:
-                        return
+                def _reswitch():
                     try:
                         self._tgws_core.stop()
-                    except Exception:
-                        pass
-                    try:
-                        if int(getattr(self, "_provider_switch_gen", 0)) == g:
-                            self._provider_switch_ready = True
                     except Exception:
                         pass
                     try:
@@ -4628,32 +4533,9 @@ class TgWsProxyPlugin(BasePlugin):
                     except Exception:
                         pass
                     self._start_tgws_runtime(auto_start=True, delay_ms=0)
-                def _fire(g=gen):
-                    if int(getattr(self, "_provider_switch_gen", 0)) == g:
-                        run_on_queue(_reswitch)
-                run_on_ui_thread(_fire, 700)
+                run_on_ui_thread(lambda: run_on_queue(_reswitch), 450)
         except Exception:
             pass
-
-    def _on_provider_connected(self, name):
-        try:
-            target = getattr(self, "_provider_switch_target", None)
-            ready = bool(getattr(self, "_provider_switch_ready", False))
-            provider = str(name or "").strip().lower()
-            target = str(target).strip().lower() if target is not None else None
-        except Exception:
-            return False
-        if target is None or not ready:
-            return False
-        if target != "auto" and target != provider:
-            return False
-        self._provider_switch_target = None
-        self._provider_switch_ready = False
-        try:
-            self._reload_settings_ui(delay_ms=0)
-        except Exception:
-            pass
-        return True
 
     def _on_provider_toggle(self, mode, value):
         try:
@@ -4676,81 +4558,6 @@ class TgWsProxyPlugin(BasePlugin):
             self._reload_settings_ui(delay_ms=0)
         except Exception:
             pass
-
-    def _on_lte_check_clicked(self, v=None):
-        if bool(getattr(self, "_lte_checking", False)):
-            return
-        rem = int(60 - (time.time() - float(getattr(self, "_lte_check_ts", 0.0) or 0.0)))
-        if rem > 0:
-            try:
-                BulletinHelper.show_info(_tt("Подождите %dс — не нагружаем сервер" % rem, "Wait %ds — sparing the server" % rem))
-            except Exception:
-                pass
-            return
-        self._lte_check_ts = time.time()
-        self._lte_checking = True
-        try:
-            BulletinHelper.show_info(_tt("Проверяю доступ…", "Checking access…"))
-        except Exception:
-            pass
-        try:
-            self._reload_ui_pending = False
-        except Exception:
-            pass
-        self._reload_settings_ui(delay_ms=0)
-        try:
-            threading.Thread(target=self._lte_run_access_check, daemon=True, name="kws-lte-check").start()
-        except Exception:
-            self._lte_checking = False
-        try:
-            run_on_ui_thread(self._reload_settings_ui, 61000)
-        except Exception:
-            pass
-
-    def _lte_run_access_check(self):
-        found = None
-        try:
-            lte = _kws_provider("lte")
-            _active = _kws_current_account()
-            _order = [_active] + [a for a in range(int(UserConfig.MAX_ACCOUNT_COUNT)) if a != _active]
-            for ac in _order:
-                try:
-                    if _kws_uid(ac) <= 0:
-                        continue
-                    cred = _kws_mint_for_account(lte, ac)
-                    if cred and cred != "__give_up__":
-                        _kws_store_cred(lte, cred)
-                        _kws_mark_lte_entitled(ac)
-                        found = ac
-                        break
-                except Exception:
-                    continue
-        except Exception:
-            pass
-        self._lte_checking = False
-        if found is None:
-            try:
-                self.set_setting("tgws_lte_entitled", "0", reload_settings=False)
-            except Exception:
-                pass
-            try:
-                run_on_ui_thread(lambda: BulletinHelper.show_error(_tt("Подписка LTE или Ultimate не найдена ни на одном аккаунте", "No LTE or Ultimate subscription found on any account")))
-            except Exception:
-                pass
-            try:
-                self._reload_ui_pending = False
-            except Exception:
-                pass
-            self._reload_settings_ui(delay_ms=0)
-        else:
-            try:
-                run_on_ui_thread(lambda: BulletinHelper.show_info(_tt("Доступ LTE найден — LeanVPN Premium включён", "LTE access found — LeanVPN Premium enabled")))
-            except Exception:
-                pass
-            try:
-                run_on_ui_thread(lambda: self._on_provider_mode_clicked("lte"))
-            except Exception:
-                pass
 
     def _open_channel(self, username):
         u = str(username or "").lstrip("@")

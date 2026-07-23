@@ -180,14 +180,14 @@ def _iter_java(obj):
 
 | Папка | ID | Версия | Файл | README | docs |
 |-------|----|--------|------|--------|------|
-| [CuteMessages](CuteMessages/) | `cutemessagesenhanced` | 1.7.1 | `cutemessagesenhanced.plugin` | [README](CuteMessages/README.md) | [docs](CuteMessages/docs.md) |
+| [CuteMessages](CuteMessages/) | `cutemessagesenhanced` | 1.8.0 | `cutemessagesenhanced.plugin` | [README](CuteMessages/README.md) | [docs](CuteMessages/docs.md) |
 | [KangelPluginsManager](KangelPluginsManager/) | `kangel_plugins_manager` | 1.4.3 | `kangel_plugins_manager.plugin` | [README](KangelPluginsManager/README.md) | [docs](KangelPluginsManager/docs.md) |
 | [LiveWallpaper](LiveWallpaper/) | `live_wallpaper` | 1.2 | `live_wallpaper.plugin` | [README](LiveWallpaper/README.md) | [docs](LiveWallpaper/docs.md) |
 | [UnlimitedPins](UnlimitedPins/) | `misha_unlimited_pins` | 2.0 | `misha_unlimited_pins.plugin` | [README](UnlimitedPins/README.md) | [docs](UnlimitedPins/docs.md) |
 | [PluginVerifier](PluginVerifier/) | `plugin_verifier` | 2.4.8 | `plugin_verifier.plugin` | [README](PluginVerifier/README.md) | [docs](PluginVerifier/docs.md) |
 | [ListOfCommands](ListOfCommands/) | `list_of_commands` | 1.0.8 | `list_of_commands.plugin` | [README](ListOfCommands/README.md) | [docs](ListOfCommands/docs.md) |
 | [TomatoBom](TomatoBom/) | `tomato_bom` | 1.2.8 | `tomato_bom.plugin` | [README](TomatoBom/README.md) | [docs](TomatoBom/docs.md) |
-| [WSBypass](WSBypass/) | `wsbypass` | 3.0.5 | `wsbypass.plugin` | [README](WSBypass/README.md) | [docs](WSBypass/docs.md) |
+| [WSBypass](WSBypass/) | `wsbypass` | 3.1.4 | `wsbypass.plugin` | [README](WSBypass/README.md) | [docs](WSBypass/docs.md) |
 | [VersionOverride](VersionOverride/) | `version_override` | 1.0.3 | `version_override.plugin` | [README](VersionOverride/README.md) | [docs](VersionOverride/docs.md) |
 
 ## Сводка по типам
@@ -225,10 +225,20 @@ def _iter_java(obj):
 | PluginVerifier | **критический** | Anti-tamper, широкие привилегии |
 | ListOfCommands | низкий | Regex-парсинг файлов плагинов |
 | TomatoBom | низкий–средний | Overlay + загрузка ассетов |
-| WSBypass | низкий–средний | Туннель через KWS-серверы |
+| WSBypass | низкий–средний | Туннель через KWS-серверы; v3.1.4: ⚠️ Осторожно (Pluggy) |
 | VersionOverride | низкий–средний | Обход проверки версии при установке |
 
-Подробности — `secure.md` в папке плагина. Отчёты: [Pluggy Bot](https://t.me/pluggy_robot).
+Подробности — `secure.md` в папке плагина. Отчёты: [Pluggy Bot](https://t.me/pluggy_robot) или скрипт `.tools/pluggy_analyze.ps1` (нужны `PLUGGY_SESSION` и `PLUGGY_CSRF` из cookies pluggy.mk69.dev).
+
+### Pluggy API (локально)
+
+```powershell
+$env:PLUGGY_SESSION = '<pluggy_session>'
+$env:PLUGGY_CSRF = '<pluggy_csrf>'
+.\.tools\pluggy_analyze.ps1 -PluginFile WSBypass\releases\v3.1.4\wsbypass_v3.1.4.plugin
+```
+
+Лимит: ~1 файл в минуту. Для нескольких файлов — пауза 65 с (`-DelaySeconds`).
 
 ## Структура репозитория
 
@@ -238,6 +248,7 @@ awesome-plugins/
   docs.md                # этот файл — общая документация
   .cursor/rules/
   .tools/build_plugin.bat
+  .tools/pluggy_analyze.ps1   # отправка .plugin в Pluggy API (secure-отчёты)
   CuteMessages/
     README.md
     docs.md
