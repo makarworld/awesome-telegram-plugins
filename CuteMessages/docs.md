@@ -72,6 +72,12 @@ post_request_hook
 | `auto_reaction_enabled` / `auto_reaction_emoji` | Реакция после отправки |
 | `include_lists_export` | Включать списки чатов в пресет |
 | Эффекты | emoji, lowercase, uwu, stutter, vowel stretch, cute actions, punctuation, soft sign, text borders, themes |
+| `custom_emojis` / `custom_kaomojis` / `custom_sparkles` | JSON-массивы строк; пустой = эффект группы выкл; нет ключа = дефолт |
+| `custom_uwu_suffixes` / `custom_exclamations` / `custom_period_replacements` / `custom_question_replacements` | то же |
+| `custom_theme_{pastel,magical,nature}_emojis` | кастомные эмодзи тем |
+| `custom_text_borders` | JSON `[[left, right], ...]`; добавление в UI: `лево|право` |
+| `custom_cute_actions_ru` / `custom_cute_actions_en` | списки действий |
+| `include_custom_lists_export` | включать `custom_*` в пресет (по умолчанию нет) |
 
 ## Пресеты
 
@@ -127,7 +133,7 @@ post_request_hook
 
 | Версия | Примечание |
 |--------|------------|
-| 1.8.0 | Подстраницы настроек, пресеты, premium emoji, топики, стоп-слово, авто fx/reaction (в разработке) |
+| 1.8.0 | Подстраницы настроек, пресеты, premium emoji, топики, стоп-слово, авто fx/reaction; редактируемые кастомные списки (эмодзи/каомодзи/спарклы/темы/рамки/пунктуация/actions) |
 | 1.7.1 | Cutify, стек undo, защита ссылок — [CHANGELOG](releases/v1.7.1/CHANGELOG.md) |
 | 1.7.0 | Whitelist/blacklist, undo — [CHANGELOG](releases/v1.7.0/CHANGELOG.md) |
 
