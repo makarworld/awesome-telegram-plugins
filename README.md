@@ -28,6 +28,7 @@
 
 ## 🧩 Плагины
 
+- [@TinyTelegramToolsBot](https://t.me/TinyTelegramToolsBot) - Utility Telegram bot with a Mini App for everyday one-tap tools (notes, timers, converters).
 ### 💬 CuteMessages
 
 **ID:** `cutemessagesenhanced` · **v1.8.0** · @mihailkotovski, @mishabotov · обновление 1.7.x–1.8.x: @abuztrade, @AwesomeTelegramPlugins  
